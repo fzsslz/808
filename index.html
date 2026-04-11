@@ -239,8 +239,7 @@ function showNewQuote() {
     }, 200);
 }
 
-window.onload = showNewQuote;
-</script><!-- 交互版名言卡片（完善美化版） -->
+<!-- 交互版名言卡片（完善美化版） -->
 <div id="quoteBox" 
      style="max-width: 90%;
             width: 600px;
@@ -252,6 +251,22 @@ window.onload = showNewQuote;
             cursor: pointer;
             text-align: center;
             box-sizing: border-box;">
+    <div id="quote"
+         style="font-size: 26px;
+                color: #2d7dd2;
+                font-weight: 600;
+                font-family: 'Microsoft YaHei', sans-serif;
+                transition: opacity 0.3s ease;
+                line-height: 1.6;">
+        点击这里刷新名言
+    </div>
+    <div style="margin-top: 20px;
+                font-size: 16px;
+                color: #666;
+                font-family: 'Microsoft YaHei', sans-serif;">
+        ✨ 点击换一句
+    </div>
+</div>
     <div id="quote"
          style="font-size: 26px;
                 color: #2d7dd2;
