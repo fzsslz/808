@@ -241,7 +241,7 @@ function showNewQuote() {
 }
 
 <!-- 交互版名言卡片（完善美化版） -->
-<div id="quoteBox" 
+<div id="quoteBox"     
      style="max-width: 90%;
             width: 600px;
             margin: 40px auto 50px;
@@ -251,59 +251,46 @@ function showNewQuote() {
             box-shadow: 0 8px 24px rgba(45, 125, 210, 0.15);
             cursor: pointer;
             text-align: center;
-            box-sizing: border-box;">
-    <div id="quote"
-         style="font-size: 26px;
-                color: #2d7dd2;
-                font-weight: 600;
-                font-family: 'Microsoft YaHei', sans-serif;
-                transition: opacity 0.3s ease;
-                line-height: 1.6;">
+            box-sizing: border-box;"
+     onclick="showNewQuote()">
+
+    <div id="quote"         
+         style="font-size: 26px;                
+                color: #2d7dd2;                
+                font-weight: 600;                
+                font-family: 'Microsoft YaHei', sans-serif;                
+                transition: opacity 0.3s ease;                
+                line-height: 1.6;">        
         点击这里刷新名言
     </div>
-    <div style="margin-top: 20px;
-                font-size: 16px;
-                color: #666;
-                font-family: 'Microsoft YaHei', sans-serif;">
-        ✨ 点击换一句
-    </div>
-</div>
-    <div id="quote"
-         style="font-size: 26px;
-                color: #2d7dd2;
-                font-weight: 600;
-                font-family: 'Microsoft YaHei', sans-serif;
-                transition: opacity 0.3s ease;
-                line-height: 1.6;">
-        点击这里刷新名言
-    </div>
-    <div style="margin-top: 20px;
-                font-size: 16px;
-                color: #666;
-                font-family: 'Microsoft YaHei', sans-serif;">
+
+    <div style="margin-top: 20px;                
+                font-size: 16px;                
+                color: #666;                
+                font-family: 'Microsoft YaHei', sans-serif;">        
         ✨ 点击换一句
     </div>
 </div>
 
 <script>
-const quotes = [
-    "以梦为马，不负韶华",
-    "乾坤未定，你我皆是黑马",
-    "星光不问赶路人，时光不负有心人",
-    "愿你笔锋所至，梦想开花",
-    "少年应有鸿鹄志，敢乘长风破万里浪",
-    "努力的意义，就是以后全是喜欢的人和事",
-    "今朝秣马坚如铁，他日功成朝天阙",
+const quotes = [    
+    "以梦为马，不负韶华",    
+    "乾坤未定，你我皆是黑马",    
+    "星光不问赶路人，时光不负有心人",    
+    "愿你笔锋所至，梦想开花",    
+    "少年应有鸿鹄志，敢乘长风破万里浪",    
+    "努力的意义，就是以后全是喜欢的人和事",    
+    "今朝秣马坚如铁，他日功成朝天阙",    
     "我是帅哥"
 ];
 
-function showNewQuote() {
-    const quoteText = document.getElementById("quote");
-    quoteText.style.opacity = "0";
-    setTimeout(() => {
-        const randomIndex = Math.floor(Math.random() * quotes.length);
-        quoteText.innerText = quotes[randomIndex];
-        quoteText.style.opacity = "1";
+function showNewQuote() {    
+    const quoteText = document.getElementById("quote");    
+    quoteText.style.opacity = "0";    
+    setTimeout(() => {        
+        const randomIndex = Math.floor(Math.random() * quotes.length);        
+        quoteText.innerText = quotes[randomIndex];        
+        quoteText.style.opacity = "1";    
     }, 200);
 }
 
