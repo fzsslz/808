@@ -135,6 +135,31 @@
       <h2>班级介绍</h2>
       <p>欢迎来到福州第三十六中学2024级8班班级网站，这里记录我们的学习、活动与成长瞬间。</p>
     </div>
+    <style>
+.quote {
+  text-align: center;
+  font-size: 16px;
+  color: #2d7dd2;
+  margin: 15px 0;
+  font-family: "Microsoft YaHei", sans-serif;
+}
+</style>
+
+<div class="quote" id="quote"></div>
+
+<script>
+const quotes = [
+  "以梦为马，不负韶华",
+  "乾坤未定，你我皆是黑马",
+  "星光不问赶路人，时光不负有心人",
+  "愿你笔锋所至，梦想开花",
+  "少年应有鸿鹄志，敢乘长风破万里浪",
+  "努力的意义，就是以后全是喜欢的人和事",
+  "今朝秣马坚如铁，他日功成朝天阙"
+  "我是帅哥"
+];
+document.getElementById("quote").innerText = quotes[Math.floor(Math.random()*quotes.length)];
+</script>
 <style>
 .exam-countdown {
   max-width: 500px;
