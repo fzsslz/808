@@ -240,23 +240,25 @@ function showNewQuote() {
 }
 
 window.onload = showNewQuote;
-</script><!-- 修复版交互名言卡片 -->
+</script><!-- 交互版名言卡片（完善美化版） -->
 <div id="quoteBox" 
-     style="max-width: 90%; 
-           margin: 30px auto;
-padding: 40px 20px;
-background: linear-gradient(135deg, #f8f9ff, #f0f9ff);
-border-radius: 24px;
-box-shadow: 0 8px 24px rgba(45, 125, 210, 0.15);
-cursor: pointer;
-text-align: center;"
-onclick="showNewQuote()">
+     style="max-width: 90%;
+            width: 600px;
+            margin: 40px auto 50px;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #f8f9ff, #f0f9ff);
+            border-radius: 24px;
+            box-shadow: 0 8px 24px rgba(45, 125, 210, 0.15);
+            cursor: pointer;
+            text-align: center;
+            box-sizing: border-box;">
     <div id="quote"
          style="font-size: 26px;
                 color: #2d7dd2;
                 font-weight: 600;
                 font-family: 'Microsoft YaHei', sans-serif;
-                transition: opacity 0.3s ease;">
+                transition: opacity 0.3s ease;
+                line-height: 1.6;">
         点击这里刷新名言
     </div>
     <div style="margin-top: 20px;
@@ -268,7 +270,6 @@ onclick="showNewQuote()">
 </div>
 
 <script>
-// 你的名言库（完全保留原内容）
 const quotes = [
     "以梦为马，不负韶华",
     "乾坤未定，你我皆是黑马",
@@ -280,11 +281,9 @@ const quotes = [
     "我是帅哥"
 ];
 
-// 修复版切换函数（带淡入淡出动画）
 function showNewQuote() {
     const quoteText = document.getElementById("quote");
     quoteText.style.opacity = "0";
-    
     setTimeout(() => {
         const randomIndex = Math.floor(Math.random() * quotes.length);
         quoteText.innerText = quotes[randomIndex];
@@ -292,7 +291,6 @@ function showNewQuote() {
     }, 200);
 }
 
-// 页面加载自动显示第一句
 window.onload = showNewQuote;
 </script>
        <!-- 班级相册 - 改成超链接按钮 -->
