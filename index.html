@@ -228,6 +228,7 @@ setInterval(update, 1000);
             cursor:pointer;"
      id="quoteBox"
      onclick="showNewQuote()">
+      <script>
 function showNewQuote() {
     const quoteText = document.getElementById("quote");
     let randomIndex = Math.floor(Math.random() * quotes.length);
