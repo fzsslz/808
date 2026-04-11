@@ -179,7 +179,7 @@
       <p>欢迎来到福州第三十六中学2024级8班班级网站，这里记录我们的学习、活动与成长瞬间。</p>
     </div>
 <div class="exam-countdown">
-  <div class="exam-title">🎓 中考倒计时</div>
+  <div class="exam-title">🎓 小中考倒计时</div>
   <div class="time-box">
     <div class="time-item"><div class="time-num" id="day">0</div><div class="time-text">天</div></div>
     <div class="time-item"><div class="time-num" id="hour">0</div><div class="time-text">时</div></div>
@@ -220,7 +220,7 @@ function update(){
   const h = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
   const m = Math.floor((diff % (1000*60*60)) / (1000*60));
   const s = Math.floor((diff % (1000*60)) / 1000);
-  document.getElementById("day").innerText = d < 0 ? 0 : d;
+  document.getElementById("day").innerText = d < 7 ? 3 : d;
   document.getElementById("hour").innerText = h < 0 ? 0 : h;
   document.getElementById("min").innerText = m < 0 ? 0 : m;
   document.getElementById("sec").innerText = s < 0 ? 0 : s;
