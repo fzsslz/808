@@ -135,6 +135,8 @@
       <h2>班级介绍</h2>
       <p>欢迎来到福州第三十六中学2024级8班班级网站，这里记录我们的学习、活动与成长瞬间。</p>
     </div>
+    <!-- 深色模式按钮 -->
+<button onclick="toggleDark()" style="position:fixed;top:20px;right:20px;padding:10px 16px;background:#3498db;color:white;border:none;border-radius:50px;cursor:pointer;font-weight:bold;" id="darkBtn">🌙 深色模式</button>
     <style>
 .quote {
   text-align: center;
@@ -188,7 +190,7 @@
 </style>
 
 <div class="exam-countdown">
-  <div class="exam-title">🎓 中考倒计时</div>
+  <div class="exam-title">🎓小中考倒计时</div>
   <div class="time-box">
     <div class="time-item"><div class="time-num" id="day">0</div><div class="time-text">天</div></div>
     <div class="time-item"><div class="time-num" id="hour">0</div><div class="time-text">时</div></div>
@@ -258,6 +260,7 @@ const quotes = [
 "努力的意义，就是以后全是喜欢的人和事",        
 "今朝秣马坚如铁，他日功成朝天阙",        
 "我是帅哥"
+""
 ];
 
 function showNewQuote() {        
@@ -309,5 +312,28 @@ window.onload = showNewQuote;
     <button class="btn" onclick="document.getElementById('modal').style.display='none'">确定</button>
   </div>
 </div>
+  <script>
+function toggleDark() {
+  const body = document.body;
+  const btn = document.getElementById("darkBtn");
+  const quoteBox = document.getElementById("quoteBox");
+  
+  body.classList.toggle("dark");
+  
+  if (body.classList.contains("dark")) {
+    body.style.background = "#1a1a1a";
+    body.style.color = "#fff";
+    quoteBox.style.background = "#2c2c2c";
+    quoteBox.style.boxShadow = "0 8px 24px rgba(0,0,0,0.4)";
+    btn.innerText = "☀️ 浅色模式";
+  } else {
+    body.style.background = "#fff";
+    body.style.color = "#000";
+    quoteBox.style.background = "linear-gradient(135deg, #f8f9ff, #f0f9ff)";
+    quoteBox.style.boxShadow = "0 8px 24px rgba(45, 125, 210, 0.15)";
+    btn.innerText = "🌙 深色模式";
+  }
+}
+</script>
 </body>
 </html>
