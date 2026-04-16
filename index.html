@@ -223,64 +223,61 @@ update();
 setInterval(update, 1000);
 </script>
 <!-- 交互版名言卡片（完善美化版） -->
-<div id="quoteBox"          
-style="max-width: 90%;            
-width: 600px;            
-margin: 40px auto 50px;            
-padding: 40px 20px;            
-background: linear-gradient(135deg, #f8f9ff, #f0f9ff);            
-border-radius: 24px;            
-box-shadow: 0 8px 24px rgba(45, 125, 210, 0.15);            
-cursor: pointer;            
-text-align: center;            
-box-sizing: border-box;"     
-onclick="showNewQuote()">
+<div onclick="showNewQuote()" 
+     style="cursor: pointer; 
+            max-width: 600px; 
+            margin: 30px auto; 
+            padding: 30px; 
+            border-radius: 16px;
+            background: #f8f9ff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;">
     <div id="quote"                  
-style="font-size: 26px;                                
-color: #2d7dd2;                                
-font-weight: 600;                                
-font-family: 'Microsoft YaHei', sans-serif;                                
-transition: opacity 0.3s ease;                                
-line-height: 1.6;">        
+         style="font-size: 26px;                                
+                color: #2d7dd2;                                
+                font-weight: 600;                                
+                font-family: 'Microsoft YaHei', sans-serif;                                
+                transition: opacity 0.3s ease;                                
+                line-height: 1.6;">        
         点击这里刷新名言    
-</div>
+    </div>    
     <div style="margin-top: 20px;                                
-font-size: 16px;                                
-color: #666;                                
-font-family: 'Microsoft YaHei', sans-serif;">        
+                font-size: 16px;                                
+                color: #666;                                
+                font-family: 'Microsoft YaHei', sans-serif;">        
         ✨ 点击换一句    
-</div>
+    </div>
 </div>
 
 <script>
 const quotes = [        
-"以梦为马，不负韶华",        
-"乾坤未定，你我皆是黑马",        
-"星光不问赶路人，时光不负有心人",        
-"愿你笔锋所至，梦想开花",        
-"少年应有鸿鹄志，敢乘长风破万里浪",        
-"努力的意义，就是以后全是喜欢的人和事",        
-"今朝秣马坚如铁，他日功成朝天阙",        
-"我是帅哥"
-"聚是一团火，散是满天星"
-"我们在一起，就很了不起"
-"始于初秋，终于盛夏，一路同行"
-"同乘一班，共赴山海"
-"时光不老，我们不散"
-"最好的我们，最好的班级 "                                                                                                                
-"三人行，必有我师焉"
-"锲而不舍，金石可镂"
-"黑发不知勤学早，白首方悔读书迟"
-"欲穷千里目，更上一层楼"
+    "以梦为马，不负韶华",        
+    "乾坤未定，你我皆是黑马",        
+    "星光不问赶路人，时光不负有心人",        
+    "愿你笔锋所至，梦想开花",        
+    "少年应有鸿鹄志，敢乘长风破万里浪",        
+    "努力的意义，就是以后全是喜欢的人和事",        
+    "今朝秣马坚如铁，他日功成朝天阙",        
+    "我是帅哥",
+    "聚是一团火，散是满天星",
+    "我们在一起，就很了不起",
+    "始于初秋，终于盛夏，一路同行",
+    "同乘一班，共赴山海",
+    "时光不老，我们不散",
+    "最好的我们，最好的班级",                                                                                                               
+    "三人行，必有我师焉",
+    "锲而不舍，金石可镂",
+    "黑发不知勤学早，白首方悔读书迟",
+    "欲穷千里目，更上一层楼"
 ];
 
-function showNewQuote() {        
-    const quoteText = document.getElementById("quote");        
-    quoteText.style.opacity = "0";        
-    setTimeout(() => {                
-        const randomIndex = Math.floor(Math.random() * quotes.length);                
-        quoteText.innerText = quotes[randomIndex];                
-        quoteText.style.opacity = "1";        
+function showNewQuote() {            
+    const quoteText = document.getElementById("quote");            
+    quoteText.style.opacity = "0";            
+    setTimeout(() => {                        
+        const randomIndex = Math.floor(Math.random() * quotes.length);                        
+        quoteText.innerText = quotes[randomIndex];                        
+        quoteText.style.opacity = "1";            
     }, 200);
 }
 
