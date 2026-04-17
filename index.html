@@ -374,21 +374,25 @@ function toggleDark() {
   const body = document.body;
   const btn = document.getElementById("darkBtn");
   const quoteBox = document.getElementById("quoteBox");
-  
+
   body.classList.toggle("dark");
-  
+
   if (body.classList.contains("dark")) {
-    body.style.background = "#1a1a1a";
-    body.style.color = "#fff";
+    body.style.background = "#1a1a1a"; // 深色背景
+    body.style.color = "#ffffff";      // body文字变白
     quoteBox.style.background = "#2c2c2c";
     quoteBox.style.boxShadow = "0 8px 24px rgba(0,0,0,0.4)";
     btn.innerText = "浅色模式";
+    // 新增关键一行：强制所有元素文字变白
+    document.querySelectorAll("*").forEach(el => el.style.color = "#ffffff");
   } else {
-    body.style.background = "#fff";
-    body.style.color = "#000";
+    body.style.background = "#fff";    // 浅色背景
+    body.style.color = "#000";        // body文字变黑
     quoteBox.style.background = "linear-gradient(135deg, #f8f9ff, #f0f9ff)";
     quoteBox.style.boxShadow = "0 8px 24px rgba(45, 125, 210, 0.15)";
     btn.innerText = "深色模式";
+    // 新增关键一行：恢复所有元素文字为黑色
+    document.querySelectorAll("*").forEach(el => el.style.color = "#000000");
   }
 }
 </script>
