@@ -268,7 +268,8 @@ const quotes = [
     "三人行，必有我师焉",
     "锲而不舍，金石可镂",
     "黑发不知勤学早，白首方悔读书迟",
-    "欲穷千里目，更上一层楼"
+    "欲穷千里目，更上一层楼"，
+    "物理老师好帅"
 ];
 
 function showNewQuote() {            
@@ -297,7 +298,7 @@ window.onload = showNewQuote;
       <ul class="file-list">
         <li><a href="notice.html" target="_blank">班级通知</a></li>
         <li><a href="kcb.jpg" target="_blank">课程表图片</a></li>
-        <li><a href="https://docs.qq.com/sheet/DQmVta2ZoVHNoQ0V3" target="_blank">查看德育分表格</a></li>
+        <li><a href="https://docs.qq.com/sheet/DQmVta2ZoVHNoQ0V3" target="_blank">德育分表格</a></li>
       </ul>
     </div>
 
@@ -316,7 +317,7 @@ window.onload = showNewQuote;
 
 <div class="modal" id="modal">
   <div class="box">
-    <div class="title">🏫 欢迎访问班级网站，welcome to website class808</div>
+    <div class="title">欢迎访问班级网站，welcome to website class808</div>
     <button class="btn" onclick="document.getElementById('modal').style.display='none'">确定</button>
   </div>
 </div>
@@ -333,13 +334,13 @@ function toggleDark() {
     body.style.color = "#fff";
     quoteBox.style.background = "#2c2c2c";
     quoteBox.style.boxShadow = "0 8px 24px rgba(0,0,0,0.4)";
-    btn.innerText = "☀️ 浅色模式";
+    btn.innerText = "浅色模式";
   } else {
     body.style.background = "#fff";
     body.style.color = "#000";
     quoteBox.style.background = "linear-gradient(135deg, #f8f9ff, #f0f9ff)";
     quoteBox.style.boxShadow = "0 8px 24px rgba(45, 125, 210, 0.15)";
-    btn.innerText = "🌙 深色模式";
+    btn.innerText = "深色模式";
   }
 }
 </script>
