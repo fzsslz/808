@@ -269,7 +269,7 @@ const quotes = [
     "锲而不舍，金石可镂",
     "黑发不知勤学早，白首方悔读书迟",
     "欲穷千里目，更上一层楼"，
-    "物理老师好帅"
+    "物理老师好帅"，
 ];
 
 function showNewQuote() {            
@@ -292,6 +292,17 @@ window.onload = showNewQuote;
   <!-- 核心：超链接跳转到 album 文件夹 -->
   <a href="album.html" class="nav-link" style="display:inline-block; background:#4285F4; color:#fff; padding:10px 22px; border-radius:10px; text-decoration:none; font-weight:bold; transition:all 0.3s;" onmouseover="this.style.backgroundColor='#3367D6'" onmouseout="this.style.backgroundColor='#4285F4'">📸 查看班级相册</a>
 </div>
+    <!-- 一键复制班级网址 -->
+<button onclick="copySite()" 
+style="width:100%; padding:14px; background:#165DFF; color:white; border:none; border-radius:14px; font-size:16px; cursor:pointer; margin:10px 0;">
+🔗 一键复制班级网站网址
+</button>
+<script>
+function copySite(){
+  navigator.clipboard.writeText(window.location.href);
+  alert("复制成功！");
+}
+</script>
    <!-- 文件资料 -->
 <div class="section" id="files" style="margin: 30px 0;">
   <h2 style="font-size: 22px; font-weight: bold; color: #165DFF; margin-bottom: 16px;">📁 文件资料</h2>
