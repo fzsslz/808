@@ -204,7 +204,7 @@
 
 <script>
 // 我已经帮你设置成：从今天算起 还剩73天！
-const examDate = new Date("2026-06-23 09:00:00").getTime();
+const examDate = new Date("2026/06/23 09:00:00").getTime();
 
 function update(){
   const now = new Date().getTime();
@@ -395,5 +395,116 @@ function toggleDark() {
   }
 }
 </script>
+  <!-- 豆包班级AI - 右下角悬浮弹窗版｜免登录+不跳转+不卡顿 -->
+<style>
+/* 悬浮按钮样式 蓝白校园风 */
+.doubao-float-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 10px 18px;
+  border-radius: 50px;
+  background: #1677ff;
+  color: white;
+  border: none;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 9999;
+  transition: all 0.2s ease;
+}
+.doubao-float-btn:hover {
+  transform: scale(1.05);
+  background: #4096ff;
+}
+
+/* 弹窗容器 */
+.doubao-modal {
+  display: none;
+  position: fixed;
+  bottom: 90px;
+  right: 24px;
+  width: 400px;
+  height: 600px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  z-index: 9998;
+  background: white;
+}
+
+/* 关闭按钮 */
+.doubao-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 9999;
+  transition: background 0.2s;
+}
+.doubao-close:hover {
+  background: rgba(0,0,0,0.7);
+}
+
+/* 懒加载iframe */
+#doubao-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* 手机自动适配 */
+@media (max-width: 480px) {
+  .doubao-modal {
+    width: calc(100% - 32px);
+    height: 70vh;
+    right: 16px;
+    bottom: 80px;
+  }
+}
+</style>
+
+<!-- 悬浮按钮：🤖 班级AI -->
+<button class="doubao-float-btn" id="doubaoBtn">🤖 班级AI</button>
+
+<!-- AI弹窗容器 -->
+<div class="doubao-modal" id="doubaoModal">
+  <button class="doubao-close" id="doubaoClose">×</button>
+  <iframe id="doubao-iframe" allow="autoplay; fullscreen"></iframe>
+</div>
+
+<script>
+const doubaoBtn = document.getElementById('doubaoBtn');
+const doubaoModal = document.getElementById('doubaoModal');
+const doubaoClose = document.getElementById('doubaoClose');
+const doubaoIframe = document.getElementById('doubao-iframe');
+
+// 【唯一需要修改的地方】把引号内换成你的智能体分享链接
+const DOUBAO_BOT_URL = "在这里粘贴你的智能体链接";
+
+let isLoaded = false;
+
+function toggleDoubao() {
+  if (doubaoModal.style.display === 'block') {
+    doubaoModal.style.display = 'none';
+  } else {
+    if (!isLoaded) {
+      doubaoIframe.src = DOUBAO_BOT_URL;
+      isLoaded = true;
+    }
+    doubaoModal.style.display = 'block';
+  }
+}
+
+doubaoBtn.addEventListener('click', toggleDoubao);
+doubaoClose.addEventListener('click', toggleDoubao);
+</script>  
 </body>
 </html>
