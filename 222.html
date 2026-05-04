@@ -2,32 +2,91 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover">
 <title>五子棋</title>
 <style>
-*{box-sizing:border-box;font-family:system-ui}
-body{background:#f0f2f5;display:flex;flex-direction:column;align-items:center;padding:10px;margin:0}
-h2{color:#333;margin:10px 0}
-canvas{border:8px solid #cd7f32;background:#e7b877;border-radius:8px; touch-action: none; max-width:100%}
-.ctrl{margin:10px 0;display:flex;gap:8px}
-button{padding:8px 12px;background:#165DFF;color:white;border:none;border-radius:6px;font-size:16px;cursor:pointer}
-#modeSelect{margin-bottom:10px;display:flex;gap:10px}
-#modeSelect button{background:#4CAF50}
-#modeSelect button.active{background:#165DFF}
-#virtual{display:none;width:100%;justify-content:center;margin-top:20px}
-.pad{display:grid;grid-template-columns:repeat(3,72px);grid-template-rows:repeat(3,72px);gap:8px}
-.pad button{font-size:22px;border-radius:12px;border:none;box-shadow:0 2px 5px #ccc}
-.pad .ok{background:#28a745}
-@media(max-width:480px){#virtual{display:flex}}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
+body {
+  background: #f0f2f5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+  min-height: 100vh;
+}
+h2 {
+  color: #333;
+  margin: 10px 0;
+}
+canvas {
+  border: 8px solid #cd7f32;
+  background: #e7b877;
+  border-radius: 8px;
+  touch-action: none;
+  max-width: 92vw;
+}
+.ctrl {
+  margin: 10px 0;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+button {
+  padding: 8px 14px;
+  background: #165DFF;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+#modeSelect button {
+  background: #4CAF50;
+}
+#modeSelect button.active {
+  background: #165DFF;
+}
+/* 手机虚拟按键布局 */
+#virtual {
+  display: none;
+  margin-top: 15px;
+}
+.pad {
+  display: grid;
+  grid-template-columns: repeat(3, 75px);
+  grid-template-rows: repeat(3, 75px);
+  gap: 6px;
+}
+.pad button {
+  font-size: 24px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px #ccc;
+}
+.pad .ok {
+  background: #28a745;
+}
+@media (max-width: 480px) {
+  #virtual {
+    display: grid;
+  }
+}
 </style>
 </head>
 <body>
 <h2>🎮 五子棋</h2>
-<div id="modeSelect">
+<div id="modeSelect" class="ctrl">
 <button onclick="setMode('pvp')" class="active">双人对战</button>
 <button onclick="setMode('pve')">人机对战</button>
 </div>
+
 <canvas id="board" width="420" height="420"></canvas>
+
 <div class="ctrl">
 <button onclick="restart()">重新开始</button>
 </div>
@@ -37,11 +96,9 @@ button{padding:8px 12px;background:#165DFF;color:white;border:none;border-radius
 <button></button>
 <button onclick="moveUp()">↑</button>
 <button></button>
-
 <button onclick="moveLeft()">←</button>
 <button onclick="placeCursor()" class="ok">落子</button>
 <button onclick="moveRight()">→</button>
-
 <button></button>
 <button onclick="moveDown()">↓</button>
 <button></button>
@@ -49,161 +106,145 @@ button{padding:8px 12px;background:#165DFF;color:white;border:none;border-radius
 </div>
 
 <script>
-const canvas=document.getElementById('board');
-const ctx=canvas.getContext('2d');
-const grid=30;
-let board=Array(15).fill().map(()=>Array(15).fill(0));
-let cur=1;
-let cursorX=7,cursorY=7;
-let gameMode='pvp';
+const canvas = document.getElementById('board');
+const ctx = canvas.getContext('2d');
+const grid = 30;
+let board = Array(15).fill().map(() => Array(15).fill(0));
+let cur = 1;
+let cursorX = 7, cursorY = 7;
+let gameMode = 'pvp';
 
-function setMode(mode){
-  gameMode=mode;
-  document.querySelectorAll('#modeSelect button').forEach(btn=>btn.classList.remove('active'));
+// 模式切换
+function setMode(mode) {
+  gameMode = mode;
+  document.querySelectorAll('#modeSelect button').forEach(btn => btn.classList.remove('active'));
   event.target.classList.add('active');
   restart();
 }
 
-function draw(){
-  ctx.fillStyle='#e7b877';
-  ctx.fillRect(0,0,420,420);
-  
-  ctx.strokeStyle='#333';
-  ctx.lineWidth=1;
-  for(let i=0;i<=14;i++){
+// 绘制棋盘棋子
+function draw() {
+  ctx.fillStyle = '#e7b877';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 14; i++) {
     ctx.beginPath();
-    ctx.moveTo(i*grid, 0);
-    ctx.lineTo(i*grid, 420);
+    ctx.moveTo(i * grid, 0);
+    ctx.lineTo(i * grid, canvas.height);
     ctx.stroke();
-  }
-  for(let i=0;i<=14;i++){
     ctx.beginPath();
-    ctx.moveTo(0, i*grid);
-    ctx.lineTo(420, i*grid);
+    ctx.moveTo(0, i * grid);
+    ctx.lineTo(canvas.width, i * grid);
     ctx.stroke();
   }
 
-  for(let i=0;i<15;i++){
-    for(let j=0;j<15;j++){
-      if(board[i][j]){
+  // 画棋子
+  for (let i = 0; i < 15; i++) {
+    for (let j = 0; j < 15; j++) {
+      if (board[i][j]) {
         ctx.beginPath();
-        ctx.arc(j*grid, i*grid, 12, 0, Math.PI*2);
-        ctx.fillStyle=board[i][j]==1?'#000':'#fff';
+        ctx.arc(j * grid, i * grid, 12, 0, Math.PI * 2);
+        ctx.fillStyle = board[i][j] === 1 ? '#000' : '#fff';
         ctx.fill();
-        ctx.strokeStyle='#333';
+        ctx.strokeStyle = '#333';
         ctx.stroke();
       }
     }
   }
 
+  // 红色光标
   ctx.beginPath();
-  ctx.arc(cursorY*grid, cursorX*grid, 10, 0, Math.PI*2);
-  ctx.strokeStyle='red';
-  ctx.lineWidth=2;
+  ctx.arc(cursorY * grid, cursorX * grid, 10, 0, Math.PI * 2);
+  ctx.strokeStyle = 'red';
+  ctx.lineWidth = 2;
   ctx.stroke();
 }
 
-function win(x,y){
-  const dir=[[1,0],[0,1],[1,1],[1,-1]];
-  for(let [dx,dy] of dir){
-    let count=1;
-    for(let i=1;i<5;i++) if(board[x+dx*i]?.[y+dy*i]===cur)count++;else break;
-    for(let i=1;i<5;i++) if(board[x-dx*i]?.[y-dy*i]===cur)count++;else break;
-    if(count>=5)return true;
+// 精准胜负判断
+function checkWin(x, y, chess) {
+  const dir = [[1,0],[0,1],[1,1],[1,-1]];
+  for (let [dx, dy] of dir) {
+    let cnt = 1;
+    for (let i = 1; i < 5; i++)
+      if (board[x+dx*i]?.[y+dy*i] === chess) cnt++; else break;
+    for (let i = 1; i < 5; i++)
+      if (board[x-dx*i]?.[y-dy*i] === chess) cnt++; else break;
+    if (cnt >= 5) return true;
   }
   return false;
 }
 
-function place(x,y){
-  if(x<0||x>=15||y<0||y>=15||board[x][y])return;
+// 落子逻辑
+function place(x, y) {
+  if (x < 0 || x >= 15 || y < 0 || y >= 15 || board[x][y]) return;
 
-  board[x][y]=cur;
+  board[x][y] = cur;
   draw();
 
-  if(win(x,y)){
-    alert((cur==1?'黑':'白')+'棋胜利！');
+  // 玩家胜利判定
+  if (checkWin(x, y, cur)) {
+    alert(cur === 1 ? '黑棋（你）胜利！' : '白棋胜利！');
     restart();
     return;
   }
 
-  cur=3-cur;
-
-  if(gameMode==='pve' && cur===2){
-    setTimeout(aiMove,300);
+  cur = 3 - cur;
+  if (gameMode === 'pve' && cur === 2) {
+    setTimeout(aiMove, 250);
   }
 }
 
-// 超强高难度AI 会堵活三、活四、会自己做棋
-function aiMove(){
-  let bestX = 7;
-  let bestY = 7;
-  let maxScore = -99999;
+// 终极高难度AI
+function aiMove() {
+  let bestX = 7, bestY = 7;
+  let maxScore = -999999;
   const dirs = [[1,0],[0,1],[1,1],[1,-1]];
 
-  for(let i=0;i<15;i++){
-    for(let j=0;j<15;j++){
-      if(board[i][j]!==0) continue;
-
+  for (let i = 0; i < 15; i++) {
+    for (let j = 0; j < 15; j++) {
+      if (board[i][j] !== 0) continue;
       let score = 0;
-      // 中心权重
-      let midW = Math.abs(i-7)+Math.abs(j-7);
-      score += (14 - midW) * 15;
+      let midDis = Math.abs(i - 7) + Math.abs(j - 7);
+      score += (14 - midDis) * 35;
 
-      for(let [dx,dy] of dirs){
-        let p1=0,p2=0;
-        let block1=0,block2=0;
-
-        // 正向
-        for(let k=1;k<=4;k++){
-          let x=i+dx*k;
-          let y=j+dy*k;
-          if(x<0||x>=15||y<0||y>=15){block1++;break;}
-          if(board[x][y]===2) p1++;
-          else if(board[x][y]===1) {block1++;break;}
-          else break;
+      for (let [dx, dy] of dirs) {
+        let self = 0, enemy = 0;
+        // 己方连子
+        for (let k = 1; k <= 4; k++) {
+          let nx = i + dx * k, ny = j + dy * k;
+          if (nx < 0 || nx >= 15 || ny < 0 || ny >= 15) break;
+          if (board[nx][ny] === 2) self++; else break;
         }
-        // 反向
-        for(let k=1;k<=4;k++){
-          let x=i-dx*k;
-          let y=j-dy*k;
-          if(x<0||x>=15||y<0||y>=15){block2++;break;}
-          if(board[x][y]===2) p2++;
-          else if(board[x][y]===1) {block2++;break;}
-          else break;
+        for (let k = 1; k <= 4; k++) {
+          let nx = i - dx * k, ny = j - dy * k;
+          if (nx < 0 || nx >= 15 || ny < 0 || ny >= 15) break;
+          if (board[nx][ny] === 2) self++; else break;
         }
+        if (self === 1) score += 30;
+        if (self === 2) score += 80;
+        if (self === 3) score += 220;
+        if (self === 4) score += 850;
 
-        let self = p1 + p2;
-        // 自己棋型打分
-        if(self===1) score += 20;
-        if(self===2) score += 50;
-        if(self===3) score += 120;
-        if(self===4) score += 500;
-
-        // 防守：堵玩家
-        p1=0;p2=0;block1=0;block2=0;
-        for(let k=1;k<=4;k++){
-          let x=i+dx*k,y=j+dy*k;
-          if(x<0||x>=15||y<0||y>=15){block1++;break;}
-          if(board[x][y]===1) p1++;
-          else if(board[x][y]===2) {block1++;break;}
-          else break;
+        // 防守玩家连子
+        for (let k = 1; k <= 4; k++) {
+          let nx = i + dx * k, ny = j + dy * k;
+          if (nx < 0 || nx >= 15 || ny < 0 || ny >= 15) break;
+          if (board[nx][ny] === 1) enemy++; else break;
         }
-        for(let k=1;k<=4;k++){
-          let x=i-dx*k,y=j-dy*k;
-          if(x<0||x>=15||y<0||y>=15){block2++;break;}
-          if(board[x][y]===1) p2++;
-          else if(board[x][y]===2) {block2++;break;}
-          else break;
+        for (let k = 1; k <= 4; k++) {
+          let nx = i - dx * k, ny = j - dy * k;
+          if (nx < 0 || nx >= 15 || ny < 0 || ny >= 15) break;
+          if (board[nx][ny] === 1) enemy++; else break;
         }
-
-        let enemy = p1 + p2;
-        // 优先堵死玩家活二、活三、活四
-        if(enemy===2) score += 60;
-        if(enemy===3) score += 150;
-        if(enemy===4) score += 550;
+        if (enemy === 1) score += 40;
+        if (enemy === 2) score += 120;
+        if (enemy === 3) score += 300;
+        if (enemy === 4) score += 950;
       }
 
-      if(score > maxScore){
+      if (score > maxScore) {
         maxScore = score;
         bestX = i;
         bestY = j;
@@ -213,46 +254,49 @@ function aiMove(){
 
   board[bestX][bestY] = 2;
   draw();
-  cur = 1;
 
-  if(win(bestX,bestY)){
-    alert('电脑获胜！');
+  // 电脑胜利判定
+  if (checkWin(bestX, bestY, 2)) {
+    alert('白棋（电脑）胜利！好菜啊');
     restart();
+    return;
   }
+  cur = 1;
 }
 
-canvas.addEventListener('click',function(e){
+// 手机精准点击适配（彻底解决错位）
+canvas.addEventListener('click', function(e) {
   const rect = canvas.getBoundingClientRect();
   const scaleX = canvas.width / rect.width;
   const scaleY = canvas.height / rect.height;
-
   let px = (e.clientY - rect.top) * scaleY;
   let py = (e.clientX - rect.left) * scaleX;
-
   let x = Math.round(px / grid);
   let y = Math.round(py / grid);
-
-  place(x,y);
+  place(x, y);
 });
 
-document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowUp')moveUp();
-  if(e.key==='ArrowDown')moveDown();
-  if(e.key==='ArrowLeft')moveLeft();
-  if(e.key==='ArrowRight')moveRight();
-  if(e.key==='Enter'||e.key===' ')placeCursor();
+// 键盘控制
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowUp') moveUp();
+  if (e.key === 'ArrowDown') moveDown();
+  if (e.key === 'ArrowLeft') moveLeft();
+  if (e.key === 'ArrowRight') moveRight();
+  if (e.key === 'Enter' || e.key === ' ') placeCursor();
 });
 
-function moveUp(){if(cursorX>0)cursorX--;draw()}
-function moveDown(){if(cursorX<14)cursorX++;draw()}
-function moveLeft(){if(cursorY>0)cursorY--;draw()}
-function moveRight(){if(cursorY<14)cursorY++;draw()}
-function placeCursor(){place(cursorX,cursorY)}
+// 光标移动
+function moveUp() { if (cursorX > 0) cursorX--; draw(); }
+function moveDown() { if (cursorX < 14) cursorX++; draw(); }
+function moveLeft() { if (cursorY > 0) cursorY--; draw(); }
+function moveRight() { if (cursorY < 14) cursorY++; draw(); }
+function placeCursor() { place(cursorX, cursorY); }
 
-function restart(){
-  board=Array(15).fill().map(()=>Array(15).fill(0));
-  cur=1;
-  cursorX=7;cursorY=7;
+// 重置棋局
+function restart() {
+  board = Array(15).fill().map(() => Array(15).fill(0));
+  cur = 1;
+  cursorX = 7; cursorY = 7;
   draw();
 }
 
