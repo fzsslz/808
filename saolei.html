@@ -2,107 +2,70 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>扫雷终极版</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>扫雷</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif}
-body{background:#f0f2f5;display:flex;justify-content:center;align-items:center;min-height:100vh;flex-direction:column;padding:20px}
-.title{font-size:28px;font-weight:bold;margin:10px;color:#37474F}
-.info{display:flex;gap:25px;margin:10px 0;font-size:17px;font-weight:bold}
-.controls{gap:8px;display:flex;margin-bottom:10px}
-button{padding:10px 14px;border:none;border-radius:8px;background:#607D8B;color:white;cursor:pointer}
-#board{display:grid;gap:2px;background:#607D8B;padding:10px;border-radius:12px}
-.cell{width:30px;height:30px;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold;border-radius:4px}
-.rule{max-width:420px;text-align:center;line-height:1.6;margin-top:10px;color:#444}
-.win{animation:win 0.5s infinite alternate}
-@keyframes win{0%{transform:scale(1)}100%{transform:scale(1.05)}}
+*{box-sizing:border-box;font-family:system-ui}
+body{background:#f0f2f5;display:flex;flex-direction:column;align-items:center;padding:10px}
+h2{color:#37474F}
+#info{display:flex;gap:20px;margin:5px;font-weight:bold}
+.ctrl{display:flex;gap:6px;margin:10px 0}
+button{padding:8px 10px;background:#607D8B;color:white;border:none;border-radius:6px}
+#box{display:grid;gap:2px;background:#607D8B;padding:8px;border-radius:8px}
+.c{width:28px;height:28px;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold}
+#virtual{display:none;margin-top:10px}
+@media(max-width:480px){#virtual{display:block}}
 </style>
 </head>
 <body>
-<div class="title">💣 经典扫雷 </div>
-<div class="info">
-分数：<span id="score">0</span> &nbsp;&nbsp; 
-等级：<span id="level">1</span> &nbsp;&nbsp; 
-剩余地雷：<span id="minesLeft">0</span>
-</div>
-<div class="controls">
+<h2>💣 扫雷</h2>
+<div id="info">分数:<span id="sc">0</span> 等级:<span id="lv">1</span> 地雷:<span id="ml">10</span></div>
+<div class="ctrl">
 <button onclick="init(10,10)">简单</button>
 <button onclick="init(15,25)">中等</button>
 <button onclick="init(20,40)">地狱</button>
+<button onclick="init()">重置</button>
+</div>
+<div id="box"></div>
+<div id="virtual">
 <button onclick="restart()">重新开始</button>
 </div>
-<div id="board"></div>
-<div class="rule">左键点开，右键标记🚩；点开全部安全区获胜</div>
+
 <script>
-let size=15, mines=25;
-let board=[];
-const dom=document.getElementById('board');
-let score=0,level=1;
-let totalOpen=0,needOpen=0;
+let s=10,m=10,map=[],op=0,need,sc=0,lv=1;
+const box=document.getElementById('box');
 
-function update(){
-    document.getElementById('score').innerText=score;
-    document.getElementById('level').innerText=level;
-    document.getElementById('minesLeft').innerText=mines-document.querySelectorAll('[textContent=🚩]').length;
+function init(ss=10,mm=10){
+  s=ss;m=mm;op=sc=lv=0;need=s*s-m;
+  box.style.gridTemplateColumns=`repeat(${s},28px)`;
+  box.innerHTML='';document.getElementById('ml').innerText=m;
+  map=Array(s).fill().map(()=>Array(s).fill(0));
+  let n=0;while(n<m){let x=Math.random()*s|0,y=Math.random()*s|0;if(!map[y][x])map[y][x]=9,n++}
+  for(let i=0;i<s;i++)for(let j=0;j<s;j++){
+    if(map[i][j]==9)continue;let c=0;
+    for(let di=-1;di<2;di++)for(let dj=-1;dj<2;dj++)if(map[i+di]?.[j+dj]==9)c++;
+    map[i][j]=c;
+  }
+  for(let i=0;i<s;i++)for(let j=0;j<s;j++){
+    let d=document.createElement('div');d.className='c';
+    d.onclick=()=>open(i,j);d.oncontextmenu=e=>{e.preventDefault();flag(i,j)};
+    box.appendChild(d);
+  }
 }
 
-function init(s=15,m=25){
-    size=s;mines=m;
-    dom.innerHTML='';
-    dom.style.gridTemplateColumns=`repeat(${size},30px)`;
-    board=Array(size).fill().map(()=>Array(size).fill(0));
-    totalOpen=0;needOpen=size*size-mines;
-    score=0;level=1;update();
-    let placed=0;
-    while(placed<mines){
-        const x=Math.floor(Math.random()*size);
-        const y=Math.floor(Math.random()*size);
-        if(board[y][x]!==9){board[y][x]=9;placed++;}
-    }
-    for(let y=0;y<size;y++)for(let x=0;x<size;x++){
-        if(board[y][x]===9)continue;
-        let c=0;
-        for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
-            const ny=y+dy,nx=x+dx;
-            if(ny>=0&&ny<size&&nx>=0&&nx<size&&board[ny][nx]===9)c++;
-        }
-        board[y][x]=c;
-    }
-    for(let y=0;y<size;y++)for(let x=0;x<size;x++){
-        const d=document.createElement('div');
-        d.className='cell';
-        d.onclick=()=>open(x,y);
-        d.oncontextmenu=e=>{e.preventDefault();flag(x,y)};
-        dom.appendChild(d);
-    }
-    update();
+function open(i,j){
+  let e=box.children[i*s+j];if(e.textContent=='🚩'||e.style.background=='#eee')return;
+  if(map[i][j]==9){e.style.background='#f44336';e.textContent='💣';alert('失败');init();return}
+  e.textContent=map[i][j]||'';e.style.background='#eee';op++;sc+=5;
+  if(op>=need){box.style.animation='win 0.5s infinite';setTimeout(()=>{alert('胜利！');box.style.animation='none'},300)}
+  upd();
 }
 
-function open(x,y){
-    const i=board[y][x];
-    const el=dom.children[y*size+x];
-    if(el.textContent==='🚩'||el.style.background==='rgb(240,240,240)')return;
-    if(i===9){el.style.background='#f44336';el.textContent='💣';alert('游戏结束！');init(size,mines);return;}
-    el.textContent=i||'';el.style.background='#f0f0f0';
-    totalOpen++;score+=5;
-    if(score%50===0)level++;
-    if(totalOpen>=needOpen){win();}
-    update();
-}
-
-function flag(x,y){
-    const el=dom.children[y*size+x];
-    if(el.style.background==='rgb(240,240,240)')return;
-    el.textContent=el.textContent==='🚩'?'':'🚩';
-    update();
-}
-
-function win(){
-    dom.classList.add('win');
-    setTimeout(()=>{alert('🎉 恭喜胜利！');dom.classList.remove('win');},200);
-}
-
-function restart(){init(size,mines);}
+function flag(i,j){let e=box.children[i*s+j];e.textContent=e.textContent=='🚩'?'':'🚩';upd()}
+function upd(){document.getElementById('sc').innerText=sc;document.getElementById('lv').innerText=lv}
+function restart(){init()}
 init();
 </script>
+<style>@keyframes win{0%{transform:scale(1)}100%{transform:scale(1.03)}}</style>
 </body>
 </html>
