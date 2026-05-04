@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>俄罗斯方块终极版</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif}
+body{background:#f0f2f5;display:flex;justify-content:center;align-items:center;min-height:100vh;flex-direction:column;padding:20px}
+.title{font-size:28px;font-weight:bold;margin:10px;color:#553c8b}
+.info{display:flex;gap:25px;margin:10px 0;font-size:17px;font-weight:bold}
+.controls{gap:8px;display:flex;margin-bottom:10px}
+button{padding:10px 14px;border:none;border-radius:8px;background:#673AB7;color:white;cursor:pointer}
+/* 删掉游戏组合布局，只保留核心画布 */
+#tetris{border:8px solid #673AB7;border-radius:12px;background:#fff}
+.rule{max-width:320px;text-align:center;line-height:1.6;margin-top:10px;color:#444}
+</style>
+</head>
+<body>
+<div class="title">🧩 俄罗斯方块 · 终极版</div>
+<div class="info">
+分数：<span id="score">0</span> &nbsp;&nbsp; 
+等级：<span id="level">1</span>
+</div>
+<div class="controls">
+<button onclick="setDifficulty(800)">简单</button>
+<button onclick="setDifficulty(500)">正常</button>
+<button onclick="setDifficulty(200)">地狱</button>
+</div>
+<!-- 只保留核心游戏画布，删掉右侧预览画布 -->
+<canvas id="tetris" width="300" height="500"></canvas>
+<div class="rule">←→移动，↓加速，↑旋转；填满一行消除得分</div>
+<script>
+const canvas=document.getElementById('tetris');
+const ctx=canvas.getContext('2d');
+const row=20,col=10;
+const size=25;
+let board=Array(row).fill().map(()=>Array(col).fill(0));
+const shapes=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]]];
+let cur,curX,curY; // 删掉nextShape变量
+let score=0,level=1;
+let fallSpeed=500;
+let loop;
+
+function update(){document.getElementById('score').innerText=score;document.getElementById('level').innerText=level;}
+// 删掉下一个方块预览逻辑，直接生成新方块
+function newPiece(){
+    cur=shapes[Math.floor(Math.random()*shapes.length)];
+    curX=Math.floor(col/2)-Math.floor(cur[0].length/2);
+    curY=0;
+    if(collide(0,0))gameOver();
+}
+function drawBoard(){
+    ctx.fillStyle='#fff';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    for(let y=0;y<row;y++)for(let x=0;x<col;x++){
+        if(board[y][x]){
+            ctx.fillStyle='#673AB7';
+            ctx.fillRect(x*size,y*size,size-1,size-1);
+        }
+    }
+}
+function drawPiece(){
+    ctx.fillStyle='#3F51B5';
+    for(let y=0;y<cur.length;y++)for(let x=0;x<cur[y].length;x++)
+        if(cur[y][x])ctx.fillRect((curX+x)*size,(curY+y)*size,size-1,size-1);
+}
+function collide(dx,dy){
+    for(let y=0;y<cur.length;y++)for(let x=0;x<cur[y].length;x++)
+        if(cur[y][x]){
+            const nx=curX+x+dx,ny=curY+y+dy;
+            if(nx<0||nx>=col||ny>=row||(ny>=0&&board[ny][nx]))return true;
+        }
+    return false;
+}
+function rotate(){
+    const r=cur[0].map((_,i)=>cur.map(row=>row[i]).reverse());
+    const o=cur;
+    cur=r;
+    if(collide(0,0))cur=o;
+}
+function merge(){
+    for(let y=0;y<cur.length;y++)for(let x=0;x<cur[y].length;x++)
+        if(cur[y][x])board[curY+y][curX+x]=1;
+}
+function clearLine(){
+    let lines=0;
+    for(let y=row-1;y>=0;y--){
+        if(board[y].every(v=>v)){
+            flashLine(y);
+            board.splice(y,1);
+            board.unshift(Array(col).fill(0));
+            lines++;
+            y++;
+        }
+    }
+    if(lines===1)score+=100;
+    if(lines===2)score+=300;
+    if(lines>=3)score+=500;
+    level=Math.floor(score/1000)+1;
+    update();
+    setDifficulty(500-level*40);
+}
+function flashLine(y){
+    ctx.fillStyle='#ffeb3b';
+    ctx.fillRect(0,y*size,canvas.width,size);
+}
+function gameOver(){
+    alert('游戏结束！得分：'+score);
+    score=0;level=1;update();
+    board=Array(row).fill().map(()=>Array(col).fill(0));
+    newPiece();
+}
+function draw(){drawBoard();drawPiece();}
+function updateGame(){
+    if(!collide(0,1))curY++;
+    else{
+        merge();
+        clearLine();
+        newPiece();
+    }
+    draw();
+}
+function setDifficulty(s){
+    fallSpeed=s;
+    clearInterval(loop);
+    loop=setInterval(updateGame,fallSpeed);
+}
+newPiece();
+setDifficulty(fallSpeed);
+draw();
+update();
+document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowLeft'&&!collide(-1,0))curX--;
+    if(e.key==='ArrowRight'&&!collide(1,0))curX++;
+    if(e.key==='ArrowDown'&&!collide(0,1))curY++;
+    if(e.key==='ArrowUp')rotate();
+    draw();
+})
+</script>
+</body>
+</html>
