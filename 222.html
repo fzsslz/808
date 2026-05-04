@@ -14,7 +14,6 @@ button{padding:8px 12px;background:#165DFF;color:white;border:none;border-radius
 #modeSelect{margin-bottom:10px;display:flex;gap:10px}
 #modeSelect button{background:#4CAF50}
 #modeSelect button.active{background:#165DFF}
-/* 手机按键整体居中 */
 #virtual{display:none;width:100%;justify-content:center;margin-top:20px}
 .pad{display:grid;grid-template-columns:repeat(3,72px);grid-template-rows:repeat(3,72px);gap:8px}
 .pad button{font-size:22px;border-radius:12px;border:none;box-shadow:0 2px 5px #ccc}
@@ -130,92 +129,98 @@ function place(x,y){
   cur=3-cur;
 
   if(gameMode==='pve' && cur===2){
-    setTimeout(aiMove,400);
+    setTimeout(aiMove,300);
   }
 }
 
-// 人机AI
-function aiMove(){// 新版聪明AI：会连子、会堵、不瞎下
+// 超强高难度AI 会堵活三、活四、会自己做棋
 function aiMove(){
-  let bestScore = -9999;
-  let bestX = 7, bestY = 7;
+  let bestX = 7;
+  let bestY = 7;
+  let maxScore = -99999;
+  const dirs = [[1,0],[0,1],[1,1],[1,-1]];
 
-  // 遍历所有空位
-  for(let i = 0; i < 15; i++){
-    for(let j = 0; j < 15; j++){
-      if(board[i][j] !== 0) continue;
+  for(let i=0;i<15;i++){
+    for(let j=0;j<15;j++){
+      if(board[i][j]!==0) continue;
 
       let score = 0;
-      // 离中心越近加分
-      let centerDis = Math.abs(i - 7) + Math.abs(j - 7);
-      score += (14 - centerDis) * 8;
+      // 中心权重
+      let midW = Math.abs(i-7)+Math.abs(j-7);
+      score += (14 - midW) * 15;
 
-      // 四个方向判断
-      const dirs = [[1,0],[0,1],[1,1],[1,-1]];
-      for(let [dx, dy] of dirs){
-        let me = 0, enemy = 0;
+      for(let [dx,dy] of dirs){
+        let p1=0,p2=0;
+        let block1=0,block2=0;
 
-        // 往一个方向数
-        for(let k = 1; k < 5; k++){
-          let ni = i + dx * k;
-          let nj = j + dy * k;
-          if(ni < 0 || ni >= 15 || nj < 0 || nj >= 15) break;
-          if(board[ni][nj] === 2) me++;
-          else if(board[ni][nj] === 1) enemy++;
+        // 正向
+        for(let k=1;k<=4;k++){
+          let x=i+dx*k;
+          let y=j+dy*k;
+          if(x<0||x>=15||y<0||y>=15){block1++;break;}
+          if(board[x][y]===2) p1++;
+          else if(board[x][y]===1) {block1++;break;}
           else break;
         }
-        // 反方向数
-        for(let k = 1; k < 5; k++){
-          let ni = i - dx * k;
-          let nj = j - dy * k;
-          if(ni < 0 || ni >= 15 || nj < 0 || nj >= 15) break;
-          if(board[ni][nj] === 2) me++;
-          else if(board[ni][nj] === 1) enemy++;
+        // 反向
+        for(let k=1;k<=4;k++){
+          let x=i-dx*k;
+          let y=j-dy*k;
+          if(x<0||x>=15||y<0||y>=15){block2++;break;}
+          if(board[x][y]===2) p2++;
+          else if(board[x][y]===1) {block2++;break;}
           else break;
         }
 
-        // 自己连子加分
-        if(me === 1) score += 10;
-        if(me === 2) score += 30;
-        if(me === 3) score += 80;
-        if(me === 4) score += 300;
+        let self = p1 + p2;
+        // 自己棋型打分
+        if(self===1) score += 20;
+        if(self===2) score += 50;
+        if(self===3) score += 120;
+        if(self===4) score += 500;
 
-        // 堵对方连子加分
-        if(enemy === 2) score += 25;
-        if(enemy === 3) score += 70;
-        if(enemy === 4) score += 280;
+        // 防守：堵玩家
+        p1=0;p2=0;block1=0;block2=0;
+        for(let k=1;k<=4;k++){
+          let x=i+dx*k,y=j+dy*k;
+          if(x<0||x>=15||y<0||y>=15){block1++;break;}
+          if(board[x][y]===1) p1++;
+          else if(board[x][y]===2) {block1++;break;}
+          else break;
+        }
+        for(let k=1;k<=4;k++){
+          let x=i-dx*k,y=j-dy*k;
+          if(x<0||x>=15||y<0||y>=15){block2++;break;}
+          if(board[x][y]===1) p2++;
+          else if(board[x][y]===2) {block2++;break;}
+          else break;
+        }
+
+        let enemy = p1 + p2;
+        // 优先堵死玩家活二、活三、活四
+        if(enemy===2) score += 60;
+        if(enemy===3) score += 150;
+        if(enemy===4) score += 550;
       }
 
-      // 选最高分位置
-      if(score > bestScore){
-        bestScore = score;
+      if(score > maxScore){
+        maxScore = score;
         bestX = i;
         bestY = j;
       }
     }
   }
 
-  // 下最优位置
   board[bestX][bestY] = 2;
   draw();
   cur = 1;
 
-  // 判赢
-  if(win(bestX, bestY)){
+  if(win(bestX,bestY)){
     alert('电脑获胜！');
     restart();
   }
 }
-  }
-  let arr=[];
-  for(let i=0;i<15;i++)for(let j=0;j<15;j++)if(board[i][j]===0)arr.push([i,j]);
-  let [x,y]=arr[Math.floor(Math.random()*arr.length)];
-  board[x][y]=2;
-  draw();
-  cur=1;
-}
 
-// 手机精准点击修复
 canvas.addEventListener('click',function(e){
   const rect = canvas.getBoundingClientRect();
   const scaleX = canvas.width / rect.width;
@@ -230,7 +235,6 @@ canvas.addEventListener('click',function(e){
   place(x,y);
 });
 
-// 键盘方向键
 document.addEventListener('keydown',e=>{
   if(e.key==='ArrowUp')moveUp();
   if(e.key==='ArrowDown')moveDown();
@@ -239,7 +243,6 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter'||e.key===' ')placeCursor();
 });
 
-// 虚拟按键
 function moveUp(){if(cursorX>0)cursorX--;draw()}
 function moveDown(){if(cursorX<14)cursorX++;draw()}
 function moveLeft(){if(cursorY>0)cursorY--;draw()}
