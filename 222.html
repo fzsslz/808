@@ -135,34 +135,77 @@ function place(x,y){
 }
 
 // 人机AI
+function aiMove(){// 新版聪明AI：会连子、会堵、不瞎下
 function aiMove(){
-  for(let i=0;i<15;i++){
-    for(let j=0;j<15;j++){
-      if(board[i][j]===0){
-        board[i][j]=2;
-        if(win(i,j)){
-          draw();
-          alert('电脑获胜！');
-          restart();
-          return;
+  let bestScore = -9999;
+  let bestX = 7, bestY = 7;
+
+  // 遍历所有空位
+  for(let i = 0; i < 15; i++){
+    for(let j = 0; j < 15; j++){
+      if(board[i][j] !== 0) continue;
+
+      let score = 0;
+      // 离中心越近加分
+      let centerDis = Math.abs(i - 7) + Math.abs(j - 7);
+      score += (14 - centerDis) * 8;
+
+      // 四个方向判断
+      const dirs = [[1,0],[0,1],[1,1],[1,-1]];
+      for(let [dx, dy] of dirs){
+        let me = 0, enemy = 0;
+
+        // 往一个方向数
+        for(let k = 1; k < 5; k++){
+          let ni = i + dx * k;
+          let nj = j + dy * k;
+          if(ni < 0 || ni >= 15 || nj < 0 || nj >= 15) break;
+          if(board[ni][nj] === 2) me++;
+          else if(board[ni][nj] === 1) enemy++;
+          else break;
         }
-        board[i][j]=0;
+        // 反方向数
+        for(let k = 1; k < 5; k++){
+          let ni = i - dx * k;
+          let nj = j - dy * k;
+          if(ni < 0 || ni >= 15 || nj < 0 || nj >= 15) break;
+          if(board[ni][nj] === 2) me++;
+          else if(board[ni][nj] === 1) enemy++;
+          else break;
+        }
+
+        // 自己连子加分
+        if(me === 1) score += 10;
+        if(me === 2) score += 30;
+        if(me === 3) score += 80;
+        if(me === 4) score += 300;
+
+        // 堵对方连子加分
+        if(enemy === 2) score += 25;
+        if(enemy === 3) score += 70;
+        if(enemy === 4) score += 280;
+      }
+
+      // 选最高分位置
+      if(score > bestScore){
+        bestScore = score;
+        bestX = i;
+        bestY = j;
       }
     }
   }
-  for(let i=0;i<15;i++){
-    for(let j=0;j<15;j++){
-      if(board[i][j]===0){
-        board[i][j]=1;
-        if(win(i,j)){
-          board[i][j]=2;
-          draw();
-          cur=1;
-          return;
-        }
-        board[i][j]=0;
-      }
-    }
+
+  // 下最优位置
+  board[bestX][bestY] = 2;
+  draw();
+  cur = 1;
+
+  // 判赢
+  if(win(bestX, bestY)){
+    alert('电脑获胜！');
+    restart();
+  }
+}
   }
   let arr=[];
   for(let i=0;i<15;i++)for(let j=0;j<15;j++)if(board[i][j]===0)arr.push([i,j]);
