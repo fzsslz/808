@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>扫雷终极版</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif}
+body{background:#f0f2f5;display:flex;justify-content:center;align-items:center;min-height:100vh;flex-direction:column;padding:20px}
+.title{font-size:28px;font-weight:bold;margin:10px;color:#37474F}
+.info{display:flex;gap:25px;margin:10px 0;font-size:17px;font-weight:bold}
+.controls{gap:8px;display:flex;margin-bottom:10px}
+button{padding:10px 14px;border:none;border-radius:8px;background:#607D8B;color:white;cursor:pointer}
+#board{display:grid;gap:2px;background:#607D8B;padding:10px;border-radius:12px}
+.cell{width:30px;height:30px;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:bold;border-radius:4px}
+.rule{max-width:420px;text-align:center;line-height:1.6;margin-top:10px;color:#444}
+.win{animation:win 0.5s infinite alternate}
+@keyframes win{0%{transform:scale(1)}100%{transform:scale(1.05)}}
+</style>
+</head>
+<body>
+<div class="title">💣 经典扫雷 </div>
+<div class="info">
+分数：<span id="score">0</span> &nbsp;&nbsp; 
+等级：<span id="level">1</span> &nbsp;&nbsp; 
+剩余地雷：<span id="minesLeft">0</span>
+</div>
+<div class="controls">
+<button onclick="init(10,10)">简单</button>
+<button onclick="init(15,25)">中等</button>
+<button onclick="init(20,40)">地狱</button>
+<button onclick="restart()">重新开始</button>
+</div>
+<div id="board"></div>
+<div class="rule">左键点开，右键标记🚩；点开全部安全区获胜</div>
+<script>
+let size=15, mines=25;
+let board=[];
+const dom=document.getElementById('board');
+let score=0,level=1;
+let totalOpen=0,needOpen=0;
+
+function update(){
+    document.getElementById('score').innerText=score;
+    document.getElementById('level').innerText=level;
+    document.getElementById('minesLeft').innerText=mines-document.querySelectorAll('[textContent=🚩]').length;
+}
+
+function init(s=15,m=25){
+    size=s;mines=m;
+    dom.innerHTML='';
+    dom.style.gridTemplateColumns=`repeat(${size},30px)`;
+    board=Array(size).fill().map(()=>Array(size).fill(0));
+    totalOpen=0;needOpen=size*size-mines;
+    score=0;level=1;update();
+    let placed=0;
+    while(placed<mines){
+        const x=Math.floor(Math.random()*size);
+        const y=Math.floor(Math.random()*size);
+        if(board[y][x]!==9){board[y][x]=9;placed++;}
+    }
+    for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+        if(board[y][x]===9)continue;
+        let c=0;
+        for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+            const ny=y+dy,nx=x+dx;
+            if(ny>=0&&ny<size&&nx>=0&&nx<size&&board[ny][nx]===9)c++;
+        }
+        board[y][x]=c;
+    }
+    for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+        const d=document.createElement('div');
+        d.className='cell';
+        d.onclick=()=>open(x,y);
+        d.oncontextmenu=e=>{e.preventDefault();flag(x,y)};
+        dom.appendChild(d);
+    }
+    update();
+}
+
+function open(x,y){
+    const i=board[y][x];
+    const el=dom.children[y*size+x];
+    if(el.textContent==='🚩'||el.style.background==='rgb(240,240,240)')return;
+    if(i===9){el.style.background='#f44336';el.textContent='💣';alert('游戏结束！');init(size,mines);return;}
+    el.textContent=i||'';el.style.background='#f0f0f0';
+    totalOpen++;score+=5;
+    if(score%50===0)level++;
+    if(totalOpen>=needOpen){win();}
+    update();
+}
+
+function flag(x,y){
+    const el=dom.children[y*size+x];
+    if(el.style.background==='rgb(240,240,240)')return;
+    el.textContent=el.textContent==='🚩'?'':'🚩';
+    update();
+}
+
+function win(){
+    dom.classList.add('win');
+    setTimeout(()=>{alert('🎉 恭喜胜利！');dom.classList.remove('win');},200);
+}
+
+function restart(){init(size,mines);}
+init();
+</script>
+</body>
+</html>
