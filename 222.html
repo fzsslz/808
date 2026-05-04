@@ -1,326 +1,114 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>班级五子棋</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "Microsoft YaHei", sans-serif;
-        }
-
-        body {
-            background-color: #f8f9fa;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            color: #333;
-        }
-
-        .title {
-            font-size: 28px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        /* 控制栏 */
-        .game-controls {
-            display: flex;
-            gap: 15px;
-            margin: 15px 0;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .mode-btn, #resetBtn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .mode-btn {
-            background: #e9ecef;
-        }
-
-        .mode-btn.active {
-            background: #3498db;
-            color: white;
-        }
-
-        #resetBtn {
-            background: #e74c3c;
-            color: white;
-        }
-
-        #resetBtn:hover {
-            background: #c0392b;
-        }
-
-        /* 当前回合 */
-        .status {
-            font-size: 18px;
-            margin: 10px 0;
-            font-weight: 500;
-        }
-
-        /* 棋盘 */
-        .chess-board {
-            width: 560px;
-            height: 560px;
-            background-color: #e4b56b;
-            border: 12px solid #c18c5d;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            position: relative;
-        }
-
-        .grid {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            bottom: 20px;
-            background-image: 
-                linear-gradient(#5a442b 1px, transparent 1px),
-                linear-gradient(90deg, #5a442b 1px, transparent 1px);
-            background-size: 36px 36px;
-        }
-
-        /* 棋子 */
-        .chess {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            position: absolute;
-            transform: translate(-50%, -50%);
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-        }
-
-        .black {
-            background: radial-gradient(circle at 35% 35%, #444, #000);
-        }
-
-        .white {
-            background: radial-gradient(circle at 35% 35%, #fff, #ddd);
-        }
-
-        /* 胜利高亮 */
-        .win {
-            box-shadow: 0 0 12px 5px #ffeb3b;
-            z-index: 10;
-        }
-
-        /* 胜利提示 */
-        .win-modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 25px 40px;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-            font-size: 22px;
-            font-weight: bold;
-            color: #e74c3c;
-            display: none;
-            z-index: 999;
-        }
-
-        /* 适配手机 */
-        @media (max-width: 600px) {
-            .chess-board {
-                width: 90vw;
-                height: 90vw;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>五子棋</title>
+<style>
+*{box-sizing:border-box;font-family:system-ui}
+body{background:#f0f2f5;display:flex;flex-direction:column;align-items:center;padding:10px}
+h2{color:#333}
+canvas{border:8px solid #cd7f32;background:#e7b877;border-radius:8px; touch-action: none;}
+.ctrl{margin:10px 0;display:flex;gap:8px}
+button{padding:8px 12px;background:#165DFF;color:white;border:none;border-radius:6px}
+#virtual{display:none;grid-template-columns:repeat(3,60px);gap:8px;margin-top:10px}
+#virtual button{padding:14px;font-size:18px}
+@media(max-width:480px){#virtual{display:grid}}
+</style>
 </head>
 <body>
-
-<div class="title">🎓 班级五子棋小游戏</div>
-
-<div class="game-controls">
-    <button class="mode-btn active" data-mode="double">双人对战</button>
-    <button class="mode-btn" data-mode="ai">人机对战</button>
-    <button id="resetBtn">重新开始</button>
+<h2>🎮 五子棋</h2>
+<canvas id="board" width="420" height="420"></canvas>
+<div class="ctrl">
+<button onclick="restart()">重新开始</button>
 </div>
-
-<div class="status" id="status">当前回合：黑棋</div>
-
-<div class="chess-board">
-    <div class="grid"></div>
+<div id="virtual">
+<button></button><button>↑</button><button></button>
+<button>←</button><button>↓</button><button>→</button>
 </div>
-
-<div class="win-modal" id="winTip"></div>
 
 <script>
-    const board = document.querySelector('.chess-board');
-    const status = document.getElementById('status');
-    const resetBtn = document.getElementById('resetBtn');
-    const winTip = document.getElementById('winTip');
-    const modeBtns = document.querySelectorAll('.mode-btn');
+const canvas=document.getElementById('board');
+const ctx=canvas.getContext('2d');
+const grid=30;
+let board=Array(15).fill().map(()=>Array(15).fill(0));
+let cur=1;
 
-    const SIZE = 15;
-    const UNIT = 36;
-    const OFFSET = 20;
+function draw(){
+  ctx.fillStyle='#e7b877';
+  ctx.fillRect(0,0,420,420);
+  
+  ctx.strokeStyle='#333';
+  ctx.lineWidth=1;
+  for(let i=0;i<=14;i++){
+    ctx.beginPath();
+    ctx.moveTo(i*grid, 0);
+    ctx.lineTo(i*grid, 420);
+    ctx.stroke();
+  }
+  for(let i=0;i<=14;i++){
+    ctx.beginPath();
+    ctx.moveTo(0, i*grid);
+    ctx.lineTo(420, i*grid);
+    ctx.stroke();
+  }
 
-    let chessBoard = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
-    let currentPlayer = 1; // 1=黑 2=白
-    let gameOver = false;
-    let gameMode = 'double'; // double / ai
-
-    // 模式切换
-    modeBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            modeBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            gameMode = btn.dataset.mode;
-            resetGame();
-        });
-    });
-
-    // 点击落子
-    board.addEventListener('click', (e) => {
-        if (gameOver) return;
-
-        const rect = board.getBoundingClientRect();
-        const x = Math.round((e.clientX - rect.left - OFFSET) / UNIT);
-        const y = Math.round((e.clientY - rect.top - OFFSET) / UNIT);
-
-        if (x < 0 || x >= SIZE || y < 0 || y >= SIZE || chessBoard[y][x] !== 0) return;
-
-        playerMove(x, y);
-    });
-
-    // 玩家落子
-    function playerMove(x, y) {
-        placeChess(x, y);
-        if (gameOver) return;
-
-        // 人机模式：AI 自动下
-        if (gameMode === 'ai' && currentPlayer === 2) {
-            setTimeout(aiMove, 300);
-        }
+  for(let i=0;i<15;i++){
+    for(let j=0;j<15;j++){
+      if(board[i][j]){
+        ctx.beginPath();
+        ctx.arc(j*grid, i*grid, 12, 0, Math.PI*2);
+        ctx.fillStyle=board[i][j]==1?'#000':'#fff';
+        ctx.fill();
+        ctx.strokeStyle='#333';
+        ctx.stroke();
+      }
     }
+  }
+}
 
-    // AI 下棋逻辑
-    function aiMove() {
-        let bestScore = -1;
-        let best = { x: 7, y: 7 };
+function win(x,y){
+  const dir=[[1,0],[0,1],[1,1],[1,-1]];
+  for(let [dx,dy] of dir){
+    let count=1;
+    for(let i=1;i<5;i++) if(board[x+dx*i]?.[y+dy*i]===cur)count++;else break;
+    for(let i=1;i<5;i++) if(board[x-dx*i]?.[y-dy*i]===cur)count++;else break;
+    if(count>=5)return true;
+  }
+  return false;
+}
 
-        for (let y = 0; y < SIZE; y++) {
-            for (let x = 0; x < SIZE; x++) {
-                if (chessBoard[y][x] !== 0) continue;
-                let score = calcScore(x, y, 2);
-                score += calcScore(x, y, 1) * 0.9;
-                if (score > bestScore) {
-                    bestScore = score;
-                    best = { x, y };
-                }
-            }
-        }
+function place(x,y){
+  if(x<0||x>=15||y<0||y>=15)return;
+  if(board[x][y])return;
+  board[x][y]=cur;
+  draw();
+  if(win(x,y)){
+    alert((cur==1?'黑':'白')+'棋胜利！');
+    restart();
+    return;
+  }
+  cur=3-cur;
+}
 
-        placeChess(best.x, best.y);
-    }
+canvas.addEventListener('click',function(e){
+  const rect=canvas.getBoundingClientRect();
+  const scaleX=canvas.width/rect.width;
+  const scaleY=canvas.height/rect.height;
+  
+  const x=Math.floor(((e.clientY-rect.top)*scaleY)/grid);
+  const y=Math.floor(((e.clientX-rect.left)*scaleX)/grid);
+  
+  place(x,y);
+});
 
-    // AI 评分（攻防）
-    function calcScore(x, y, player) {
-        const dirs = [[1,0],[0,1],[1,1],[1,-1]];
-        let max = 0;
-        for (let [dx, dy] of dirs) {
-            let c = 1, blank = 0;
-            for (let i = 1; i < 5; i++) {
-                const nx = x+dx*i, ny = y+dy*i;
-                if (nx<0||nx>=SIZE||ny<0||ny>=SIZE) break;
-                if (chessBoard[ny][nx] === player) c++;
-                else if (chessBoard[ny][nx] === 0) { blank++; break; }
-                else break;
-            }
-            for (let i = 1; i < 5; i++) {
-                const nx = x-dx*i, ny = y-dy*i;
-                if (nx<0||nx>=SIZE||ny<0||ny>=SIZE) break;
-                if (chessBoard[ny][nx] === player) c++;
-                else if (chessBoard[ny][nx] === 0) { blank++; break; }
-                else break;
-            }
-            let s = c*c + blank*0.3;
-            if (c >=5) s+=1000;
-            if (s>max) max = s;
-        }
-        return max;
-    }
+function restart(){
+  board=Array(15).fill().map(()=>Array(15).fill(0));
+  cur=1;
+  draw();
+}
 
-    // 落子渲染
-    function placeChess(x, y) {
-        chessBoard[y][x] = currentPlayer;
-        const chess = document.createElement('div');
-        chess.classList.add('chess', currentPlayer === 1 ? 'black' : 'white');
-        chess.style.left = x * UNIT + OFFSET + 'px';
-        chess.style.top = y * UNIT + OFFSET + 'px';
-        board.appendChild(chess);
-
-        if (checkWin(x, y)) {
-            gameOver = true;
-            winTip.textContent = `🎉 ${currentPlayer === 1 ? '黑棋' : '白棋'}获胜！`;
-            winTip.style.display = 'block';
-            return;
-        }
-
-        currentPlayer = currentPlayer === 1 ? 2 : 1;
-        status.textContent = `当前回合：${currentPlayer === 1 ? '黑棋' : '白棋'}`;
-    }
-
-    // 判断胜负
-    function checkWin(x, y) {
-        const p = chessBoard[y][x];
-        const dirs = [[1,0],[0,1],[1,1],[1,-1]];
-        for (let [dx, dy] of dirs) {
-            let cnt = 1;
-            let line = [[x,y]];
-            for (let i=1; i<5; i++) {
-                const nx = x+dx*i, ny = y+dy*i;
-                if (nx>=0&&nx<SIZE&&ny>=0&&ny<SIZE&&chessBoard[ny][nx]===p) { cnt++; line.push([nx,ny]); }
-                else break;
-            }
-            for (let i=1; i<5; i++) {
-                const nx = x-dx*i, ny = y-dy*i;
-                if (nx>=0&&nx<SIZE&&ny>=0&&ny<SIZE&&chessBoard[ny][nx]===p) { cnt++; line.push([nx,ny]); }
-                else break;
-            }
-            if (cnt >=5) {
-                line.forEach(([px,py])=>{
-                    const el = document.elementFromPoint(
-                        board.getBoundingClientRect().left + px*UNIT+OFFSET,
-                        board.getBoundingClientRect().top + py*UNIT+OFFSET
-                    );
-                    if(el) el.classList.add('win');
-                });
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // 重置游戏
-    resetBtn.addEventListener('click', resetGame);
-    function resetGame() {
-        chessBoard = Array(SIZE).fill().map(()=>Array(SIZE).fill(0));
-        currentPlayer = 1;
-        gameOver = false;
-        status.textContent = '当前回合：黑棋';
-        winTip.style.display = 'none';
-        document.querySelectorAll('.chess').forEach(c=>c.remove());
-    }
+draw();
 </script>
-
 </body>
 </html>
