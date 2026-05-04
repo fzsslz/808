@@ -6,25 +6,47 @@
 <title>五子棋</title>
 <style>
 *{box-sizing:border-box;font-family:system-ui}
-body{background:#f0f2f5;display:flex;flex-direction:column;align-items:center;padding:10px}
-h2{color:#333}
-canvas{border:8px solid #cd7f32;background:#e7b877;border-radius:8px; touch-action: none;}
+body{background:#f0f2f5;display:flex;flex-direction:column;align-items:center;padding:10px;margin:0}
+h2{color:#333;margin:10px 0}
+canvas{border:8px solid #cd7f32;background:#e7b877;border-radius:8px; touch-action: none; max-width:100%}
 .ctrl{margin:10px 0;display:flex;gap:8px}
-button{padding:8px 12px;background:#165DFF;color:white;border:none;border-radius:6px}
-#virtual{display:none;grid-template-columns:repeat(3,60px);gap:8px;margin-top:10px}
-#virtual button{padding:14px;font-size:18px}
-@media(max-width:480px){#virtual{display:grid}}
+button{padding:8px 12px;background:#165DFF;color:white;border:none;border-radius:6px;font-size:16px;cursor:pointer}
+#modeSelect{margin-bottom:10px;display:flex;gap:10px}
+#modeSelect button{background:#4CAF50}
+#modeSelect button.active{background:#165DFF}
+/* 手机按键整体居中 */
+#virtual{display:none;width:100%;justify-content:center;margin-top:20px}
+.pad{display:grid;grid-template-columns:repeat(3,72px);grid-template-rows:repeat(3,72px);gap:8px}
+.pad button{font-size:22px;border-radius:12px;border:none;box-shadow:0 2px 5px #ccc}
+.pad .ok{background:#28a745}
+@media(max-width:480px){#virtual{display:flex}}
 </style>
 </head>
 <body>
 <h2>🎮 五子棋</h2>
+<div id="modeSelect">
+<button onclick="setMode('pvp')" class="active">双人对战</button>
+<button onclick="setMode('pve')">人机对战</button>
+</div>
 <canvas id="board" width="420" height="420"></canvas>
 <div class="ctrl">
 <button onclick="restart()">重新开始</button>
 </div>
+
 <div id="virtual">
-<button></button><button>↑</button><button></button>
-<button>←</button><button>↓</button><button>→</button>
+<div class="pad">
+<button></button>
+<button onclick="moveUp()">↑</button>
+<button></button>
+
+<button onclick="moveLeft()">←</button>
+<button onclick="placeCursor()" class="ok">落子</button>
+<button onclick="moveRight()">→</button>
+
+<button></button>
+<button onclick="moveDown()">↓</button>
+<button></button>
+</div>
 </div>
 
 <script>
@@ -33,6 +55,15 @@ const ctx=canvas.getContext('2d');
 const grid=30;
 let board=Array(15).fill().map(()=>Array(15).fill(0));
 let cur=1;
+let cursorX=7,cursorY=7;
+let gameMode='pvp';
+
+function setMode(mode){
+  gameMode=mode;
+  document.querySelectorAll('#modeSelect button').forEach(btn=>btn.classList.remove('active'));
+  event.target.classList.add('active');
+  restart();
+}
 
 function draw(){
   ctx.fillStyle='#e7b877';
@@ -65,6 +96,12 @@ function draw(){
       }
     }
   }
+
+  ctx.beginPath();
+  ctx.arc(cursorY*grid, cursorX*grid, 10, 0, Math.PI*2);
+  ctx.strokeStyle='red';
+  ctx.lineWidth=2;
+  ctx.stroke();
 }
 
 function win(x,y){
@@ -79,32 +116,97 @@ function win(x,y){
 }
 
 function place(x,y){
-  if(x<0||x>=15||y<0||y>=15)return;
-  if(board[x][y])return;
+  if(x<0||x>=15||y<0||y>=15||board[x][y])return;
+
   board[x][y]=cur;
   draw();
+
   if(win(x,y)){
     alert((cur==1?'黑':'白')+'棋胜利！');
     restart();
     return;
   }
+
   cur=3-cur;
+
+  if(gameMode==='pve' && cur===2){
+    setTimeout(aiMove,400);
+  }
 }
 
+// 人机AI
+function aiMove(){
+  for(let i=0;i<15;i++){
+    for(let j=0;j<15;j++){
+      if(board[i][j]===0){
+        board[i][j]=2;
+        if(win(i,j)){
+          draw();
+          alert('电脑获胜！');
+          restart();
+          return;
+        }
+        board[i][j]=0;
+      }
+    }
+  }
+  for(let i=0;i<15;i++){
+    for(let j=0;j<15;j++){
+      if(board[i][j]===0){
+        board[i][j]=1;
+        if(win(i,j)){
+          board[i][j]=2;
+          draw();
+          cur=1;
+          return;
+        }
+        board[i][j]=0;
+      }
+    }
+  }
+  let arr=[];
+  for(let i=0;i<15;i++)for(let j=0;j<15;j++)if(board[i][j]===0)arr.push([i,j]);
+  let [x,y]=arr[Math.floor(Math.random()*arr.length)];
+  board[x][y]=2;
+  draw();
+  cur=1;
+}
+
+// 手机精准点击修复
 canvas.addEventListener('click',function(e){
-  const rect=canvas.getBoundingClientRect();
-  const scaleX=canvas.width/rect.width;
-  const scaleY=canvas.height/rect.height;
-  
-  const x=Math.floor(((e.clientY-rect.top)*scaleY)/grid);
-  const y=Math.floor(((e.clientX-rect.left)*scaleX)/grid);
-  
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+
+  let px = (e.clientY - rect.top) * scaleY;
+  let py = (e.clientX - rect.left) * scaleX;
+
+  let x = Math.round(px / grid);
+  let y = Math.round(py / grid);
+
   place(x,y);
 });
+
+// 键盘方向键
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowUp')moveUp();
+  if(e.key==='ArrowDown')moveDown();
+  if(e.key==='ArrowLeft')moveLeft();
+  if(e.key==='ArrowRight')moveRight();
+  if(e.key==='Enter'||e.key===' ')placeCursor();
+});
+
+// 虚拟按键
+function moveUp(){if(cursorX>0)cursorX--;draw()}
+function moveDown(){if(cursorX<14)cursorX++;draw()}
+function moveLeft(){if(cursorY>0)cursorY--;draw()}
+function moveRight(){if(cursorY<14)cursorY++;draw()}
+function placeCursor(){place(cursorX,cursorY)}
 
 function restart(){
   board=Array(15).fill().map(()=>Array(15).fill(0));
   cur=1;
+  cursorX=7;cursorY=7;
   draw();
 }
 
