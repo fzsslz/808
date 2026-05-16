@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>班级专属视频页</title>
     <style>
-        /* 页面基础样式 */
         body {
             margin: 0;
             padding: 20px;
@@ -25,17 +24,15 @@
             color: #333;
             margin-bottom: 30px;
         }
-        /* 视频容器样式 */
         .video-container {
             position: relative;
             width: 100%;
-            height: 450px; /* 可根据需要调整高度 */
+            height: 450px;
             margin-bottom: 30px;
             border-radius: 8px;
             overflow: hidden;
             background: #000;
         }
-        /* 返回按钮样式 */
         .back-button {
             display: block;
             width: 120px;
@@ -57,35 +54,18 @@
     <div class="container">
         <h1>班级专属视频</h1>
 
-        <!-- 视频播放区域 -->
+        <!-- 第一个视频 -->
         <div class="video-container">
-            <!-- 重要：请将下面的 iframe 代码替换为你自己的B站视频嵌入代码 -->
-            <iframe src="<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=116578884524157&bvid=BV1t65i6QEAG&cid=38358551607&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>" 
-                    scrolling="no" 
-                    border="0" 
-                    frameborder="no" 
-                    framespacing="0" 
-                    allowfullscreen="true"
-                    width="100%"
-                    height="100%">
-            </iframe>
-        </div>
-      <div class="video-container">
-            <!-- 重要：请将下面的 iframe 代码替换为你自己的B站视频嵌入代码 -->
-            <iframe src="<iframe src="<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=116578968411494&bvid=BV1HQ5i65Em2&cid=26013341921&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>" 
-                    scrolling="no" 
-                    border="0" 
-                    frameborder="no" 
-                    framespacing="0" 
-                    allowfullscreen="true"
-                    width="100%"
-                    height="100%">
-            </iframe>
+            <iframe src="https://player.bilibili.com/player.html?isOutside=true&aid=116578884524157&bvid=BV1t65i6QEAG&cid=38358551607&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="100%" height="100%"></iframe>
         </div>
 
-        <!-- 返回主页按钮 -->
-        <!-- 重要：请将 href 中的 "index.html" 替换为你班级相册主页的实际文件名或URL -->
-        <a href="index.html " class="back-button">返回相册主页</a >
+        <!-- 第二个视频 -->
+        <div class="video-container">
+            <iframe src="https://player.bilibili.com/player.html?isOutside=true&aid=116578968411494&bvid=BV1HQ5i65Em2&cid=26013341921&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="100%" height="100%"></iframe>
+        </div>
+
+        <!-- 返回按钮 删掉多余空格 -->
+        <a href="index.html" class="back-button">返回相册主页</a >
     </div>
 </body>
 </html>
