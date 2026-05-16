@@ -2,36 +2,44 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 手机强制适配屏幕 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>班级专属视频页</title>
     <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
         body {
-            margin: 0;
-            padding: 20px;
+            padding: 15px;
             font-family: "Microsoft YaHei", sans-serif;
             background-color: #f5f5f5;
         }
         .container {
+            width: 100%;
             max-width: 800px;
             margin: 0 auto;
             background: white;
-            padding: 30px;
+            padding: 20px 15px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         h1 {
             text-align: center;
             color: #333;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            font-size: 22px;
         }
         .video-container {
-            position: relative;
             width: 100%;
-            height: 450px;
-            margin-bottom: 30px;
+            height: auto;
+            aspect-ratio: 16 / 9;
+            margin-bottom: 25px;
             border-radius: 8px;
             overflow: hidden;
             background: #000;
+        }
+        iframe{
+            width: 100%;
+            height: 100%;
+            border: none;
         }
         .back-button {
             display: block;
@@ -52,20 +60,19 @@
 </head>
 <body>
     <div class="container">
-        <h1>班级专属视频</h1>
+        <h1>班级视频</h1>
 
         <!-- 第一个视频 -->
         <div class="video-container">
-            <iframe src="https://player.bilibili.com/player.html?isOutside=true&aid=116578884524157&bvid=BV1t65i6QEAG&cid=38358551607&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="100%" height="100%"></iframe>
+            <iframe src="https://player.bilibili.com/player.html?isOutside=true&aid=116578884524157&bvid=BV1t65i6QEAG&cid=38358551607&p=1" scrolling="no" frameborder="no" allowfullscreen="true"></iframe>
         </div>
 
         <!-- 第二个视频 -->
         <div class="video-container">
-            <iframe src="https://player.bilibili.com/player.html?isOutside=true&aid=116578968411494&bvid=BV1HQ5i65Em2&cid=26013341921&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" width="100%" height="100%"></iframe>
+            <iframe src="https://player.bilibili.com/player.html?isOutside=true&aid=116578968411494&bvid=BV1HQ5i65Em2&cid=26013341921&p=1" scrolling="no" frameborder="no" allowfullscreen="true"></iframe>
         </div>
 
-        <!-- 返回按钮 删掉多余空格 -->
-        <a href="index.html" class="back-button">返回相册主页</a >
+        <a href=" " class="back-button">返回相册主页</a >
     </div>
 </body>
 </html>
