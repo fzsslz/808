@@ -392,19 +392,42 @@ transition:all 0.3s ease;">
   <footer>
     福州第三十六中学2024级8班 © 2026
   </footer>
-  <style>
-.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-family:微软雅黑;z-index:9999;}
-.box{background:#fff;padding:30px;border-radius:16px;text-align:center;max-width:300px;box-shadow:0 0 10px rgba(0,0,0,0.2);}
-.title{font-size:18px;color:#e74c3c;margin-bottom:10px;}
-.btn{padding:8px 16px;background:#3498db;color:white;border:none;border-radius:8px;cursor:pointer;}
+<!-- 入场弹窗+粒子特效 完整代码 -->
+<style>
+.temp-bg{min-height:100vh;background:linear-gradient(135deg,#2c2454 0%,#1f3a70 50%,#333847 100%);background-attachment:fixed;font-family:"Microsoft Yahei",sans-serif;overflow-x:hidden}
+#particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:997;pointer-events:none}
+.main-box{position:relative;z-index:2;width:90%;max-width:1000px;margin:0 auto;padding:40px 20px;color:#fff;text-align:center;animation:pageFade 1.5s ease-in-out}
+@keyframes pageFade{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal-mask{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:998;display:flex;align-items:center;justify-content:center;animation:maskFade 0.6s ease}
+.modal-box{padding:50px 80px;background:linear-gradient(120deg,#4b3d8f,#2d4b94);border-radius:16px;box-shadow:0 0 30px rgba(130,110,255,0.5),0 0 60px rgba(80,140,255,0.3);border:1px solid rgba(255,255,255,0.2);animation:scalePop 0.6s ease;text-align:center}
+@keyframes maskFade{from{opacity:0}to{opacity:1}}
+@keyframes scalePop{0%{opacity:0;transform:scale(0.85)}100%{opacity:1;transform:scale(1)}}
+.modal-text{font-size:24px;color:#fff;letter-spacing:2px;margin-bottom:30px;text-shadow:0 0 10px rgba(200,210,255,0.6)}
+.confirm-btn{padding:10px 36px;font-size:16px;border:none;border-radius:30px;background:rgba(255,255,255,0.25);color:#fff;cursor:pointer;transition:all 0.3s ease;border:1px solid rgba(255,255,255,0.4);margin:0 auto}
+.confirm-btn:hover{background:rgba(255,255,255,0.4);box-shadow:0 0 15px rgba(150,180,255,0.5)}
+.hide{display:none !important}
 </style>
-
-<div class="modal" id="modal">
-  <div class="box">
-    <div class="title">欢迎访问班级网站，welcome to website class808</div>
-    <button class="btn" onclick="document.getElementById('modal').style.display='none'">确定</button>
+<body class="temp-bg">
+<canvas id="particles"></canvas>
+<div class="modal-mask" id="welcomeModal">
+  <div class="modal-box">
+    <p class="modal-text">欢迎进入 2024级8班班级网站</p>
+    <button class="confirm-btn" id="closeBtn">确定</button>
   </div>
 </div>
+<div class="main-box"><h1>2024级8班 班级网站</h1></div>
+<script>
+const modal=document.getElementById('welcomeModal'),closeBtn=document.getElementById('closeBtn'),canvas=document.getElementById('particles'),body=document.body;let animationId=null;function closeModal(){modal.classList.add('hide');body.classList.remove('temp-bg');if(animationId)cancelAnimationFrame(animationId);const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);canvas.style.display='none'}
+closeBtn.addEventListener('click',closeModal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});setTimeout(closeModal,35000);
+const ctx=canvas.getContext('2d');let w,h,centerX,centerY,particles=[];const particleNum=60;
+function resizeCanvas(){w=canvas.width=window.innerWidth;h=canvas.height=window.innerHeight;centerX=w/2;centerY=h/2}
+resizeCanvas();window.addEventListener('resize',resizeCanvas);
+class Particle{constructor(){this.x=centerX;this.y=centerY;this.r=Math.random()*2+1;this.color=`rgba(${120+Math.random()*80},${150+Math.random()*60},255,${Math.random()*0.5+0.2})`;let angle=Math.random()*Math.PI*2,speed=Math.random()*1.6+0.4;this.speedX=Math.cos(angle)*speed;this.speedY=Math.sin(angle)*speed}
+draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle=this.color;ctx.fill()}
+move(){this.x+=this.speedX;this.y+=this.speedY;if(this.x<0||this.x>w||this.y<0||this.y>h){this.x=centerX;this.y=centerY}this.draw()}}
+function initParticles(){particles=[];for(let i=0;i<particleNum;i++)particles.push(new Particle())}
+initParticles();function animate(){ctx.clearRect(0,0,w,h);particles.forEach(item=>item.move());animationId=requestAnimationFrame(animate)}animate();
+</script>
   <script>
 function toggleDark() {
   const body = document.body;
