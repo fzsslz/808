@@ -1,0 +1,7 @@
+# 班级网站 robots.txt 爬虫规则
+User-agent: *
+# 允许所有搜索引擎抓取全站页面
+Allow: /
+
+# 站点地图地址
+Sitemap: https://fzsslz.github.io/808/sitemap.xml
