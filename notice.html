@@ -4,14 +4,64 @@
 <meta charset="UTF-8">
 <title>班级通知</title>
 <style>
-body{font-family:"微软雅黑",sans-serif;background:#f7f9fc;padding:20px;}
-.notice-box{background:white;padding:20px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,0.1);max-width:800px;margin:0 auto;}
-h2{color:#2c68b0;border-left:5px solid #2c68b0;padding-left:10px;}
-.item{margin:15px 0;font-size:16px;}
-.date{color:#666;font-size:14px;}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  transition: background 0.3s, color 0.3s;
+}
+body{
+  font-family:"微软雅黑",sans-serif;
+  background:#f7f9fc;
+  padding:20px;
+}
+.notice-box{
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  box-shadow:0 0 10px rgba(0,0,0,0.1);
+  max-width:800px;
+  margin:0 auto;
+}
+h2{
+  color:#2c68b0;
+  border-left:5px solid #2c68b0;
+  padding-left:10px;
+}
+.item{
+  margin:15px 0;
+  font-size:16px;
+}
+.date{
+  color:#666;
+  font-size:14px;
+  margin-bottom:6px;
+}
+
+/* 深色模式全局适配 */
+body.dark{
+  background:#1a1a1a;
+}
+body.dark .notice-box{
+  background:#2c2c2c;
+  box-shadow:0 0 10px rgba(0,0,0,0.3);
+}
+body.dark h2{
+  color:#63a0f0;
+  border-left-color:#63a0f0;
+}
+body.dark .item p{
+  color:#eee;
+}
+body.dark .date{
+  color:#aaa;
+}
 </style>
 </head>
 <body>
+<!-- 深色切换按钮 -->
+<button onclick="toggleDark()" style="position:fixed;top:20px;right:20px;padding:10px 16px;background:#3498db;color:white;border:none;border-radius:50px;cursor:pointer;font-weight:bold;z-index:999;" id="darkBtn">🌙 深色模式</button>
+
 <div class="notice-box">
 <h2>📢 班级通知</h2>
 
@@ -30,15 +80,63 @@ h2{color:#2c68b0;border-left:5px solid #2c68b0;padding-left:10px;}
 <p>3. 请大家尽量不要把网址传给校外人员，以保护隐私安全</p>
 </div>
 
-  <div class="item">
+<div class="item">
 <div class="date">2026年4月16日</div>
 <p>4.如果有想投稿的可以微信发给我，最好是照片（占的空间小），或者有功能的意见</p>
 </div>
 
-  <div class="item">
+<div class="item">
 <div class="date">2026年4月16日</div>
 <p> </p>
 </div>
 </div>
+
+<!-- 返回顶部按钮 -->
+<button id="backTopBtn" style="position:fixed;right:24px;bottom:80px;width:50px;height:50px;border-radius:50%;background:#165DFF;border:none;opacity:0;visibility:hidden;transition:0.3s all ease;z-index:998;box-shadow:0 4px 12px rgba(22,93,255,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+  <span style="width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:16px solid #fff;"></span>
+</button>
+
+<script>
+// 页面加载自动读取本地存储，同步深浅色
+(function(){
+  const saveTheme = localStorage.getItem("siteTheme");
+  const darkBtn = document.getElementById("darkBtn");
+  if(saveTheme === "dark"){
+    document.body.classList.add("dark");
+    darkBtn.innerText = "浅色模式";
+  }
+})();
+
+// 深色切换函数（带本地存储，全站同步）
+function toggleDark() {
+  const body = document.body;
+  const btn = document.getElementById("darkBtn");
+  body.classList.toggle("dark");
+  let nowTheme;
+  if(body.classList.contains("dark")){
+    btn.innerText = "浅色模式";
+    nowTheme = "dark";
+  }else{
+    btn.innerText = "深色模式";
+    nowTheme = "light";
+  }
+  localStorage.setItem("siteTheme", nowTheme);
+}
+
+// 返回顶部逻辑
+const backBtn = document.getElementById("backTopBtn");
+backBtn.onmouseover = ()=> backBtn.style.background="#0E4BDB";
+backBtn.onmouseout = ()=> backBtn.style.background="#165DFF";
+window.addEventListener("scroll",()=>{
+  if(window.scrollY > 300){
+    backBtn.style.opacity = "1";
+    backBtn.style.visibility = "visible";
+  }else{
+    backBtn.style.opacity = "0";
+    backBtn.style.visibility = "hidden";
+  }
+})
+backBtn.onclick = ()=> window.scrollTo({top:0,behavior:"smooth"});
+</script>
 </body>
 </html>
