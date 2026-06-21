@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>福州第三十六中2024级八班班级网站</title>
   <style>
     * {
@@ -10,12 +10,13 @@
       padding: 0;
       box-sizing: border-box;
       font-family: "Microsoft YaHei", sans-serif;
+      transition: background 0.3s, color 0.3s;
     }
 
     body {
       background-color: #f7fafe;
       color: #333;
-      transition: background-color 0.3s, color 0.3s;
+      overflow-x: hidden;
     }
 
     /* 深色模式样式统一管理 */
@@ -194,19 +195,76 @@
       margin: 20px 0;
     }
 
-    /* 入场弹窗+粒子特效 */
+    /* 入场弹窗+粒子特效 全新淡入淡出动画 */
     .temp-bg{min-height:100vh;background:linear-gradient(135deg,#2c2454 0%,#1f3a70 50%,#333847 100%);background-attachment:fixed;font-family:"Microsoft Yahei",sans-serif;overflow-x:hidden}
-    #particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:997;pointer-events:none}
+    #particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:997;pointer-events:none;opacity:1;transition:opacity 0.8s ease}
+    #particles.fade-out{opacity:0}
     .main-box{position:relative;z-index:2;width:90%;max-width:1000px;margin:0 auto;padding:40px 20px;color:#fff;text-align:center;animation:pageFade 1.5s ease-in-out}
     @keyframes pageFade{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-    .modal-mask{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:998;display:flex;align-items:center;justify-content:center;animation:maskFade 0.6s ease}
-    .modal-box{padding:50px 80px;background:linear-gradient(120deg,#4b3d8f,#2d4b94);border-radius:16px;box-shadow:0 0 30px rgba(130,110,255,0.5),0 0 60px rgba(80,140,255,0.3);border:1px solid rgba(255,255,255,0.2);animation:scalePop 0.6s ease;text-align:center}
-    @keyframes maskFade{from{opacity:0}to{opacity:1}}
-    @keyframes scalePop{0%{opacity:0;transform:scale(0.85)}100%{opacity:1;transform:scale(1)}}
-    .modal-text{font-size:24px;color:#fff;letter-spacing:2px;margin-bottom:30px;text-shadow:0 0 10px rgba(200,210,255,0.6)}
-    .confirm-btn{padding:10px 36px;font-size:16px;border:none;border-radius:30px;background:rgba(255,255,255,0.25);color:#fff;cursor:pointer;transition:all 0.3s ease;border:1px solid rgba(255,255,255,0.4);margin:0 auto}
+
+    /* 弹窗遮罩 淡入淡出 */
+    .modal-mask{
+      position:fixed;top:0;left:0;width:100%;height:100%;
+      background:rgba(0,0,0,0.45);z-index:998;
+      display:flex;align-items:center;justify-content:center;
+      opacity:0;pointer-events:none;
+      transition:opacity 0.6s ease;
+    }
+    .modal-mask.show{
+      opacity:1;
+      pointer-events:auto;
+    }
+    .modal-mask.hide{
+      opacity:0;
+      pointer-events:none;
+    }
+
+    /* 弹窗容器 弹出/收起缩放动画 */
+    .modal-box{
+      padding:40px 50px;
+      background:linear-gradient(120deg,#4b3d8f,#2d4b94);
+      border-radius:18px;
+      box-shadow:0 0 30px rgba(130,110,255,0.5),0 0 60px rgba(80,140,255,0.3);
+      border:1px solid rgba(255,255,255,0.2);
+      text-align:center;
+      transform:scale(0.85);
+      transition:transform 0.6s cubic-bezier(0.25,0.8,0.25,1);
+      max-width:92%;
+    }
+    .modal-mask.show .modal-box{
+      transform:scale(1);
+    }
+    .modal-mask.hide .modal-box{
+      transform:scale(0.85);
+    }
+
+    .modal-text{
+      font-size:26px;color:#fff;letter-spacing:2px;margin-bottom:20px;
+      text-shadow:0 0 10px rgba(200,210,255,0.6);
+      opacity:0;transform:translateY(10px);
+      transition:all 0.7s ease 0.3s;
+    }
+    .modal-tips{
+      font-size:15px;color:#d0d8ff;line-height:1.7;margin-bottom:30px;
+      opacity:0;transform:translateY(10px);
+      transition:all 0.7s ease 0.5s;
+    }
+    .modal-mask.show .modal-text,
+    .modal-mask.show .modal-tips{
+      opacity:1;transform:translateY(0);
+    }
+
+    .confirm-btn{
+      padding:11px 40px;font-size:17px;border:none;border-radius:30px;
+      background:rgba(255,255,255,0.25);color:#fff;cursor:pointer;
+      transition:all 0.3s ease;border:1px solid rgba(255,255,255,0.4);margin:0 auto;
+      opacity:0;transform:translateY(10px);
+      transition:all 0.7s ease 0.7s;
+    }
+    .modal-mask.show .confirm-btn{
+      opacity:1;transform:translateY(0);
+    }
     .confirm-btn:hover{background:rgba(255,255,255,0.4);box-shadow:0 0 15px rgba(150,180,255,0.5)}
-    .hide{display:none !important}
 
     /* 班级AI悬浮按钮 */
     .doubao-float-btn {
@@ -254,7 +312,21 @@
       .doubao-modal {
         display: none !important;
       }
+      .modal-box{padding:30px 20px;}
+      .modal-text{font-size:20px;}
     }
+
+    /* 统一返回顶部按钮（滚动显隐） */
+    #backTopBtn {
+      position:fixed;right:24px;bottom:80px;width:50px;height:50px;border-radius:50%;
+      background:#165DFF;border:none;opacity:0;visibility:hidden;
+      transition:0.3s all ease;z-index:998;box-shadow:0 4px 12px rgba(22,93,255,0.3);
+      display:flex;align-items:center;justify-content:center;cursor:pointer;
+    }
+    #backTopBtn span{
+      width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:16px solid #fff;
+    }
+    #backTopBtn:hover{background:#0E4BDB;}
   </style>
 </head>
 
@@ -400,13 +472,9 @@
     </div>
   </div>
 
-  <!-- 回到顶部按钮 -->
-  <button onclick="window.scrollTo(0,0)" 
-  style="position:fixed; bottom:20px; right:20px; width:50px; height:50px; 
-  background:#165DFF; color:white; border:none; border-radius:50%; 
-  font-size:18px; cursor:pointer; box-shadow:0 4px 12px rgba(22,93,255,0.3); 
-  transition:all 0.3s ease;z-index:998;">
-    ↑
+  <!-- 统一滚动显隐回到顶部按钮 -->
+  <button id="backTopBtn">
+    <span></span>
   </button>
 
   <footer>
@@ -418,7 +486,11 @@
 <div class="modal-mask" id="welcomeModal">
   <div class="modal-box">
     <p class="modal-text">欢迎进入 2024级8班班级网站</p>
-    <button class="confirm-btn" id="closeBtn">确定</button>
+    <p class="modal-tips">💡 使用小提示：
+<br>1. 相册、视频页面图片素材较多，打开需要加载几秒，请耐心等待
+<br>2. 首次进入网站会加载全部资源，可能轻微卡顿，第二次浏览会流畅很多
+<br>3. 右上角可切换深色/浅色模式，夜间浏览更护眼</p>
+    <button class="confirm-btn" id="closeBtn">开始浏览</button>
   </div>
 </div>
 
@@ -430,18 +502,43 @@
 </div>
 
 <script>
-// 入场弹窗&粒子 弹窗35秒自动关闭 保持不变
-const modal=document.getElementById('welcomeModal'),closeBtn=document.getElementById('closeBtn'),canvas=document.getElementById('particles'),body=document.body;
+// 页面加载自动同步深浅色记忆（和相册/通知/视频跨页面同步）
+(function(){
+  const saveTheme = localStorage.getItem("siteTheme");
+  const darkBtn = document.getElementById("darkBtn");
+  if(saveTheme === "dark"){
+    document.body.classList.add("dark");
+    darkBtn.innerText = "浅色模式";
+  }
+})();
+
+// 入场弹窗&粒子 淡入淡出动画重写
+const modalMask=document.getElementById('welcomeModal'),
+      closeBtn=document.getElementById('closeBtn'),
+      canvas=document.getElementById('particles'),
+      body=document.body;
 let animationId=null;
+
+// 页面载入自动弹出弹窗
+window.addEventListener('load',()=>{
+  setTimeout(()=>modalMask.classList.add('show'),100);
+})
+
+// 关闭弹窗 粒子淡出+遮罩淡出
 function closeModal(){
-  modal.classList.add('hide');
-  if(animationId)cancelAnimationFrame(animationId);
-  const ctx=canvas.getContext('2d');
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  canvas.style.display='none';
+  modalMask.classList.remove('show');
+  modalMask.classList.add('hide');
+  canvas.classList.add('fade-out');
+  setTimeout(()=>{
+    if(animationId)cancelAnimationFrame(animationId);
+    const ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    canvas.style.display='none';
+  },800);
 }
 closeBtn.addEventListener('click',closeModal);
-modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
+modalMask.addEventListener('click',e=>{if(e.target===modalMask)closeModal()});
+// 35秒自动关闭
 setTimeout(closeModal,35000);
 
 // 粒子动画
@@ -494,6 +591,21 @@ function animate(){
 }
 animate();
 
+// 回到顶部按钮滚动显隐逻辑
+const backTopBtn = document.getElementById("backTopBtn");
+backTopBtn.onmouseover = ()=> backTopBtn.style.background="#0E4BDB";
+backTopBtn.onmouseout = ()=> backTopBtn.style.background="#165DFF";
+window.addEventListener("scroll",()=>{
+  if(window.scrollY > 300){
+    backTopBtn.style.opacity = "1";
+    backTopBtn.style.visibility = "visible";
+  }else{
+    backTopBtn.style.opacity = "0";
+    backTopBtn.style.visibility = "hidden";
+  }
+})
+backTopBtn.onclick = ()=> window.scrollTo({top:0,behavior:"smooth"});
+
 // 小中考倒计时
 const examDate = new Date("2026/06/23 09:00:00").getTime();
 function update(){
@@ -545,17 +657,20 @@ function showNewQuote() {
 }
 window.onload = showNewQuote;
 
-// 深色模式【修复报错：移除不存在的quoteBox，改用CSS类控制】
+// 深色模式【带本地存储，跨页面同步】
 function toggleDark() {
   const body = document.body;
   const btn = document.getElementById("darkBtn");
   body.classList.toggle("dark");
-
+  let nowTheme;
   if (body.classList.contains("dark")) {
     btn.innerText = "浅色模式";
+    nowTheme = "dark";
   } else {
     btn.innerText = "深色模式";
+    nowTheme = "light";
   }
+  localStorage.setItem("siteTheme", nowTheme);
 }
 
 // 复制网址【增加本地file://环境兼容】
