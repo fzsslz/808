@@ -120,6 +120,40 @@
           <iframe src="//player.bilibili.com/player.html?bvid=BV1TeEi6hEXr&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
   </div>
    <a href="index.html" class="back-button">返回主页</a >
+        <!-- 修复版 返回顶部按钮（适配你的body.dark深色模式、滚动300px才显示、居中三角图标、hover变色） -->
+<button id="backTopBtn" style="position:fixed;right:24px;bottom:80px;width:50px;height:50px;border-radius:50%;background:#165DFF;border:none;opacity:0;visibility:hidden;transition:0.3s all ease;z-index:998;box-shadow:0 4px 12px rgba(22,93,255,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+  <span style="width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:16px solid #fff;"></span>
+</button>
+
+<script>
+// 返回顶部逻辑（放在页面原有大script最底部，或者单独放这里）
+const backBtn = document.getElementById("backTopBtn");
+// 悬浮变色
+backBtn.onmouseover = ()=> backBtn.style.background="#0E4BDB";
+backBtn.onmouseout = ()=> backBtn.style.background="#165DFF";
+// 滚动显示隐藏
+window.addEventListener("scroll",()=>{
+  if(window.scrollY > 300){
+    backBtn.style.opacity = "1";
+    backBtn.style.visibility = "visible";
+  }else{
+    backBtn.style.opacity = "0";
+    backBtn.style.visibility = "hidden";
+  }
+})
+// 平滑回顶
+backBtn.onclick = ()=> window.scrollTo({top:0,behavior:"smooth"});
+
+// 深色模式同步按钮阴影
+const darkToggle = document.getElementById("darkBtn");
+darkToggle.addEventListener("click",()=>{
+  if(document.body.classList.contains("dark")){
+    backBtn.style.boxShadow = "0 4px 12px rgba(22,93,255,0.5)";
+  }else{
+    backBtn.style.boxShadow = "0 4px 12px rgba(22,93,255,0.3)";
+  }
+})
+</script>
   
 </body>
 </html>
