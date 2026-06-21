@@ -8,12 +8,26 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            transition: background 0.3s, color 0.3s;
         }
 
         body {
             padding: 20px;
             background: #f5f7fa;
             font-family: "Microsoft YaHei", sans-serif;
+        }
+        /* 深色全局样式 */
+        body.dark {
+            background: #1a1a1a;
+        }
+        body.dark h1 {
+            color: #fff;
+        }
+        body.dark .back-btn {
+            background: #0E4BDB;
+        }
+        body.dark .album img {
+            box-shadow: 0 2px 8px rgba(255,255,255,0.1);
         }
 
         header {
@@ -88,6 +102,7 @@
 </head>
 <body>
     <header>
+        <button onclick="toggleDark()" style="position:fixed;top:20px;right:20px;padding:10px 16px;background:#3498db;color:white;border:none;border-radius:50px;cursor:pointer;font-weight:bold;z-index:999;" id="darkBtn">🌙 深色模式</button>
         <h1>班级相册</h1>
     </header>
     <div style="text-align: center;">
@@ -273,36 +288,43 @@
         <img id="bigImg">
     </div>
 
-    <script>
-        // 点击小图放大
-        const imgs = document.querySelectorAll('.album img');
-        const modal = document.getElementById('imgModal');
-        const bigImg = document.getElementById('bigImg');
-
-        imgs.forEach(img => {
-            img.onclick = function () {
-                if (this.src) {
-                    bigImg.src = this.src;
-                    modal.classList.add('active');
-                }
-            }
-        });
-
-        // 点击任意位置关闭放大
-        function closeModal() {
-            modal.classList.remove('active');
-        }
-    </script>
+    <!-- 返回顶部按钮 -->
     <button id="backTopBtn" style="position:fixed;right:24px;bottom:80px;width:50px;height:50px;border-radius:50%;background:#165DFF;border:none;opacity:0;visibility:hidden;transition:0.3s all ease;z-index:998;box-shadow:0 4px 12px rgba(22,93,255,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;">
-  <span style="width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:16px solid #fff;"></span>
-</button>
+        <span style="width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:16px solid #fff;"></span>
+    </button>
 
 <script>
+// 页面加载自动同步深浅色记忆
+(function(){
+  const saveTheme = localStorage.getItem("siteTheme");
+  const darkBtn = document.getElementById("darkBtn");
+  if(saveTheme === "dark"){
+    document.body.classList.add("dark");
+    darkBtn.innerText = "浅色模式";
+  }
+})();
+
+// 点击小图放大
+const imgs = document.querySelectorAll('.album img');
+const modal = document.getElementById('imgModal');
+const bigImg = document.getElementById('bigImg');
+imgs.forEach(img => {
+    img.onclick = function () {
+        if (this.src) {
+            bigImg.src = this.src;
+            modal.classList.add('active');
+        }
+    }
+});
+// 点击任意位置关闭放大
+function closeModal() {
+    modal.classList.remove('active');
+}
+
+// 返回顶部逻辑
 const backBtn = document.getElementById("backTopBtn");
-// 悬浮变色
 backBtn.onmouseover = ()=> backBtn.style.background="#0E4BDB";
 backBtn.onmouseout = ()=> backBtn.style.background="#165DFF";
-// 滚动显隐
 window.addEventListener("scroll",()=>{
   if(window.scrollY > 300){
     backBtn.style.opacity = "1";
@@ -312,8 +334,23 @@ window.addEventListener("scroll",()=>{
     backBtn.style.visibility = "hidden";
   }
 })
-// 平滑回顶
 backBtn.onclick = ()=> window.scrollTo({top:0,behavior:"smooth"});
+
+// 深色模式切换函数（带本地存储，跨页面同步）
+function toggleDark() {
+  const body = document.body;
+  const btn = document.getElementById("darkBtn");
+  body.classList.toggle("dark");
+  let nowTheme;
+  if (body.classList.contains("dark")) {
+    btn.innerText = "浅色模式";
+    nowTheme = "dark";
+  } else {
+    btn.innerText = "深色模式";
+    nowTheme = "light";
+  }
+  localStorage.setItem("siteTheme", nowTheme);
+}
 </script>
 </body>
 </html>
