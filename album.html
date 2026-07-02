@@ -53,12 +53,19 @@
             font-size: 16px;
         }
 
+        /* 强制最少2列，宽度自适应，最小140px */
         .album {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 15px;
             max-width: 1200px;
             margin: 0 auto;
+        }
+        /* 小于400px时固定两列，彻底杜绝单列 */
+        @media (max-width: 400px) {
+            .album {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         .album img {
@@ -87,7 +94,7 @@
             z-index: 9999;
             text-align: center;
             padding: 20px;
-            overflow-y: auto; /* 超长图片可滚动查看 */
+            overflow: hidden;
         }
         /* 打开遮罩时锁定页面滚动 */
         body.modal-open {
@@ -99,12 +106,20 @@
             display: inline-block;
             margin: auto;
             margin-top: 3vh;
+            width: 92vw;
+            height: 92vh;
+            overflow: hidden;
         }
-        .modal img {
-            max-width: 92vw;
-            max-height: 92vh;
+        #bigImg {
+            max-width: 100%;
+            max-height: 100%;
             border-radius: 8px;
             box-shadow: 0 0 30px rgba(255,255,255,0.2);
+            cursor: grab;
+            transform-origin: center center;
+        }
+        #bigImg:active {
+            cursor: grabbing;
         }
         /* 加载提示 */
         .loading-tip {
@@ -346,7 +361,7 @@
         <img src="" alt="持续更新中">
     </div>
 
-    <!-- 全新升级预览层：支持切换、ESC关闭、加载提示 -->
+    <!-- 全新升级预览层：支持切换、ESC关闭、加载提示、滚轮缩放、拖拽平移 -->
     <div class="modal" id="imgModal">
         <button class="close-modal-btn" id="closeBtn">×</button>
         <button class="switch-btn prev-btn" id="prevBtn">‹</button>
@@ -384,6 +399,22 @@ const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 let currentIndex = 0;
 
+// 缩放拖拽变量
+let scale = 1;
+let offsetX = 0;
+let offsetY = 0;
+let isDrag = false;
+let dragStartX = 0;
+let dragStartY = 0;
+
+// 重置图片缩放偏移
+function resetImgTransform() {
+    scale = 1;
+    offsetX = 0;
+    offsetY = 0;
+    bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+}
+
 // 过滤空src空白图片，禁止点击
 allImgs.forEach((img, idx) => {
     if(!img.src || img.src.endsWith('/')) {
@@ -396,6 +427,7 @@ allImgs.forEach((img, idx) => {
 
 // 打开预览
 function openPreview(index) {
+    resetImgTransform();
     currentIndex = index;
     const targetImg = allImgs[currentIndex];
     loadingTip.style.display = "block";
@@ -411,10 +443,12 @@ function closeModal() {
     modal.classList.remove('active');
     document.body.classList.remove("modal-open");
     bigImg.src = "";
+    resetImgTransform();
 }
 
 // 切换上一张
 function prevImg() {
+    resetImgTransform();
     currentIndex = currentIndex - 1 < 0 ? allImgs.length - 1 : currentIndex - 1;
     // 跳过空白无效图片
     while(!allImgs[currentIndex].src || allImgs[currentIndex].src.endsWith('/')) {
@@ -424,6 +458,7 @@ function prevImg() {
 }
 // 切换下一张
 function nextImg() {
+    resetImgTransform();
     currentIndex = currentIndex + 1 >= allImgs.length ? 0 : currentIndex + 1;
     while(!allImgs[currentIndex].src || allImgs[currentIndex].src.endsWith('/')) {
         currentIndex = currentIndex + 1 >= allImgs.length ? 0 : currentIndex + 1;
@@ -446,6 +481,36 @@ document.addEventListener("keydown", (e)=>{
     if(e.key === "ArrowLeft") prevImg();
     if(e.key === "ArrowRight") nextImg();
 })
+
+// ========== 滚轮缩放 ==========
+bigImg.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    const zoomSpeed = 0.08;
+    if(e.deltaY < 0) {
+        scale += zoomSpeed;
+    } else {
+        scale -= zoomSpeed;
+    }
+    // 限制缩放范围 0.3 ~ 5倍
+    scale = Math.max(0.3, Math.min(scale, 5));
+    bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+})
+
+// ========== 鼠标拖拽平移 ==========
+bigImg.addEventListener('mousedown', (e)=>{
+    isDrag = true;
+    dragStartX = e.clientX - offsetX;
+    dragStartY = e.clientY - offsetY;
+})
+document.addEventListener('mousemove', (e)=>{
+    if(!isDrag) return;
+    offsetX = e.clientX - dragStartX;
+    offsetY = e.clientY - dragStartY;
+    bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+})
+document.addEventListener('mouseup', ()=> isDrag = false);
+// 双击重置缩放
+bigImg.addEventListener('dblclick', resetImgTransform);
 
 // 返回顶部逻辑
 const backBtn = document.getElementById("backTopBtn");
