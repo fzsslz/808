@@ -185,6 +185,12 @@
       color: #3498db;
       font-size: 15px;
     }
+    .summer-text {
+      font-size: 28px;
+      color: #ff6b35;
+      font-weight: bold;
+      padding: 20px 0;
+    }
 
     /* 游戏列表布局 */
     .game-list {
@@ -350,10 +356,13 @@
       <p>欢迎来到福州第三十六中学2024级8班班级网站，这里记录我们的学习、活动与成长瞬间。</p>
     </div>
 
-    <!-- 小中考倒计时 -->
+    <!-- 开学倒计时 -->
     <div class="exam-countdown">
-      <div class="exam-title">🎓小中考倒计时</div>
-      <div class="time-box">
+      <div class="exam-title">开学倒计时</div>
+      <!-- 暑假文字，7.3及之前显示 -->
+      <div class="summer-text" id="summerTip" style="display:none;">☀️ 暑假快乐！</div>
+      <!-- 倒计时数字容器 -->
+      <div class="time-box" id="timeBox">
         <div class="time-item"><div class="time-num" id="day">0</div><div class="time-text">天</div></div>
         <div class="time-item"><div class="time-num" id="hour">0</div><div class="time-text">时</div></div>
         <div class="time-item"><div class="time-num" id="min">0</div><div class="time-text">分</div></div>
@@ -606,11 +615,27 @@ window.addEventListener("scroll",()=>{
 })
 backTopBtn.onclick = ()=> window.scrollTo({top:0,behavior:"smooth"});
 
-// 小中考倒计时
-const examDate = new Date("2026/06/23 09:00:00").getTime();
-function update(){
+// ========== 修改后的开学倒计时逻辑 ==========
+const startSummerEnd = new Date("2026/07/03 23:59:59").getTime(); //7月3日截止
+const schoolDay = new Date("2026/09/01 00:00:00").getTime();     //9月1日开学
+const summerTipDom = document.getElementById("summerTip");
+const timeBoxDom = document.getElementById("timeBox");
+
+function updateCountdown(){
   const now = new Date().getTime();
-  const diff = examDate - now;
+
+  // 判断是否在7.3及之前，显示暑假快乐
+  if(now <= startSummerEnd){
+    summerTipDom.style.display = "block";
+    timeBoxDom.style.display = "none";
+    return;
+  }else{
+    summerTipDom.style.display = "none";
+    timeBoxDom.style.display = "flex";
+  }
+
+  // 7.4之后正常计算开学倒计时
+  const diff = schoolDay - now;
   const d = Math.floor(diff / (1000*60*60*24));
   const h = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
   const m = Math.floor((diff % (1000*60*60)) / (1000*60));
@@ -621,8 +646,8 @@ function update(){
   document.getElementById("min").innerText = m < 0 ? 0 : m;
   document.getElementById("sec").innerText = s < 0 ? 0 : s;
 }
-update();
-setInterval(update, 1000);
+updateCountdown();
+setInterval(updateCountdown, 1000);
 
 // 名言轮换
 const quotes = [            
