@@ -2,7 +2,6 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- 手机屏幕适配 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>班级相册</title>
     <style>
@@ -18,7 +17,6 @@
             background: #f5f7fa;
             font-family: "Microsoft YaHei", sans-serif;
         }
-        /* 深色全局样式 */
         body.dark {
             background: #1a1a1a;
         }
@@ -36,12 +34,10 @@
             text-align: center;
             margin-bottom: 20px;
         }
-
         h1 {
             font-size: 32px;
             color: #333;
         }
-
         .back-btn {
             display: inline-block;
             margin: 0 auto 20px;
@@ -53,7 +49,7 @@
             font-size: 16px;
         }
 
-        /* 强制最少2列，宽度自适应，最小140px */
+        /* 相册网格 强制最少2列 */
         .album {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -61,28 +57,25 @@
             max-width: 1200px;
             margin: 0 auto;
         }
-        /* 小于400px时固定两列，彻底杜绝单列 */
         @media (max-width: 400px) {
             .album {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
-
         .album img {
             width: 100%;
             height: 160px;
-            object-fit: cover; /* 修复原图拉伸留白，统一填充裁剪更美观 */
+            object-fit: cover;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             transition: transform 0.3s;
             cursor: pointer;
         }
-
         .album img:hover {
             transform: scale(1.05);
         }
 
-        /* 优化版图片放大遮罩 */
+        /* 预览弹窗 */
         .modal {
             display: none;
             position: fixed;
@@ -96,9 +89,11 @@
             padding: 20px;
             overflow: hidden;
         }
-        /* 打开遮罩时锁定页面滚动 */
         body.modal-open {
             overflow: hidden;
+        }
+        .modal.active {
+            display: block;
         }
 
         .modal-content {
@@ -110,19 +105,23 @@
             height: 92vh;
             overflow: hidden;
         }
+
+        /* 大图核心硬件加速优化 */
         #bigImg {
             max-width: 100%;
             max-height: 100%;
             border-radius: 8px;
             box-shadow: 0 0 30px rgba(255,255,255,0.2);
             cursor: grab;
-            transform-origin: center center;
-            touch-action: none; /* 关键：禁用浏览器默认触摸行为 */
+            transform-origin: 0 0;
+            touch-action: none;
+            will-change: transform;
+            transform: translateZ(0); /* 强制GPU分层加速 */
         }
         #bigImg:active {
             cursor: grabbing;
         }
-        /* 加载提示 */
+
         .loading-tip {
             color: #fff;
             font-size: 18px;
@@ -131,7 +130,6 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
-        /* 关闭按钮 */
         .close-modal-btn {
             position: fixed;
             top: 20px;
@@ -149,7 +147,6 @@
         .close-modal-btn:hover {
             background: rgba(255,255,255,0.4);
         }
-        /* 左右切换箭头 */
         .switch-btn {
             position: fixed;
             top: 50%;
@@ -167,16 +164,8 @@
         .switch-btn:hover {
             background: rgba(255,255,255,0.4);
         }
-        .prev-btn {
-            left: 20px;
-        }
-        .next-btn {
-            right: 20px;
-        }
-
-        .modal.active {
-            display: block;
-        }
+        .prev-btn { left: 20px; }
+        .next-btn { right: 20px; }
     </style>
 </head>
 <body>
@@ -355,7 +344,6 @@
          <img src="ooo.jpg" alt="广告位">
          <img src="ppp.jpg" alt="广告位">
          <img src="qqq.jpg" alt="广告位">
-         <img src="rrr.jpg" alt="广告位">
          <img src="sb1.jpg" alt="广告位">
         <img src="sb2.jpg" alt="广告位">
         <img src="" alt="广告位">
@@ -365,7 +353,6 @@
         <img src="" alt="持续更新中">
     </div>
 
-    <!-- 全新升级预览层：支持切换、ESC关闭、加载提示、滚轮缩放、拖拽平移 -->
     <div class="modal" id="imgModal">
         <button class="close-modal-btn" id="closeBtn">×</button>
         <button class="switch-btn prev-btn" id="prevBtn">‹</button>
@@ -376,13 +363,11 @@
         </div>
     </div>
 
-    <!-- 返回顶部按钮 -->
     <button id="backTopBtn" style="position:fixed;right:24px;bottom:80px;width:50px;height:50px;border-radius:50%;background:#165DFF;border:none;opacity:0;visibility:hidden;transition:0.3s all ease;z-index:998;box-shadow:0 4px 12px rgba(22,93,255,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;">
         <span style="width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:16px solid #fff;"></span>
     </button>
 
 <script>
-// 页面加载自动同步深浅色记忆
 (function(){
   const saveTheme = localStorage.getItem("siteTheme");
   const darkBtn = document.getElementById("darkBtn");
@@ -392,7 +377,6 @@
   }
 })();
 
-// 相册图片预览升级逻辑
 const imgWrap = document.getElementById("imgList");
 const allImgs = Array.from(imgWrap.querySelectorAll(".album img"));
 const modal = document.getElementById('imgModal');
@@ -403,24 +387,39 @@ const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 let currentIndex = 0;
 
-// 缩放拖拽变量
+// 缩放拖拽状态
 let scale = 1;
 let offsetX = 0;
 let offsetY = 0;
 let isDrag = false;
 let dragStartX = 0;
 let dragStartY = 0;
-let touchStartDistance = 0;
+let touchStartDist = 0;
+let touchCenterX = 0;
+let touchCenterY = 0;
+let rafPending = false; // 帧节流标记
 
-// 重置图片缩放偏移
+// 统一渲染函数（全部操作走rAF，只在屏幕刷新时更新一次）
+function renderTransform(){
+    bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    rafPending = false;
+}
+function scheduleRender(){
+    if(!rafPending){
+        requestAnimationFrame(renderTransform);
+        rafPending = true;
+    }
+}
+
+// 重置视图
 function resetImgTransform() {
     scale = 1;
     offsetX = 0;
     offsetY = 0;
-    bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    scheduleRender();
 }
 
-// 过滤空src空白图片，禁止点击
+// 过滤空白无效图片
 allImgs.forEach((img, idx) => {
     if(!img.src || img.src.endsWith('/')) {
         img.style.cursor = "default";
@@ -437,9 +436,8 @@ function openPreview(index) {
     const targetImg = allImgs[currentIndex];
     loadingTip.style.display = "block";
     modal.classList.add('active');
-    document.body.classList.add("modal-open"); // 锁定底层滚动
+    document.body.classList.add("modal-open");
     bigImg.src = targetImg.src;
-    // 图片加载完成隐藏加载文字
     bigImg.onload = ()=> loadingTip.style.display = "none";
 }
 
@@ -455,7 +453,6 @@ function closeModal() {
 function prevImg() {
     resetImgTransform();
     currentIndex = currentIndex - 1 < 0 ? allImgs.length - 1 : currentIndex - 1;
-    // 跳过空白无效图片
     while(!allImgs[currentIndex].src || allImgs[currentIndex].src.endsWith('/')) {
         currentIndex = currentIndex - 1 < 0 ? allImgs.length - 1 : currentIndex - 1;
     }
@@ -471,15 +468,13 @@ function nextImg() {
     openPreview(currentIndex);
 }
 
-// 绑定所有关闭、切换事件
+// 绑定基础事件
 closeBtn.onclick = closeModal;
 prevBtn.onclick = prevImg;
 nextBtn.onclick = nextImg;
-// 点击遮罩空白处关闭，点击图片本体不关闭
 modal.onclick = (e)=> {
     if(e.target === modal) closeModal();
 }
-// 键盘快捷键：ESC关闭，左右箭头切换
 document.addEventListener("keydown", (e)=>{
     if(!modal.classList.contains("active")) return;
     if(e.key === "Escape") closeModal();
@@ -487,21 +482,16 @@ document.addEventListener("keydown", (e)=>{
     if(e.key === "ArrowRight") nextImg();
 })
 
-// ========== 电脑滚轮缩放 ==========
+// PC滚轮缩放
 bigImg.addEventListener('wheel', (e)=>{
     e.preventDefault();
-    const zoomSpeed = 0.08;
-    if(e.deltaY < 0) {
-        scale += zoomSpeed;
-    } else {
-        scale -= zoomSpeed;
-    }
-    // 限制缩放范围 0.3 ~ 5倍
+    const zoomStep = 0.06;
+    scale += e.deltaY < 0 ? zoomStep : -zoomStep;
     scale = Math.max(0.3, Math.min(scale, 5));
-    bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    scheduleRender();
 })
 
-// ========== 鼠标拖拽平移 ==========
+// PC鼠标拖拽
 bigImg.addEventListener('mousedown', (e)=>{
     isDrag = true;
     dragStartX = e.clientX - offsetX;
@@ -511,60 +501,72 @@ document.addEventListener('mousemove', (e)=>{
     if(!isDrag) return;
     offsetX = e.clientX - dragStartX;
     offsetY = e.clientY - dragStartY;
-    bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    scheduleRender();
 })
 document.addEventListener('mouseup', ()=> isDrag = false);
-// 双击重置缩放
 bigImg.addEventListener('dblclick', resetImgTransform);
 
-// ========== 手机触摸事件（核心修复） ==========
 // 计算双指距离
-function getTwoTouchDist(touches) {
+function getTouchDist(touches){
     const x1 = touches[0].clientX;
     const y1 = touches[0].clientY;
     const x2 = touches[1].clientX;
     const y2 = touches[1].clientY;
     return Math.hypot(x2 - x1, y2 - y1);
 }
+// 计算双指中心点
+function getTouchCenter(touches){
+    return {
+        x: (touches[0].clientX + touches[1].clientX) / 2,
+        y: (touches[0].clientY + touches[1].clientY) / 2
+    }
+}
 
+// 触摸起始
 bigImg.addEventListener('touchstart', (e) => {
     e.preventDefault();
-    // 单指：准备拖拽
-    if (e.touches.length === 1) {
+    if(e.touches.length === 1){
         isDrag = true;
         dragStartX = e.touches[0].clientX - offsetX;
         dragStartY = e.touches[0].clientY - offsetY;
-    }
-    // 双指：记录初始距离，准备缩放
-    if (e.touches.length === 2) {
-        touchStartDistance = getTwoTouchDist(e.touches);
+    }else if(e.touches.length === 2){
+        touchStartDist = getTouchDist(e.touches);
+        const center = getTouchCenter(e.touches);
+        touchCenterX = center.x;
+        touchCenterY = center.y;
     }
 })
 
+// 触摸移动（核心修复：中点缩放，rAF节流）
 bigImg.addEventListener('touchmove', (e) => {
     e.preventDefault();
-    // 单指拖动图片
-    if (e.touches.length === 1 && isDrag) {
+    // 单指拖动
+    if(e.touches.length === 1 && isDrag){
         offsetX = e.touches[0].clientX - dragStartX;
         offsetY = e.touches[0].clientY - dragStartY;
-        bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+        scheduleRender();
     }
-    // 双指缩放
-    if (e.touches.length === 2) {
-        const currentDist = getTwoTouchDist(e.touches);
-        const delta = currentDist - touchStartDistance;
-        scale += delta * 0.001;
+    // 双指缩放（以手势中点缩放，不会乱飞）
+    else if(e.touches.length === 2){
+        const dist = getTouchDist(e.touches);
+        const center = getTouchCenter(e.touches);
+        const deltaScale = (dist - touchStartDist) * 0.0008;
+        const oldScale = scale;
+        scale += deltaScale;
         scale = Math.max(0.3, Math.min(scale, 5));
-        touchStartDistance = currentDist;
-        bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+        // 修正偏移，缩放围绕手指中点
+        offsetX += (center.x - touchCenterX) * (scale / oldScale - 1);
+        offsetY += (center.y - touchCenterY) * (scale / oldScale - 1);
+        touchStartDist = dist;
+        touchCenterX = center.x;
+        touchCenterY = center.y;
+        scheduleRender();
     }
 })
 
-bigImg.addEventListener('touchend', () => {
-    isDrag = false;
-})
+bigImg.addEventListener('touchend', () => isDrag = false);
 
-// 返回顶部逻辑
+// 返回顶部
 const backBtn = document.getElementById("backTopBtn");
 backBtn.onmouseover = ()=> backBtn.style.background="#0E4BDB";
 backBtn.onmouseout = ()=> backBtn.style.background="#165DFF";
@@ -579,20 +581,14 @@ window.addEventListener("scroll",()=>{
 })
 backBtn.onclick = ()=> window.scrollTo({top:0,behavior:"smooth"});
 
-// 深色模式切换函数（带本地存储，跨页面同步）
+// 深色模式同步
 function toggleDark() {
   const body = document.body;
   const btn = document.getElementById("darkBtn");
   body.classList.toggle("dark");
-  let nowTheme;
-  if (body.classList.contains("dark")) {
-    btn.innerText = "浅色模式";
-    nowTheme = "dark";
-  } else {
-    btn.innerText = "深色模式";
-    nowTheme = "light";
-  }
-  localStorage.setItem("siteTheme", nowTheme);
+  const isDark = body.classList.contains("dark");
+  btn.innerText = isDark ? "浅色模式" : "🌙 深色模式";
+  localStorage.setItem("siteTheme", isDark ? "dark" : "light");
 }
 </script>
 </body>
