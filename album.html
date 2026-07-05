@@ -117,6 +117,7 @@
             box-shadow: 0 0 30px rgba(255,255,255,0.2);
             cursor: grab;
             transform-origin: center center;
+            touch-action: none; /* 关键：禁用浏览器默认触摸行为 */
         }
         #bigImg:active {
             cursor: grabbing;
@@ -409,6 +410,7 @@ let offsetY = 0;
 let isDrag = false;
 let dragStartX = 0;
 let dragStartY = 0;
+let touchStartDistance = 0;
 
 // 重置图片缩放偏移
 function resetImgTransform() {
@@ -485,7 +487,7 @@ document.addEventListener("keydown", (e)=>{
     if(e.key === "ArrowRight") nextImg();
 })
 
-// ========== 滚轮缩放 ==========
+// ========== 电脑滚轮缩放 ==========
 bigImg.addEventListener('wheel', (e)=>{
     e.preventDefault();
     const zoomSpeed = 0.08;
@@ -514,6 +516,53 @@ document.addEventListener('mousemove', (e)=>{
 document.addEventListener('mouseup', ()=> isDrag = false);
 // 双击重置缩放
 bigImg.addEventListener('dblclick', resetImgTransform);
+
+// ========== 手机触摸事件（核心修复） ==========
+// 计算双指距离
+function getTwoTouchDist(touches) {
+    const x1 = touches[0].clientX;
+    const y1 = touches[0].clientY;
+    const x2 = touches[1].clientX;
+    const y2 = touches[1].clientY;
+    return Math.hypot(x2 - x1, y2 - y1);
+}
+
+bigImg.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    // 单指：准备拖拽
+    if (e.touches.length === 1) {
+        isDrag = true;
+        dragStartX = e.touches[0].clientX - offsetX;
+        dragStartY = e.touches[0].clientY - offsetY;
+    }
+    // 双指：记录初始距离，准备缩放
+    if (e.touches.length === 2) {
+        touchStartDistance = getTwoTouchDist(e.touches);
+    }
+})
+
+bigImg.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    // 单指拖动图片
+    if (e.touches.length === 1 && isDrag) {
+        offsetX = e.touches[0].clientX - dragStartX;
+        offsetY = e.touches[0].clientY - dragStartY;
+        bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    }
+    // 双指缩放
+    if (e.touches.length === 2) {
+        const currentDist = getTwoTouchDist(e.touches);
+        const delta = currentDist - touchStartDistance;
+        scale += delta * 0.001;
+        scale = Math.max(0.3, Math.min(scale, 5));
+        touchStartDistance = currentDist;
+        bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    }
+})
+
+bigImg.addEventListener('touchend', () => {
+    isDrag = false;
+})
 
 // 返回顶部逻辑
 const backBtn = document.getElementById("backTopBtn");
