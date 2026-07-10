@@ -186,6 +186,7 @@
             background: #fff;
             color: #222;
             font-size: 14px;
+            cursor: pointer;
         }
         .edit-bar button.active {
             background: #1677ff;
@@ -196,6 +197,10 @@
             height: 24px;
             border-radius: 50%;
             border: 2px solid #fff;
+            cursor: pointer;
+        }
+        .color-box.active {
+            box-shadow: 0 0 0 2px #1677ff;
         }
         /* 涂鸦画布覆盖原图 */
         #drawCanvas {
@@ -239,6 +244,7 @@
             border: none;
             border-radius: 6px;
             font-size: 15px;
+            cursor: pointer;
         }
         /* 保存预览弹窗 */
         .save-preview {
@@ -269,6 +275,7 @@
             padding: 8px 22px;
             border: none;
             border-radius: 6px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -468,10 +475,10 @@
         <div class="edit-bar">
             <button id="drawTool">画笔</button>
             <button id="eraserTool">橡皮</button>
-            <div class="color-box" style="background:#ff3333;"></div>
-            <div class="color-box" style="background:#ffffff;"></div>
-            <div class="color-box" style="background:#33ff33;"></div>
-            <div class="color-box" style="background:#3388ff;"></div>
+            <div class="color-box" style="background:#ff3333;" data-color="#ff3333"></div>
+            <div class="color-box" style="background:#ffffff;" data-color="#ffffff"></div>
+            <div class="color-box" style="background:#33ff33;" data-color="#33ff33"></div>
+            <div class="color-box" style="background:#3388ff;" data-color="#3388ff"></div>
             <button id="cropTool">裁剪</button>
             <button id="undoDraw">撤销</button>
             <button id="saveEdit">保存图片</button>
@@ -528,7 +535,7 @@ const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 let currentIndex = 0;
 
-// 缩放拖拽全局（高灵敏双指缩放）
+// 缩放拖拽全局
 let scale = 1;
 let offsetX = 0;
 let offsetY = 0;
@@ -540,16 +547,17 @@ let touchCenterX = 0;
 let touchCenterY = 0;
 let rafPending = false;
 
-// 涂鸦画布变量
+// 涂鸦画布核心修复变量
 const drawCanvas = document.getElementById("drawCanvas");
 const drawCtx = drawCanvas.getContext("2d");
 let drawHistory = [];
 let isDrawing = false;
 let drawMode = false;
 let drawColor = "#ff3333";
-let lineWidth = 6;
+let lineWidth = 8;
 let isEraser = false;
 const dpr = window.devicePixelRatio || 1;
+let lastX = 0, lastY = 0; // 记录上一个点，解决线条断裂
 
 // 裁剪、保存弹窗
 const cropModal = document.getElementById("cropModal");
@@ -594,7 +602,7 @@ function initDrawCanvas(){
     clearDrawCanvas();
 }
 
-// 过滤空白图片
+// 过滤空白图片绑定点击
 allImgs.forEach((img, idx) => {
     if(!img.src || img.src.endsWith('/')) {
         img.style.cursor = "default";
@@ -608,6 +616,13 @@ allImgs.forEach((img, idx) => {
 function openPreview(index) {
     resetImgTransform();
     clearDrawCanvas();
+    // 重置工具栏状态
+    drawMode = false;
+    drawCanvas.classList.remove("draw-mode");
+    document.querySelectorAll(".edit-bar button").forEach(btn=>btn.classList.remove("active"));
+    document.querySelectorAll(".color-box").forEach(box=>box.classList.remove("active"));
+    document.querySelector(`.color-box[data-color="${drawColor}"]`)?.classList.add("active");
+
     currentIndex = index;
     const targetImg = allImgs[currentIndex];
     loadingTip.style.display = "block";
@@ -677,7 +692,7 @@ document.addEventListener("keydown", (e)=>{
     if(e.key === "ArrowRight") nextImg();
 })
 
-// ========== 原图缩放拖拽逻辑（高灵敏） ==========
+// ========== 原图缩放拖拽逻辑 ==========
 // PC滚轮缩放
 bigImg.addEventListener('wheel', (e)=>{
     e.preventDefault();
@@ -703,7 +718,7 @@ document.addEventListener('mousemove', (e)=>{
 document.addEventListener('mouseup', ()=> isDrag = false);
 bigImg.addEventListener('dblclick', resetImgTransform);
 
-// 触摸事件（双指缩放灵敏度0.0015，更灵敏）
+// 触摸事件双指缩放
 bigImg.addEventListener('touchstart', (e) => {
     if(drawMode) return;
     if(e.touches.length === 1){
@@ -744,10 +759,84 @@ bigImg.addEventListener('touchmove', (e) => {
 })
 bigImg.addEventListener('touchend', () => isDrag = false);
 
-// ========== 涂鸦编辑逻辑 ==========
-// 画笔/橡皮切换
+// ========== 修复涂鸦绘画（PC鼠标 + 手机触摸 双端可用） ==========
+// 获取画布坐标统一函数
+function getCanvasPos(clientX, clientY){
+    const rect = drawCanvas.getBoundingClientRect();
+    const x = (clientX - rect.left) * dpr;
+    const y = (clientY - rect.top) * dpr;
+    return {x,y};
+}
+// 开始绘制
+function startDraw(x,y){
+    isDrawing = true;
+    lastX = x;
+    lastY = y;
+    drawCtx.beginPath();
+    drawCtx.moveTo(x, y);
+    drawCtx.lineCap = "round";
+    drawCtx.lineJoin = "round";
+    drawCtx.lineWidth = lineWidth * dpr;
+    if(isEraser){
+        drawCtx.globalCompositeOperation = 'destination-out';
+        drawCtx.lineWidth = lineWidth * 3 * dpr;
+    }else{
+        drawCtx.globalCompositeOperation = 'source-over';
+        drawCtx.strokeStyle = drawColor;
+    }
+}
+// 绘制线段
+function drawLine(x,y){
+    if(!isDrawing) return;
+    drawCtx.lineTo(x, y);
+    drawCtx.stroke();
+    lastX = x;
+    lastY = y;
+}
+// 结束绘制，保存撤销记录
+function stopDraw(){
+    if(!isDrawing) return;
+    isDrawing = false;
+    const imgData = drawCtx.getImageData(0,0,drawCanvas.width,drawCanvas.height);
+    drawHistory.push(imgData);
+}
+
+// 手机触摸绘画
+drawCanvas.addEventListener("touchstart", (e)=>{
+    if(!drawMode) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const pos = getCanvasPos(touch.clientX, touch.clientY);
+    startDraw(pos.x, pos.y);
+})
+drawCanvas.addEventListener("touchmove", (e)=>{
+    if(!drawMode || !isDrawing) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const pos = getCanvasPos(touch.clientX, touch.clientY);
+    drawLine(pos.x, pos.y);
+})
+drawCanvas.addEventListener("touchend", stopDraw);
+drawCanvas.addEventListener("touchcancel", stopDraw);
+
+// 电脑鼠标绘画（新增，修复电脑画不出线条）
+drawCanvas.addEventListener("mousedown", (e)=>{
+    if(!drawMode) return;
+    const pos = getCanvasPos(e.clientX, e.clientY);
+    startDraw(pos.x, pos.y);
+})
+drawCanvas.addEventListener("mousemove", (e)=>{
+    if(!drawMode || !isDrawing) return;
+    const pos = getCanvasPos(e.clientX, e.clientY);
+    drawLine(pos.x, pos.y);
+})
+drawCanvas.addEventListener("mouseup", stopDraw);
+drawCanvas.addEventListener("mouseleave", stopDraw);
+
+// ========== 工具栏按钮绑定 ==========
 const drawTool = document.getElementById("drawTool");
 const eraserTool = document.getElementById("eraserTool");
+// 画笔
 drawTool.onclick = ()=>{
     drawMode = true;
     drawCanvas.classList.add("draw-mode");
@@ -755,6 +844,7 @@ drawTool.onclick = ()=>{
     drawTool.classList.add("active");
     eraserTool.classList.remove("active");
 }
+// 橡皮
 eraserTool.onclick = ()=>{
     drawMode = true;
     drawCanvas.classList.add("draw-mode");
@@ -765,48 +855,20 @@ eraserTool.onclick = ()=>{
 // 颜色选择
 document.querySelectorAll(".color-box").forEach(box=>{
     box.onclick = ()=>{
-        drawColor = box.style.background;
+        drawColor = box.dataset.color;
+        document.querySelectorAll(".color-box").forEach(b=>b.classList.remove("active"));
+        box.classList.add("active");
     }
 })
 // 撤销涂鸦
 document.getElementById("undoDraw").onclick = ()=>{
     if(drawHistory.length === 0) return;
-    const last = drawHistory.pop();
+    drawHistory.pop();
     drawCtx.clearRect(0,0,drawCanvas.width,drawCanvas.height);
-    drawCtx.putImageData(last,0,0);
+    if(drawHistory.length > 0){
+        drawCtx.putImageData(drawHistory[drawHistory.length-1],0,0);
+    }
 }
-// 画布触摸涂鸦
-drawCanvas.addEventListener("touchstart", (e)=>{
-    if(!drawMode) return;
-    e.preventDefault();
-    isDrawing = true;
-    const touch = e.touches[0];
-    const rect = drawCanvas.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-    drawCtx.beginPath();
-    drawCtx.moveTo(x * dpr, y * dpr);
-    drawCtx.lineCap = "round";
-    drawCtx.lineJoin = "round";
-    drawCtx.lineWidth = lineWidth * dpr;
-    drawCtx.strokeStyle = isEraser ? "#000000" : drawColor;
-})
-drawCanvas.addEventListener("touchmove", (e)=>{
-    if(!drawMode || !isDrawing) return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    const rect = drawCanvas.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-    drawCtx.lineTo(x * dpr, y * dpr);
-    drawCtx.stroke();
-})
-drawCanvas.addEventListener("touchend", ()=>{
-    if(!drawMode || !isDrawing) return;
-    isDrawing = false;
-    const imgData = drawCtx.getImageData(0,0,drawCanvas.width,drawCanvas.height);
-    drawHistory.push(imgData);
-})
 
 // ========== 裁剪功能 ==========
 document.getElementById("cropTool").onclick = ()=>{
@@ -821,7 +883,7 @@ document.getElementById("cropTool").onclick = ()=>{
 }
 document.getElementById("cancelCrop").onclick = ()=> cropModal.classList.remove("active");
 document.getElementById("confirmCrop").onclick = ()=>{
-    // 简单居中裁剪 1:1
+    // 居中1:1裁剪
     const size = Math.min(cropCanvas.width, cropCanvas.height);
     const x = (cropCanvas.width - size) / 2;
     const y = (cropCanvas.height - size) / 2;
@@ -835,7 +897,7 @@ document.getElementById("confirmCrop").onclick = ()=>{
     openSavePreview();
 }
 
-// ========== 保存图片（长按存相册） ==========
+// ========== 保存图片 ==========
 document.getElementById("saveEdit").onclick = openSavePreview;
 function openSavePreview(){
     const mergeCanvas = document.createElement("canvas");
@@ -845,9 +907,7 @@ function openSavePreview(){
     img.onload = ()=>{
         mergeCanvas.width = img.width;
         mergeCanvas.height = img.height;
-        // 绘制原图
         mCtx.drawImage(img,0,0);
-        // 叠加涂鸦
         mCtx.drawImage(drawCanvas,0,0,img.width,img.height);
         editFinalImg = mergeCanvas.toDataURL("image/png");
         saveImg.src = editFinalImg;
