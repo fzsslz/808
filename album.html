@@ -11,7 +11,6 @@
             box-sizing: border-box;
             transition: background 0.3s, color 0.3s;
         }
-
         body {
             padding: 20px;
             background: #f5f7fa;
@@ -29,7 +28,6 @@
         body.dark .album img {
             box-shadow: 0 2px 8px rgba(255,255,255,0.1);
         }
-
         header {
             text-align: center;
             margin-bottom: 20px;
@@ -48,8 +46,6 @@
             text-decoration: none;
             font-size: 16px;
         }
-
-        /* 相册网格 强制最少2列 */
         .album {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -70,6 +66,8 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             transition: transform 0.3s;
             cursor: pointer;
+            will-change: transform;
+            transform: translateZ(0);
         }
         .album img:hover {
             transform: scale(1.05);
@@ -86,7 +84,6 @@
             background: rgba(0, 0, 0, 0.92);
             z-index: 9999;
             text-align: center;
-            padding: 20px;
             overflow: hidden;
         }
         body.modal-open {
@@ -95,33 +92,29 @@
         .modal.active {
             display: block;
         }
-
         .modal-content {
             position: relative;
-            display: inline-block;
-            margin: auto;
-            margin-top: 3vh;
-            width: 92vw;
-            height: 92vh;
+            width: 100vw;
+            height: calc(100vh - 120px);
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-
-        /* 大图核心硬件加速优化 */
         #bigImg {
-            max-width: 100%;
-            max-height: 100%;
+            max-width: 92vw;
+            max-height: 92vh;
             border-radius: 8px;
             box-shadow: 0 0 30px rgba(255,255,255,0.2);
             cursor: grab;
+            touch-action: pan-x pan-y pinch-zoom;
+            will-change: transform, transform-origin;
+            transform: translateZ(0);
             transform-origin: 0 0;
-            touch-action: none;
-            will-change: transform;
-            transform: translateZ(0); /* 强制GPU分层加速 */
         }
         #bigImg:active {
             cursor: grabbing;
         }
-
         .loading-tip {
             color: #fff;
             font-size: 18px;
@@ -166,6 +159,117 @@
         }
         .prev-btn { left: 20px; }
         .next-btn { right: 20px; }
+
+        /* 底部编辑工具栏 */
+        .edit-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 110px;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            padding: 10px;
+            z-index: 10001;
+        }
+        .modal.active .edit-bar {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .edit-bar button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background: #fff;
+            color: #222;
+            font-size: 14px;
+        }
+        .edit-bar button.active {
+            background: #1677ff;
+            color: white;
+        }
+        .color-box {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+        /* 涂鸦画布覆盖原图 */
+        #drawCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        #drawCanvas.draw-mode {
+            pointer-events: auto;
+        }
+        /* 裁剪弹窗 */
+        .crop-box {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 10002;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .crop-box.active {
+            display: flex;
+        }
+        .crop-canvas {
+            max-width: 90vw;
+            max-height: 70vh;
+            border: 2px solid white;
+        }
+        .crop-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 12px;
+        }
+        .crop-actions button {
+            padding: 9px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+        /* 保存预览弹窗 */
+        .save-preview {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 10003;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .save-preview.active {
+            display: flex;
+        }
+        .save-tip {
+            color: white;
+            margin-top: 12px;
+            font-size: 15px;
+        }
+        #saveImg {
+            max-width: 90vw;
+            max-height: 75vh;
+        }
+        #closeSave {
+            margin-top: 15px;
+            padding: 8px 22px;
+            border: none;
+            border-radius: 6px;
+        }
     </style>
 </head>
 <body>
@@ -202,155 +306,6 @@
         <img src="006.jpg" alt="持续更新中">
         <img src="007.jpg" alt="持续更新中">
         <img src="008.jpg" alt="持续更新中">
-        <img src="17923c165e3a8514c484fac963213918.jpg" alt="持续更新中">
-        <img src="3a954ed8c4fedd95efee37ce112446d5.jpg" alt="持续更新中">
-        <img src="bbfa9630509dfcf1bc841b3627c84770.jpg" alt="持续更新中">
-        <img src="009.jpg" alt="持续更新中">
-        <img src="010.jpg" alt="持续更新中">
-        <img src="011.jpg" alt="持续更新中">
-        <img src="012.jpg" alt="持续更新中">
-        <img src="013.jpg" alt="持续更新中">
-        <img src="014.jpg" alt="持续更新中">
-        <img src="015.jpg" alt="持续更新中">
-        <img src="016.jpg" alt="持续更新中">
-        <img src="017.jpg" alt="持续更新中">
-        <img src="018.jpg" alt="持续更新中">
-        <img src="0001.jpg" alt="持续更新中">
-        <img src="0002.jpg" alt="持续更新中">
-        <img src="0003.jpg" alt="持续更新中">
-        <img src="0004.jpg" alt="持续更新中">
-        <img src="0005.jpg" alt="持续更新中">
-        <img src="0006.jpg" alt="持续更新中">
-         <img src="0007.jpg" alt="持续更新中">
-         <img src="0008.jpg" alt="持续更新中">
-         <img src="0009.jpg" alt="持续更新中">
-         <img src="0010.jpg" alt="持续更新中">
-         <img src="0011.jpg" alt="持续更新中">
-         <img src="0012.jpg" alt="持续更新中">
-         <img src="0013.jpg" alt="持续更新中">
-         <img src="0014.jpg" alt="持续更新中">
-         <img src="0015.jpg" alt="持续更新中">
-         <img src="0016.jpg" alt="持续更新中">
-        <img src="0017.jpg" alt="持续更新中">
-        <img src="0018.jpg" alt="持续更新中">
-        <img src="0019.jpg" alt="持续更新中">
-        <img src="0020.jpg" alt="持续更新中">
-        <img src="0021.jpg" alt="持续更新中">
-        <img src="0022.jpg" alt="持续更新中">
-        <img src="0023.jpg" alt="持续更新中">
-        <img src="0024.jpg" alt="持续更新中">
-        <img src="0025.jpg" alt="持续更新中">
-        <img src="0026.jpg" alt="持续更新中">
-        <img src="0027.jpg" alt="持续更新中">
-        <img src="0028.jpg" alt="持续更新中">
-        <img src="0029.jpg" alt="持续更新中">
-        <img src="0030.jpg" alt="持续更新中">
-        <img src="0031.jpg" alt="持续更新中">
-        <img src="0032.jpg" alt="持续更新中">
-         <img src="0033.jpg" alt="持续更新中">
-         <img src="0035.jpg" alt="持续更新中">
-        <img src="0036.png" alt="持续更新中">
-        <img src="微信图片_20260515192428_1_10.jpg" alt="刷新">
-        <img src="微信图片_20260515192429_2_10.jpg" alt="刷新">
-        <img src="微信图片_20260515192430_3_10.jpg" alt="刷新">
-        <img src="111.jpg" alt="刷新">
-        <img src="222.jpg" alt="刷新">
-        <img src="333.jpg" alt="刷新">
-        <img src="444.jpg" alt="刷新">
-        <img src="555.jpg" alt="刷新">
-        <img src="666.jpg" alt="刷新">
-        <img src="777.jpg" alt="刷新">
-        <img src="888.jpg" alt="刷新">
-        <img src="999.jpg" alt="刷新">
-        <img src="000.jpg" alt="刷新">
-        <img src="111111.jpg" alt="刷新">
-        <img src="222222.jpg" alt="刷新">
-        <img src="333333.jpg" alt="刷新">
-        <img src="444444.jpg" alt="刷新">
-        <img src="555555.jpg" alt="刷新">
-        <img src="6666666.jpg" alt="刷新">
-        <img src="777777.jpg" alt="刷新">
-        <img src="888888.jpg" alt="刷新">
-        <img src="999999.jpg" alt="刷新">
-        <img src="000000.jpg" alt="刷新">
-        <img src="101010.jpg" alt="刷新">
-        <img src="121212.jpg" alt="刷新">
-        <img src="131313.jpg" alt="刷新">
-        <img src="a.png" alt="刷新">
-        <img src="x.png" alt="刷新">
-        <img src="y.jfif" alt="刷新">
-        <img src="h.jpg" alt="广告位">
-         <img src="g.jpg" alt="广告位">
-         <img src="f.jpg" alt="广告位">
- <img src="e.jpg" alt="广告位">
- <img src="d.jpg" alt="广告位">
- <img src="c.jpg" alt="广告位">
- <img src="b.jpg" alt="广告位">
- <img src="r.jpg" alt="广告位">
-         <img src="q.jpg" alt="广告位">
-         <img src="p.jpg" alt="广告位">
-         <img src="o.jpg" alt="广告位">
-         <img src="n.jpg" alt="广告位">
-         <img src="m.jpg" alt="广告位">
-         <img src="l.jpg" alt="广告位">
-         <img src="k.jpg" alt="广告位">
-         <img src="j.jpg" alt="广告位">
-         <img src="i.jpg" alt="广告位">
-         <img src="s.jpg" alt="广告位">
-         <img src="t.jpg" alt="广告位">
-         <img src="u.jpg" alt="广告位">
-         <img src="v.jpg" alt="广告位">
-         <img src="w.jpg" alt="广告位">
-        <img src="aa.jpg" alt="广告位">
-         <img src="bb.jpg" alt="广告位">
-         <img src="cc.jpg" alt="广告位">
-         <img src="dd.jpg" alt="广告位">
-         <img src="ee.jpg" alt="广告位">
-         <img src="ff.jpg" alt="广告位">
-         <img src="gg.jpg" alt="广告位">
-         <img src="hh.jpg" alt="广告位">
-         <img src="ii.jpg" alt="广告位">
-         <img src="jj.jpg" alt="广告位">
-         <img src="kk.jpg" alt="广告位">
-         <img src="ll.jpg" alt="广告位">
-         <img src="mm.jpg" alt="广告位">
-         <img src="nn.jpg" alt="广告位">
-         <img src="oo.jpg" alt="广告位">
-         <img src="pp.jpg" alt="广告位">
-         <img src="qq.jpg" alt="广告位">
-         <img src="rr.jpg" alt="广告位">
-         <img src="ss.jpg" alt="广告位">
-         <img src="tt.jpg" alt="广告位">
-         <img src="uu.jpg" alt="广告位">
-         <img src="vv.jpg" alt="广告位">
-         <img src="ww.jpg" alt="广告位">
-         <img src="xx.jpg" alt="广告位">
-         <img src="yy.jpg" alt="广告位">
-         <img src="zz.jpg" alt="广告位">
-         <img src="aaa.jpg" alt="广告位">
-         <img src="bbb.jpg" alt="广告位">
-         <img src="ccc.jpg" alt="广告位">
-         <img src="ddd.jpg" alt="广告位">
-         <img src="eee.jpg" alt="广告位">
-         <img src="fff.jpg" alt="广告位">
-         <img src="ggg.jpg" alt="广告位">
-         <img src="hhh.jpg" alt="广告位">
-         <img src="iii.jpg" alt="广告位">
-         <img src="jjj.jpg" alt="广告位">
-         <img src="kkk.jpg" alt="广告位">
-         <img src="lll.jpg" alt="广告位">
-         <img src="mmm.jpg" alt="广告位">
-         <img src="nnn.jpg" alt="广告位">
-         <img src="ooo.jpg" alt="广告位">
-         <img src="ppp.jpg" alt="广告位">
-         <img src="qqq.jpg" alt="广告位">
-         <img src="sb1.jpg" alt="广告位">
-        <img src="sb2.jpg" alt="广告位">
-        <img src="mmexport1783322511786.jpg" alt="广告位">
-        <img src="" alt="广告位">
-         <img src="" alt="欢迎投稿">
-        <img src="" alt="持续更新中">
-        <img src="" alt="持续更新中">
     </div>
 
     <div class="modal" id="imgModal">
@@ -359,15 +314,45 @@
         <button class="switch-btn next-btn" id="nextBtn">›</button>
         <div class="loading-tip" id="loadingTip">图片加载中...</div>
         <div class="modal-content">
-            <img id="bigImg">
+            <img id="bigImg" crossOrigin="anonymous">
+            <canvas id="drawCanvas"></canvas>
+        </div>
+        <!-- 底部编辑工具栏 -->
+        <div class="edit-bar">
+            <button id="drawTool">画笔</button>
+            <button id="eraserTool">橡皮</button>
+            <div class="color-box" style="background:#ff3333;"></div>
+            <div class="color-box" style="background:#ffffff;"></div>
+            <div class="color-box" style="background:#33ff33;"></div>
+            <div class="color-box" style="background:#3388ff;"></div>
+            <button id="cropTool">裁剪</button>
+            <button id="undoDraw">撤销</button>
+            <button id="saveEdit">保存图片</button>
         </div>
     </div>
 
-    <button id="backTopBtn" style="position:fixed;right:24px;bottom:80px;width:50px;height:50px;border-radius:50%;background:#165DFF;border:none;opacity:0;visibility:hidden;transition:0.3s all ease;z-index:998;box-shadow:0 4px 12px rgba(22,93,255,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+    <!-- 裁剪弹窗 -->
+    <div class="crop-box" id="cropModal">
+        <canvas class="crop-canvas" id="cropCanvas"></canvas>
+        <div class="crop-actions">
+            <button id="confirmCrop">确认裁剪</button>
+            <button id="cancelCrop">取消</button>
+        </div>
+    </div>
+
+    <!-- 保存预览弹窗（长按保存） -->
+    <div class="save-preview" id="saveModal">
+        <img id="saveImg">
+        <div class="save-tip">长按下方图片保存到手机相册</div>
+        <button id="closeSave">关闭</button>
+    </div>
+
+    <button id="backTopBtn" style="position:fixed;right:24px;bottom:130px;width:50px;height:50px;border-radius:50%;background:#165DFF;border:none;opacity:0;visibility:hidden;transition:0.3s all ease;z-index:998;box-shadow:0 4px 12px rgba(22,93,255,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;">
         <span style="width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:16px solid #fff;"></span>
     </button>
 
 <script>
+// 深色模式初始化
 (function(){
   const saveTheme = localStorage.getItem("siteTheme");
   const darkBtn = document.getElementById("darkBtn");
@@ -376,7 +361,16 @@
     darkBtn.innerText = "浅色模式";
   }
 })();
+function toggleDark(){
+  const body = document.body;
+  const btn = document.getElementById("darkBtn");
+  body.classList.toggle("dark");
+  const isDark = body.classList.contains("dark");
+  btn.innerText = isDark ? "浅色模式" : "🌙 深色模式";
+  localStorage.setItem("siteTheme", isDark ? "dark" : "light");
+}
 
+// 相册基础变量
 const imgWrap = document.getElementById("imgList");
 const allImgs = Array.from(imgWrap.querySelectorAll(".album img"));
 const modal = document.getElementById('imgModal');
@@ -387,7 +381,7 @@ const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 let currentIndex = 0;
 
-// 缩放拖拽状态
+// 缩放拖拽全局（高灵敏双指缩放）
 let scale = 1;
 let offsetX = 0;
 let offsetY = 0;
@@ -397,11 +391,31 @@ let dragStartY = 0;
 let touchStartDist = 0;
 let touchCenterX = 0;
 let touchCenterY = 0;
-let rafPending = false; // 帧节流标记
+let rafPending = false;
 
-// 统一渲染函数（全部操作走rAF，只在屏幕刷新时更新一次）
+// 涂鸦画布变量
+const drawCanvas = document.getElementById("drawCanvas");
+const drawCtx = drawCanvas.getContext("2d");
+let drawHistory = [];
+let isDrawing = false;
+let drawMode = false;
+let drawColor = "#ff3333";
+let lineWidth = 6;
+let isEraser = false;
+const dpr = window.devicePixelRatio || 1;
+
+// 裁剪、保存弹窗
+const cropModal = document.getElementById("cropModal");
+const cropCanvas = document.getElementById("cropCanvas");
+const cropCtx = cropCanvas.getContext("2d");
+const saveModal = document.getElementById("saveModal");
+const saveImg = document.getElementById("saveImg");
+let editFinalImg = null;
+
+// 渲染图片变换
 function renderTransform(){
     bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    drawCanvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
     rafPending = false;
 }
 function scheduleRender(){
@@ -410,16 +424,30 @@ function scheduleRender(){
         rafPending = true;
     }
 }
-
-// 重置视图
+// 重置图片缩放偏移
 function resetImgTransform() {
     scale = 1;
     offsetX = 0;
     offsetY = 0;
     scheduleRender();
 }
+// 清空涂鸦画布
+function clearDrawCanvas(){
+    drawCtx.clearRect(0,0,drawCanvas.width,drawCanvas.height);
+    drawHistory = [];
+}
+// 初始化涂鸦画布尺寸
+function initDrawCanvas(){
+    const rect = bigImg.getBoundingClientRect();
+    drawCanvas.width = rect.width * dpr;
+    drawCanvas.height = rect.height * dpr;
+    drawCanvas.style.width = rect.width + "px";
+    drawCanvas.style.height = rect.height + "px";
+    drawCtx.scale(dpr, dpr);
+    clearDrawCanvas();
+}
 
-// 过滤空白无效图片
+// 过滤空白图片
 allImgs.forEach((img, idx) => {
     if(!img.src || img.src.endsWith('/')) {
         img.style.cursor = "default";
@@ -427,54 +455,74 @@ allImgs.forEach((img, idx) => {
         return;
     }
     img.onclick = ()=> openPreview(idx);
-})
+});
 
-// 打开预览
+// 打开大图预览
 function openPreview(index) {
     resetImgTransform();
+    clearDrawCanvas();
     currentIndex = index;
     const targetImg = allImgs[currentIndex];
     loadingTip.style.display = "block";
     modal.classList.add('active');
     document.body.classList.add("modal-open");
     bigImg.src = targetImg.src;
-    bigImg.onload = ()=> loadingTip.style.display = "none";
+    bigImg.onload = ()=> {
+        loadingTip.style.display = "none";
+        initDrawCanvas();
+    };
 }
-
 // 关闭预览
 function closeModal() {
     modal.classList.remove('active');
     document.body.classList.remove("modal-open");
     bigImg.src = "";
-    resetImgTransform();
+    clearDrawCanvas();
+    drawMode = false;
+    drawCanvas.classList.remove("draw-mode");
 }
-
-// 切换上一张
+// 上一张图
 function prevImg() {
     resetImgTransform();
-    currentIndex = currentIndex - 1 < 0 ? allImgs.length - 1 : currentIndex - 1;
-    while(!allImgs[currentIndex].src || allImgs[currentIndex].src.endsWith('/')) {
-        currentIndex = currentIndex - 1 < 0 ? allImgs.length - 1 : currentIndex - 1;
+    clearDrawCanvas();
+    currentIndex--;
+    if(currentIndex < 0) currentIndex = allImgs.length - 1;
+    while(!allImgs[currentIndex].src || allImgs[currentIndex].src.endsWith('/')){
+        currentIndex--;
+        if(currentIndex <0) currentIndex = allImgs.length -1;
     }
-    openPreview(currentIndex);
+    bigImg.src = allImgs[currentIndex].src;
+    loadingTip.style.display = "block";
+    bigImg.onload = ()=> {
+        loadingTip.style.display = "none";
+        initDrawCanvas();
+    };
 }
-// 切换下一张
+// 下一张图
 function nextImg() {
     resetImgTransform();
-    currentIndex = currentIndex + 1 >= allImgs.length ? 0 : currentIndex + 1;
-    while(!allImgs[currentIndex].src || allImgs[currentIndex].src.endsWith('/')) {
-        currentIndex = currentIndex + 1 >= allImgs.length ? 0 : currentIndex + 1;
+    clearDrawCanvas();
+    currentIndex++;
+    if(currentIndex >= allImgs.length) currentIndex = 0;
+    while(!allImgs[currentIndex].src || allImgs[currentIndex].src.endsWith('/')){
+        currentIndex++;
+        if(currentIndex >= allImgs.length) currentIndex = 0;
     }
-    openPreview(currentIndex);
+    bigImg.src = allImgs[currentIndex].src;
+    loadingTip.style.display = "block";
+    bigImg.onload = ()=> {
+        loadingTip.style.display = "none";
+        initDrawCanvas();
+    };
 }
-
-// 绑定基础事件
+// 绑定切换、关闭按钮
 closeBtn.onclick = closeModal;
 prevBtn.onclick = prevImg;
 nextBtn.onclick = nextImg;
 modal.onclick = (e)=> {
-    if(e.target === modal) closeModal();
+    if(e.target === modal || e.target.classList.contains("modal-content")) closeModal();
 }
+// 键盘快捷键
 document.addEventListener("keydown", (e)=>{
     if(!modal.classList.contains("active")) return;
     if(e.key === "Escape") closeModal();
@@ -482,23 +530,25 @@ document.addEventListener("keydown", (e)=>{
     if(e.key === "ArrowRight") nextImg();
 })
 
+// ========== 原图缩放拖拽逻辑（高灵敏） ==========
 // PC滚轮缩放
 bigImg.addEventListener('wheel', (e)=>{
     e.preventDefault();
-    const zoomStep = 0.06;
-    scale += e.deltaY < 0 ? zoomStep : -zoomStep;
-    scale = Math.max(0.3, Math.min(scale, 5));
+    const zoomStep = 0.08;
+    if(e.deltaY < 0) scale += zoomStep;
+    else scale -= zoomStep;
+    scale = Math.max(0.3, Math.min(5, scale));
     scheduleRender();
 })
-
-// PC鼠标拖拽
+// 鼠标拖拽
 bigImg.addEventListener('mousedown', (e)=>{
+    if(drawMode) return;
     isDrag = true;
     dragStartX = e.clientX - offsetX;
     dragStartY = e.clientY - offsetY;
 })
 document.addEventListener('mousemove', (e)=>{
-    if(!isDrag) return;
+    if(!isDrag || drawMode) return;
     offsetX = e.clientX - dragStartX;
     offsetY = e.clientY - dragStartY;
     scheduleRender();
@@ -506,90 +556,171 @@ document.addEventListener('mousemove', (e)=>{
 document.addEventListener('mouseup', ()=> isDrag = false);
 bigImg.addEventListener('dblclick', resetImgTransform);
 
-// 计算双指距离
-function getTouchDist(touches){
-    const x1 = touches[0].clientX;
-    const y1 = touches[0].clientY;
-    const x2 = touches[1].clientX;
-    const y2 = touches[1].clientY;
-    return Math.hypot(x2 - x1, y2 - y1);
-}
-// 计算双指中心点
-function getTouchCenter(touches){
-    return {
-        x: (touches[0].clientX + touches[1].clientX) / 2,
-        y: (touches[0].clientY + touches[1].clientY) / 2
-    }
-}
-
-// 触摸起始
+// 触摸事件（双指缩放灵敏度0.0015，更灵敏）
 bigImg.addEventListener('touchstart', (e) => {
-    e.preventDefault();
+    if(drawMode) return;
     if(e.touches.length === 1){
         isDrag = true;
         dragStartX = e.touches[0].clientX - offsetX;
         dragStartY = e.touches[0].clientY - offsetY;
     }else if(e.touches.length === 2){
-        touchStartDist = getTouchDist(e.touches);
-        const center = getTouchCenter(e.touches);
-        touchCenterX = center.x;
-        touchCenterY = center.y;
+        isDrag = false;
+        const t1 = e.touches[0], t2 = e.touches[1];
+        touchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        touchCenterX = (t1.clientX + t2.clientX) / 2;
+        touchCenterY = (t1.clientY + t2.clientY) / 2;
     }
 })
-
-// 触摸移动（核心修复：中点缩放，rAF节流）
 bigImg.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    // 单指拖动
+    if(drawMode) return;
     if(e.touches.length === 1 && isDrag){
         offsetX = e.touches[0].clientX - dragStartX;
         offsetY = e.touches[0].clientY - dragStartY;
         scheduleRender();
-    }
-    // 双指缩放（以手势中点缩放，不会乱飞）
-    else if(e.touches.length === 2){
-        const dist = getTouchDist(e.touches);
-        const center = getTouchCenter(e.touches);
-        const deltaScale = (dist - touchStartDist) * 0.0008;
+    }else if(e.touches.length === 2){
+        e.preventDefault();
+        const t1 = e.touches[0], t2 = e.touches[1];
+        const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        const deltaScale = (dist - touchStartDist) * 0.0015;
         const oldScale = scale;
         scale += deltaScale;
-        scale = Math.max(0.3, Math.min(scale, 5));
-        // 修正偏移，缩放围绕手指中点
-        offsetX += (center.x - touchCenterX) * (scale / oldScale - 1);
-        offsetY += (center.y - touchCenterY) * (scale / oldScale - 1);
+        scale = Math.max(0.3, Math.min(5, scale));
+        const cx = (t1.clientX + t2.clientX) / 2;
+        const cy = (t1.clientY + t2.clientY) / 2;
+        offsetX += (cx - touchCenterX) * (1 - scale / oldScale);
+        offsetY += (cy - touchCenterY) * (1 - scale / oldScale);
         touchStartDist = dist;
-        touchCenterX = center.x;
-        touchCenterY = center.y;
+        touchCenterX = cx;
+        touchCenterY = cy;
         scheduleRender();
     }
 })
-
 bigImg.addEventListener('touchend', () => isDrag = false);
 
-// 返回顶部
-const backBtn = document.getElementById("backTopBtn");
-backBtn.onmouseover = ()=> backBtn.style.background="#0E4BDB";
-backBtn.onmouseout = ()=> backBtn.style.background="#165DFF";
+// ========== 涂鸦编辑逻辑 ==========
+// 画笔/橡皮切换
+const drawTool = document.getElementById("drawTool");
+const eraserTool = document.getElementById("eraserTool");
+drawTool.onclick = ()=>{
+    drawMode = true;
+    drawCanvas.classList.add("draw-mode");
+    isEraser = false;
+    drawTool.classList.add("active");
+    eraserTool.classList.remove("active");
+}
+eraserTool.onclick = ()=>{
+    drawMode = true;
+    drawCanvas.classList.add("draw-mode");
+    isEraser = true;
+    eraserTool.classList.add("active");
+    drawTool.classList.remove("active");
+}
+// 颜色选择
+document.querySelectorAll(".color-box").forEach(box=>{
+    box.onclick = ()=>{
+        drawColor = box.style.background;
+    }
+})
+// 撤销涂鸦
+document.getElementById("undoDraw").onclick = ()=>{
+    if(drawHistory.length === 0) return;
+    const last = drawHistory.pop();
+    drawCtx.clearRect(0,0,drawCanvas.width,drawCanvas.height);
+    drawCtx.putImageData(last,0,0);
+}
+// 画布触摸涂鸦
+drawCanvas.addEventListener("touchstart", (e)=>{
+    if(!drawMode) return;
+    e.preventDefault();
+    isDrawing = true;
+    const touch = e.touches[0];
+    const rect = drawCanvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    drawCtx.beginPath();
+    drawCtx.moveTo(x * dpr, y * dpr);
+    drawCtx.lineCap = "round";
+    drawCtx.lineJoin = "round";
+    drawCtx.lineWidth = lineWidth * dpr;
+    drawCtx.strokeStyle = isEraser ? "#000000" : drawColor;
+})
+drawCanvas.addEventListener("touchmove", (e)=>{
+    if(!drawMode || !isDrawing) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = drawCanvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    drawCtx.lineTo(x * dpr, y * dpr);
+    drawCtx.stroke();
+})
+drawCanvas.addEventListener("touchend", ()=>{
+    if(!drawMode || !isDrawing) return;
+    isDrawing = false;
+    const imgData = drawCtx.getImageData(0,0,drawCanvas.width,drawCanvas.height);
+    drawHistory.push(imgData);
+})
+
+// ========== 裁剪功能 ==========
+document.getElementById("cropTool").onclick = ()=>{
+    cropModal.classList.add("active");
+    const img = new Image();
+    img.src = bigImg.src;
+    img.onload = ()=>{
+        cropCanvas.width = img.width;
+        cropCanvas.height = img.height;
+        cropCtx.drawImage(img,0,0);
+    }
+}
+document.getElementById("cancelCrop").onclick = ()=> cropModal.classList.remove("active");
+document.getElementById("confirmCrop").onclick = ()=>{
+    // 简单居中裁剪 1:1
+    const size = Math.min(cropCanvas.width, cropCanvas.height);
+    const x = (cropCanvas.width - size) / 2;
+    const y = (cropCanvas.height - size) / 2;
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = size;
+    tempCanvas.height = size;
+    const tCtx = tempCanvas.getContext("2d");
+    tCtx.drawImage(cropCanvas, x, y, size, size, 0,0,size,size);
+    editFinalImg = tempCanvas.toDataURL("image/png");
+    cropModal.classList.remove("active");
+    openSavePreview();
+}
+
+// ========== 保存图片（长按存相册） ==========
+document.getElementById("saveEdit").onclick = openSavePreview;
+function openSavePreview(){
+    const mergeCanvas = document.createElement("canvas");
+    const mCtx = mergeCanvas.getContext("2d");
+    const img = new Image();
+    img.src = bigImg.src;
+    img.onload = ()=>{
+        mergeCanvas.width = img.width;
+        mergeCanvas.height = img.height;
+        // 绘制原图
+        mCtx.drawImage(img,0,0);
+        // 叠加涂鸦
+        mCtx.drawImage(drawCanvas,0,0,img.width,img.height);
+        editFinalImg = mergeCanvas.toDataURL("image/png");
+        saveImg.src = editFinalImg;
+        saveModal.classList.add("active");
+    }
+}
+document.getElementById("closeSave").onclick = ()=> saveModal.classList.remove("active");
+
+// 返回顶部按钮逻辑
+const backTopBtn = document.getElementById("backTopBtn");
 window.addEventListener("scroll",()=>{
   if(window.scrollY > 300){
-    backBtn.style.opacity = "1";
-    backBtn.style.visibility = "visible";
+    backTopBtn.style.opacity = "1";
+    backTopBtn.style.visibility = "visible";
   }else{
-    backBtn.style.opacity = "0";
-    backBtn.style.visibility = "hidden";
+    backTopBtn.style.opacity = "0";
+    backTopBtn.style.visibility = "hidden";
   }
 })
-backBtn.onclick = ()=> window.scrollTo({top:0,behavior:"smooth"});
-
-// 深色模式同步
-function toggleDark() {
-  const body = document.body;
-  const btn = document.getElementById("darkBtn");
-  body.classList.toggle("dark");
-  const isDark = body.classList.contains("dark");
-  btn.innerText = isDark ? "浅色模式" : "🌙 深色模式";
-  localStorage.setItem("siteTheme", isDark ? "dark" : "light");
-}
+backTopBtn.onclick = ()=> window.scrollTo({top:0,behavior:"smooth"});
 </script>
 </body>
 </html>
