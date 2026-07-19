@@ -67,7 +67,6 @@
             transition: transform 0.3s;
             cursor: pointer;
             will-change: transform;
-            transform: translateZ(0);
         }
         .album img:hover {
             transform: scale(1.05);
@@ -107,10 +106,8 @@
             border-radius: 8px;
             box-shadow: 0 0 30px rgba(255,255,255,0.2);
             cursor: grab;
-            touch-action: pan-x pan-y pinch-zoom;
-            will-change: transform, transform-origin;
-            transform: translateZ(0);
-            transform-origin: 0 0;
+            touch-action: none;
+            will-change: transform;
         }
         #bigImg:active {
             cursor: grabbing;
@@ -524,7 +521,7 @@ function toggleDark(){
   localStorage.setItem("siteTheme", isDark ? "dark" : "light");
 }
 
-// 相册基础变量
+// 基础DOM
 const imgWrap = document.getElementById("imgList");
 const allImgs = Array.from(imgWrap.querySelectorAll(".album img"));
 const modal = document.getElementById('imgModal');
@@ -533,23 +530,25 @@ const loadingTip = document.getElementById('loadingTip');
 const closeBtn = document.getElementById('closeBtn');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
-let currentIndex = 0;
+const drawCanvas = document.getElementById("drawCanvas");
+const drawCtx = drawCanvas.getContext("2d");
+const cropModal = document.getElementById("cropModal");
+const cropCanvas = document.getElementById("cropCanvas");
+const cropCtx = cropCanvas.getContext("2d");
+const saveModal = document.getElementById("saveModal");
+const saveImg = document.getElementById("saveImg");
 
-// 缩放拖拽全局
+// 全局状态
+let currentIndex = 0;
 let scale = 1;
 let offsetX = 0;
 let offsetY = 0;
 let isDrag = false;
-let dragStartX = 0;
-let dragStartY = 0;
+let dragStartX = 0, dragStartY = 0;
 let touchStartDist = 0;
-let touchCenterX = 0;
-let touchCenterY = 0;
-let rafPending = false;
+let touchCenterX = 0, touchCenterY = 0;
 
-// 涂鸦画布核心修复变量
-const drawCanvas = document.getElementById("drawCanvas");
-const drawCtx = drawCanvas.getContext("2d");
+// 绘画状态
 let drawHistory = [];
 let isDrawing = false;
 let drawMode = false;
@@ -557,377 +556,369 @@ let drawColor = "#ff3333";
 let lineWidth = 8;
 let isEraser = false;
 const dpr = window.devicePixelRatio || 1;
-let lastX = 0, lastY = 0; // 记录上一个点，解决线条断裂
-
-// 裁剪、保存弹窗
-const cropModal = document.getElementById("cropModal");
-const cropCanvas = document.getElementById("cropCanvas");
-const cropCtx = cropCanvas.getContext("2d");
-const saveModal = document.getElementById("saveModal");
-const saveImg = document.getElementById("saveImg");
+let lastDrawX = 0, lastDrawY = 0;
 let editFinalImg = null;
 
-// 渲染图片变换
-function renderTransform(){
-    bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
-    drawCanvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
-    rafPending = false;
+// 刷新图片+画布变换
+function updateImgTransform() {
+  bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+  drawCanvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
 }
-function scheduleRender(){
-    if(!rafPending){
-        requestAnimationFrame(renderTransform);
-        rafPending = true;
-    }
-}
-// 重置图片缩放偏移
+
+// 重置缩放偏移
 function resetImgTransform() {
-    scale = 1;
-    offsetX = 0;
-    offsetY = 0;
-    scheduleRender();
-}
-// 清空涂鸦画布
-function clearDrawCanvas(){
-    drawCtx.clearRect(0,0,drawCanvas.width,drawCanvas.height);
-    drawHistory = [];
-}
-// 初始化涂鸦画布尺寸
-function initDrawCanvas(){
-    const rect = bigImg.getBoundingClientRect();
-    drawCanvas.width = rect.width * dpr;
-    drawCanvas.height = rect.height * dpr;
-    drawCanvas.style.width = rect.width + "px";
-    drawCanvas.style.height = rect.height + "px";
-    drawCtx.scale(dpr, dpr);
-    clearDrawCanvas();
+  scale = 1;
+  offsetX = 0;
+  offsetY = 0;
+  updateImgTransform();
 }
 
-// 过滤空白图片绑定点击
-allImgs.forEach((img, idx) => {
-    if(!img.src || img.src.endsWith('/')) {
-        img.style.cursor = "default";
-        img.style.opacity = "0.35";
-        return;
-    }
-    img.onclick = ()=> openPreview(idx);
-});
+// 清空绘画记录
+function clearDrawCanvas() {
+  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  drawHistory = [];
+}
 
-// 打开大图预览
+// 画布尺寸跟随大图实时更新（解决放大后绘画错位）
+function resizeDrawCanvas() {
+  const rect = bigImg.getBoundingClientRect();
+  drawCanvas.width = rect.width * dpr;
+  drawCanvas.height = rect.height * dpr;
+  drawCanvas.style.width = rect.width + "px";
+  drawCanvas.style.height = rect.height + "px";
+  drawCtx.scale(dpr, dpr);
+}
+
+// 打开大图
 function openPreview(index) {
-    resetImgTransform();
-    clearDrawCanvas();
-    // 重置工具栏状态
-    drawMode = false;
-    drawCanvas.classList.remove("draw-mode");
-    document.querySelectorAll(".edit-bar button").forEach(btn=>btn.classList.remove("active"));
-    document.querySelectorAll(".color-box").forEach(box=>box.classList.remove("active"));
-    document.querySelector(`.color-box[data-color="${drawColor}"]`)?.classList.add("active");
+  resetImgTransform();
+  clearDrawCanvas();
+  drawMode = false;
+  drawCanvas.classList.remove("draw-mode");
+  document.querySelectorAll(".edit-bar button").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".color-box").forEach(c => c.classList.remove("active"));
+  document.querySelector(`.color-box[data-color="${drawColor}"]`)?.classList.add("active");
 
-    currentIndex = index;
-    const targetImg = allImgs[currentIndex];
-    loadingTip.style.display = "block";
-    modal.classList.add('active');
-    document.body.classList.add("modal-open");
-    bigImg.src = targetImg.src;
-    bigImg.onload = ()=> {
-        loadingTip.style.display = "none";
-        initDrawCanvas();
-    };
+  currentIndex = index;
+  const targetImg = allImgs[currentIndex];
+  loadingTip.style.display = "block";
+  modal.classList.add('active');
+  document.body.classList.add("modal-open");
+  bigImg.src = targetImg.src;
+  bigImg.onload = () => {
+    loadingTip.style.display = "none";
+    resizeDrawCanvas();
+  };
 }
+
 // 关闭预览
 function closeModal() {
-    modal.classList.remove('active');
-    document.body.classList.remove("modal-open");
-    bigImg.src = "";
-    clearDrawCanvas();
-    drawMode = false;
-    drawCanvas.classList.remove("draw-mode");
+  modal.classList.remove('active');
+  document.body.classList.remove("modal-open");
+  bigImg.src = "";
+  clearDrawCanvas();
+  drawMode = false;
+  drawCanvas.classList.remove("draw-mode");
 }
-// 上一张图
+
+// 上一张
 function prevImg() {
-    resetImgTransform();
-    clearDrawCanvas();
+  resetImgTransform();
+  clearDrawCanvas();
+  currentIndex--;
+  if (currentIndex < 0) currentIndex = allImgs.length - 1;
+  while (!allImgs[currentIndex].src || allImgs[currentIndex].src.endsWith('/')) {
     currentIndex--;
-    if(currentIndex < 0) currentIndex = allImgs.length - 1;
-    while(!allImgs[currentIndex].src || allImgs[currentIndex].src.endsWith('/')){
-        currentIndex--;
-        if(currentIndex <0) currentIndex = allImgs.length -1;
-    }
-    bigImg.src = allImgs[currentIndex].src;
-    loadingTip.style.display = "block";
-    bigImg.onload = ()=> {
-        loadingTip.style.display = "none";
-        initDrawCanvas();
-    };
+    if (currentIndex < 0) currentIndex = allImgs.length - 1;
+  }
+  bigImg.src = allImgs[currentIndex].src;
+  loadingTip.style.display = "block";
+  bigImg.onload = () => {
+    loadingTip.style.display = "none";
+    resizeDrawCanvas();
+  };
 }
-// 下一张图
+
+// 下一张
 function nextImg() {
-    resetImgTransform();
-    clearDrawCanvas();
+  resetImgTransform();
+  clearDrawCanvas();
+  currentIndex++;
+  if (currentIndex >= allImgs.length) currentIndex = 0;
+  while (!allImgs[currentIndex].src || allImgs[currentIndex].src.endsWith('/')) {
     currentIndex++;
-    if(currentIndex >= allImgs.length) currentIndex = 0;
-    while(!allImgs[currentIndex].src || allImgs[currentIndex].src.endsWith('/')){
-        currentIndex++;
-        if(currentIndex >= allImgs.length) currentIndex = 0;
-    }
-    bigImg.src = allImgs[currentIndex].src;
-    loadingTip.style.display = "block";
-    bigImg.onload = ()=> {
-        loadingTip.style.display = "none";
-        initDrawCanvas();
-    };
+    if (currentIndex >= allImgs.length) currentIndex = 0;
+  }
+  bigImg.src = allImgs[currentIndex].src;
+  loadingTip.style.display = "block";
+  bigImg.onload = () => {
+    loadingTip.style.display = "none";
+    resizeDrawCanvas();
+  };
 }
-// 绑定切换、关闭按钮
+
+// 绑定切换/关闭
 closeBtn.onclick = closeModal;
 prevBtn.onclick = prevImg;
 nextBtn.onclick = nextImg;
-modal.onclick = (e)=> {
-    if(e.target === modal || e.target.classList.contains("modal-content")) closeModal();
-}
-// 键盘快捷键
-document.addEventListener("keydown", (e)=>{
-    if(!modal.classList.contains("active")) return;
-    if(e.key === "Escape") closeModal();
-    if(e.key === "ArrowLeft") prevImg();
-    if(e.key === "ArrowRight") nextImg();
-})
+modal.onclick = (e) => {
+  if (e.target === modal || e.target.classList.contains("modal-content")) closeModal();
+};
+document.addEventListener("keydown", e => {
+  if (!modal.classList.contains("active")) return;
+  if (e.key === "Escape") closeModal();
+  if (e.key === "ArrowLeft") prevImg();
+  if (e.key === "ArrowRight") nextImg();
+});
 
-// ========== 原图缩放拖拽逻辑 ==========
-// PC滚轮缩放
-bigImg.addEventListener('wheel', (e)=>{
-    e.preventDefault();
-    const zoomStep = 0.08;
-    if(e.deltaY < 0) scale += zoomStep;
-    else scale -= zoomStep;
-    scale = Math.max(0.3, Math.min(5, scale));
-    scheduleRender();
-})
+// ========== 缩放、拖拽（彻底修复放大失灵） ==========
+// 鼠标滚轮缩放
+bigImg.addEventListener("wheel", e => {
+  e.preventDefault();
+  const zoomSpeed = 0.07;
+  const oldScale = scale;
+  scale += e.deltaY < 0 ? zoomSpeed : -zoomSpeed;
+  scale = Math.max(0.4, Math.min(4, scale));
+
+  // 以鼠标位置为缩放锚点
+  const rect = bigImg.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  offsetX -= mouseX * (scale - oldScale);
+  offsetY -= mouseY * (scale - oldScale);
+  updateImgTransform();
+  resizeDrawCanvas();
+});
+
 // 鼠标拖拽
-bigImg.addEventListener('mousedown', (e)=>{
-    if(drawMode) return;
+bigImg.addEventListener("mousedown", e => {
+  if (drawMode) return;
+  isDrag = true;
+  dragStartX = e.clientX - offsetX;
+  dragStartY = e.clientY - offsetY;
+});
+document.addEventListener("mousemove", e => {
+  if (!isDrag || drawMode) return;
+  offsetX = e.clientX - dragStartX;
+  offsetY = e.clientY - dragStartY;
+  updateImgTransform();
+  resizeDrawCanvas();
+});
+document.addEventListener("mouseup", () => isDrag = false);
+bigImg.addEventListener("dblclick", resetImgTransform);
+
+// 触摸双指缩放/拖拽
+bigImg.addEventListener("touchstart", e => {
+  if (drawMode) return;
+  if (e.touches.length === 1) {
     isDrag = true;
-    dragStartX = e.clientX - offsetX;
-    dragStartY = e.clientY - offsetY;
-})
-document.addEventListener('mousemove', (e)=>{
-    if(!isDrag || drawMode) return;
-    offsetX = e.clientX - dragStartX;
-    offsetY = e.clientY - dragStartY;
-    scheduleRender();
-})
-document.addEventListener('mouseup', ()=> isDrag = false);
-bigImg.addEventListener('dblclick', resetImgTransform);
+    dragStartX = e.touches[0].clientX - offsetX;
+    dragStartY = e.touches[0].clientY - offsetY;
+  } else if (e.touches.length === 2) {
+    isDrag = false;
+    const t1 = e.touches[0], t2 = e.touches[1];
+    touchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+    touchCenterX = (t1.clientX + t2.clientX) / 2;
+    touchCenterY = (t1.clientY + t2.clientY) / 2;
+  }
+});
+bigImg.addEventListener("touchmove", e => {
+  if (drawMode) return;
+  e.preventDefault();
+  if (e.touches.length === 1 && isDrag) {
+    offsetX = e.touches[0].clientX - dragStartX;
+    offsetY = e.touches[0].clientY - dragStartY;
+    updateImgTransform();
+    resizeDrawCanvas();
+  } else if (e.touches.length === 2) {
+    const t1 = e.touches[0], t2 = e.touches[1];
+    const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+    const oldScale = scale;
+    scale += (dist - touchStartDist) * 0.0012;
+    scale = Math.max(0.4, Math.min(4, scale));
+    // 双指中心锚点缩放
+    offsetX -= (touchCenterX - (t1.clientX + t2.clientX) / 2) * (scale - oldScale);
+    offsetY -= (touchCenterY - (t1.clientY + t2.clientY) / 2) * (scale - oldScale);
+    touchStartDist = dist;
+    touchCenterX = (t1.clientX + t2.clientX) / 2;
+    touchCenterY = (t1.clientY + t2.clientY) / 2;
+    updateImgTransform();
+    resizeDrawCanvas();
+  }
+});
+bigImg.addEventListener("touchend", () => isDrag = false);
 
-// 触摸事件双指缩放
-bigImg.addEventListener('touchstart', (e) => {
-    if(drawMode) return;
-    if(e.touches.length === 1){
-        isDrag = true;
-        dragStartX = e.touches[0].clientX - offsetX;
-        dragStartY = e.touches[0].clientY - offsetY;
-    }else if(e.touches.length === 2){
-        isDrag = false;
-        const t1 = e.touches[0], t2 = e.touches[1];
-        touchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-        touchCenterX = (t1.clientX + t2.clientX) / 2;
-        touchCenterY = (t1.clientY + t2.clientY) / 2;
-    }
-})
-bigImg.addEventListener('touchmove', (e) => {
-    if(drawMode) return;
-    if(e.touches.length === 1 && isDrag){
-        offsetX = e.touches[0].clientX - dragStartX;
-        offsetY = e.touches[0].clientY - dragStartY;
-        scheduleRender();
-    }else if(e.touches.length === 2){
-        e.preventDefault();
-        const t1 = e.touches[0], t2 = e.touches[1];
-        const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-        const deltaScale = (dist - touchStartDist) * 0.0015;
-        const oldScale = scale;
-        scale += deltaScale;
-        scale = Math.max(0.3, Math.min(5, scale));
-        const cx = (t1.clientX + t2.clientX) / 2;
-        const cy = (t1.clientY + t2.clientY) / 2;
-        offsetX += (cx - touchCenterX) * (1 - scale / oldScale);
-        offsetY += (cy - touchCenterY) * (1 - scale / oldScale);
-        touchStartDist = dist;
-        touchCenterX = cx;
-        touchCenterY = cy;
-        scheduleRender();
-    }
-})
-bigImg.addEventListener('touchend', () => isDrag = false);
-
-// ========== 修复涂鸦绘画（PC鼠标 + 手机触摸 双端可用） ==========
-// 获取画布坐标统一函数
-function getCanvasPos(clientX, clientY){
-    const rect = drawCanvas.getBoundingClientRect();
-    const x = (clientX - rect.left) * dpr;
-    const y = (clientY - rect.top) * dpr;
-    return {x,y};
+// ========== 绘画核心（修复无线条、橡皮失效） ==========
+// 转换屏幕坐标到画布内部像素
+function getDrawPos(clientX, clientY) {
+  const rect = drawCanvas.getBoundingClientRect();
+  return {
+    x: (clientX - rect.left) * dpr,
+    y: (clientY - rect.top) * dpr
+  };
 }
-// 开始绘制
-function startDraw(x,y){
-    isDrawing = true;
-    lastX = x;
-    lastY = y;
-    drawCtx.beginPath();
-    drawCtx.moveTo(x, y);
-    drawCtx.lineCap = "round";
-    drawCtx.lineJoin = "round";
+
+// 落笔
+function drawStart(x, y) {
+  isDrawing = true;
+  lastDrawX = x;
+  lastDrawY = y;
+  drawCtx.beginPath();
+  drawCtx.moveTo(x, y);
+  drawCtx.lineCap = "round";
+  drawCtx.lineJoin = "round";
+  if (isEraser) {
+    drawCtx.globalCompositeOperation = "destination-out";
+    drawCtx.lineWidth = lineWidth * 3 * dpr;
+  } else {
+    drawCtx.globalCompositeOperation = "source-over";
+    drawCtx.strokeStyle = drawColor;
     drawCtx.lineWidth = lineWidth * dpr;
-    if(isEraser){
-        drawCtx.globalCompositeOperation = 'destination-out';
-        drawCtx.lineWidth = lineWidth * 3 * dpr;
-    }else{
-        drawCtx.globalCompositeOperation = 'source-over';
-        drawCtx.strokeStyle = drawColor;
-    }
+  }
 }
-// 绘制线段
-function drawLine(x,y){
-    if(!isDrawing) return;
-    drawCtx.lineTo(x, y);
-    drawCtx.stroke();
-    lastX = x;
-    lastY = y;
+// 画线
+function drawMove(x, y) {
+  if (!isDrawing) return;
+  drawCtx.lineTo(x, y);
+  drawCtx.stroke();
+  lastDrawX = x;
+  lastDrawY = y;
 }
-// 结束绘制，保存撤销记录
-function stopDraw(){
-    if(!isDrawing) return;
-    isDrawing = false;
-    const imgData = drawCtx.getImageData(0,0,drawCanvas.width,drawCanvas.height);
-    drawHistory.push(imgData);
+// 停笔保存记录
+function drawEnd() {
+  if (!isDrawing) return;
+  isDrawing = false;
+  drawHistory.push(drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height));
 }
 
-// 手机触摸绘画
-drawCanvas.addEventListener("touchstart", (e)=>{
-    if(!drawMode) return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    const pos = getCanvasPos(touch.clientX, touch.clientY);
-    startDraw(pos.x, pos.y);
-})
-drawCanvas.addEventListener("touchmove", (e)=>{
-    if(!drawMode || !isDrawing) return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    const pos = getCanvasPos(touch.clientX, touch.clientY);
-    drawLine(pos.x, pos.y);
-})
-drawCanvas.addEventListener("touchend", stopDraw);
-drawCanvas.addEventListener("touchcancel", stopDraw);
+// 触摸绘画
+drawCanvas.addEventListener("touchstart", e => {
+  if (!drawMode) return;
+  e.preventDefault();
+  const p = getDrawPos(e.touches[0].clientX, e.touches[0].clientY);
+  drawStart(p.x, p.y);
+});
+drawCanvas.addEventListener("touchmove", e => {
+  if (!drawMode || !isDrawing) return;
+  e.preventDefault();
+  const p = getDrawPos(e.touches[0].clientX, e.touches[0].clientY);
+  drawMove(p.x, p.y);
+});
+drawCanvas.addEventListener("touchend", drawEnd);
+drawCanvas.addEventListener("touchcancel", drawEnd);
 
-// 电脑鼠标绘画（新增，修复电脑画不出线条）
-drawCanvas.addEventListener("mousedown", (e)=>{
-    if(!drawMode) return;
-    const pos = getCanvasPos(e.clientX, e.clientY);
-    startDraw(pos.x, pos.y);
-})
-drawCanvas.addEventListener("mousemove", (e)=>{
-    if(!drawMode || !isDrawing) return;
-    const pos = getCanvasPos(e.clientX, e.clientY);
-    drawLine(pos.x, pos.y);
-})
-drawCanvas.addEventListener("mouseup", stopDraw);
-drawCanvas.addEventListener("mouseleave", stopDraw);
+// PC鼠标绘画
+drawCanvas.addEventListener("mousedown", e => {
+  if (!drawMode) return;
+  const p = getDrawPos(e.clientX, e.clientY);
+  drawStart(p.x, p.y);
+});
+drawCanvas.addEventListener("mousemove", e => {
+  if (!drawMode || !isDrawing) return;
+  const p = getDrawPos(e.clientX, e.clientY);
+  drawMove(p.x, p.y);
+});
+drawCanvas.addEventListener("mouseup", drawEnd);
+drawCanvas.addEventListener("mouseleave", drawEnd);
 
-// ========== 工具栏按钮绑定 ==========
+// 工具栏绑定
 const drawTool = document.getElementById("drawTool");
 const eraserTool = document.getElementById("eraserTool");
-// 画笔
-drawTool.onclick = ()=>{
-    drawMode = true;
-    drawCanvas.classList.add("draw-mode");
-    isEraser = false;
-    drawTool.classList.add("active");
-    eraserTool.classList.remove("active");
-}
-// 橡皮
-eraserTool.onclick = ()=>{
-    drawMode = true;
-    drawCanvas.classList.add("draw-mode");
-    isEraser = true;
-    eraserTool.classList.add("active");
-    drawTool.classList.remove("active");
-}
-// 颜色选择
-document.querySelectorAll(".color-box").forEach(box=>{
-    box.onclick = ()=>{
-        drawColor = box.dataset.color;
-        document.querySelectorAll(".color-box").forEach(b=>b.classList.remove("active"));
-        box.classList.add("active");
-    }
-})
-// 撤销涂鸦
-document.getElementById("undoDraw").onclick = ()=>{
-    if(drawHistory.length === 0) return;
-    drawHistory.pop();
-    drawCtx.clearRect(0,0,drawCanvas.width,drawCanvas.height);
-    if(drawHistory.length > 0){
-        drawCtx.putImageData(drawHistory[drawHistory.length-1],0,0);
-    }
-}
+drawTool.onclick = () => {
+  drawMode = true;
+  drawCanvas.classList.add("draw-mode");
+  isEraser = false;
+  drawTool.classList.add("active");
+  eraserTool.classList.remove("active");
+};
+eraserTool.onclick = () => {
+  drawMode = true;
+  drawCanvas.classList.add("draw-mode");
+  isEraser = true;
+  eraserTool.classList.add("active");
+  drawTool.classList.remove("active");
+};
+document.querySelectorAll(".color-box").forEach(box => {
+  box.onclick = () => {
+    drawColor = box.dataset.color;
+    document.querySelectorAll(".color-box").forEach(b => b.classList.remove("active"));
+    box.classList.add("active");
+  };
+});
+document.getElementById("undoDraw").onclick = () => {
+  if (drawHistory.length === 0) return;
+  drawHistory.pop();
+  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  if (drawHistory.length > 0) drawCtx.putImageData(drawHistory[drawHistory.length - 1], 0, 0);
+};
 
-// ========== 裁剪功能 ==========
-document.getElementById("cropTool").onclick = ()=>{
-    cropModal.classList.add("active");
-    const img = new Image();
-    img.src = bigImg.src;
-    img.onload = ()=>{
-        cropCanvas.width = img.width;
-        cropCanvas.height = img.height;
-        cropCtx.drawImage(img,0,0);
-    }
-}
-document.getElementById("cancelCrop").onclick = ()=> cropModal.classList.remove("active");
-document.getElementById("confirmCrop").onclick = ()=>{
-    // 居中1:1裁剪
-    const size = Math.min(cropCanvas.width, cropCanvas.height);
-    const x = (cropCanvas.width - size) / 2;
-    const y = (cropCanvas.height - size) / 2;
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = size;
-    tempCanvas.height = size;
-    const tCtx = tempCanvas.getContext("2d");
-    tCtx.drawImage(cropCanvas, x, y, size, size, 0,0,size,size);
-    editFinalImg = tempCanvas.toDataURL("image/png");
-    cropModal.classList.remove("active");
-    openSavePreview();
-}
+// 裁剪
+document.getElementById("cropTool").onclick = () => {
+  cropModal.classList.add("active");
+  const img = new Image();
+  img.src = bigImg.src;
+  img.onload = () => {
+    cropCanvas.width = img.width;
+    cropCanvas.height = img.height;
+    cropCtx.drawImage(img, 0, 0);
+  };
+};
+document.getElementById("cancelCrop").onclick = () => cropModal.classList.remove("active");
+document.getElementById("confirmCrop").onclick = () => {
+  const size = Math.min(cropCanvas.width, cropCanvas.height);
+  const x = (cropCanvas.width - size) / 2;
+  const y = (cropCanvas.height - size) / 2;
+  const temp = document.createElement("canvas");
+  temp.width = size;
+  temp.height = size;
+  const tctx = temp.getContext("2d");
+  tctx.drawImage(cropCanvas, x, y, size, size, 0, 0, size, size);
+  editFinalImg = temp.toDataURL("image/png");
+  cropModal.classList.remove("active");
+  openSavePreview();
+};
 
-// ========== 保存图片 ==========
+// 保存图片
 document.getElementById("saveEdit").onclick = openSavePreview;
-function openSavePreview(){
-    const mergeCanvas = document.createElement("canvas");
-    const mCtx = mergeCanvas.getContext("2d");
-    const img = new Image();
-    img.src = bigImg.src;
-    img.onload = ()=>{
-        mergeCanvas.width = img.width;
-        mergeCanvas.height = img.height;
-        mCtx.drawImage(img,0,0);
-        mCtx.drawImage(drawCanvas,0,0,img.width,img.height);
-        editFinalImg = mergeCanvas.toDataURL("image/png");
-        saveImg.src = editFinalImg;
-        saveModal.classList.add("active");
-    }
+function openSavePreview() {
+  const merge = document.createElement("canvas");
+  const mctx = merge.getContext("2d");
+  const img = new Image();
+  img.src = bigImg.src;
+  img.onload = () => {
+    merge.width = img.width;
+    merge.height = img.height;
+    mctx.drawImage(img, 0, 0);
+    mctx.drawImage(drawCanvas, 0, 0, img.width, img.height);
+    editFinalImg = merge.toDataURL("image/png");
+    saveImg.src = editFinalImg;
+    saveModal.classList.add("active");
+  };
 }
-document.getElementById("closeSave").onclick = ()=> saveModal.classList.remove("active");
+document.getElementById("closeSave").onclick = () => saveModal.classList.remove("active");
 
-// 返回顶部按钮逻辑
+// 过滤空白图片点击
+allImgs.forEach((img, idx) => {
+  if (!img.src || img.src.endsWith('/')) {
+    img.style.cursor = "default";
+    img.style.opacity = "0.35";
+    return;
+  }
+  img.onclick = () => openPreview(idx);
+});
+
+// 返回顶部
 const backTopBtn = document.getElementById("backTopBtn");
-window.addEventListener("scroll",()=>{
-  if(window.scrollY > 300){
+window.addEventListener("scroll", () => {
+  if (window.scrollY > 300) {
     backTopBtn.style.opacity = "1";
     backTopBtn.style.visibility = "visible";
-  }else{
+  } else {
     backTopBtn.style.opacity = "0";
     backTopBtn.style.visibility = "hidden";
   }
-})
-backTopBtn.onclick = ()=> window.scrollTo({top:0,behavior:"smooth"});
+});
+backTopBtn.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
 </script>
 </body>
 </html>
