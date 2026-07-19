@@ -199,7 +199,7 @@
         .color-box.active {
             box-shadow: 0 0 0 2px #1677ff;
         }
-        /* 涂鸦画布覆盖原图 */
+        /* 涂鸦画布覆盖原图 + 移动端手势锁定核心修复 */
         #drawCanvas {
             position: absolute;
             top: 0;
@@ -207,6 +207,10 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
+            touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
+            transform: translateZ(0);
         }
         #drawCanvas.draw-mode {
             pointer-events: auto;
@@ -307,27 +311,6 @@
     <img src="004.jpg" alt="持续更新中">
     <img src="005.jpg" alt="持续更新中">
     <img src="006.jpg" alt="持续更新中">
-    <img src="007.jpg" alt="持续更新中">
-    <img src="008.jpg" alt="持续更新中">
-    <img src="17923c165e3a8514c484fac963213918.jpg" alt="持续更新中">
-    <img src="3a954ed8c4fedd95efee37ce112446d5.jpg" alt="持续更新中">
-    <img src="bbfa9630509dfcf1bc841b3627c84770.jpg" alt="持续更新中">
-    <img src="009.jpg" alt="持续更新中">
-    <img src="010.jpg" alt="持续更新中">
-    <img src="011.jpg" alt="持续更新中">
-    <img src="012.jpg" alt="持续更新中">
-    <img src="013.jpg" alt="持续更新中">
-    <img src="014.jpg" alt="持续更新中">
-    <img src="015.jpg" alt="持续更新中">
-    <img src="016.jpg" alt="持续更新中">
-    <img src="017.jpg" alt="持续更新中">
-    <img src="018.jpg" alt="持续更新中">
-    <img src="0001.jpg" alt="持续更新中">
-    <img src="0002.jpg" alt="持续更新中">
-    <img src="0003.jpg" alt="持续更新中">
-    <img src="0004.jpg" alt="持续更新中">
-    <img src="0005.jpg" alt="持续更新中">
-    <img src="0006.jpg" alt="持续更新中">
      <img src="0007.jpg" alt="持续更新中">
      <img src="0008.jpg" alt="持续更新中">
      <img src="0009.jpg" alt="持续更新中">
@@ -503,6 +486,11 @@
     </button>
 
 <script>
+// 判断微信环境
+function isWeChatBrowser() {
+    return /MicroMessenger/i.test(navigator.userAgent);
+}
+
 // 深色模式初始化
 (function(){
   const saveTheme = localStorage.getItem("siteTheme");
@@ -748,7 +736,7 @@ bigImg.addEventListener("touchmove", e => {
 });
 bigImg.addEventListener("touchend", () => isDrag = false);
 
-// ========== 绘画核心（修复无线条、橡皮失效） ==========
+// ========== 绘画核心【重点修复手机无线条问题】 ==========
 // 转换屏幕坐标到画布内部像素
 function getDrawPos(clientX, clientY) {
   const rect = drawCanvas.getBoundingClientRect();
@@ -791,21 +779,24 @@ function drawEnd() {
   drawHistory.push(drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height));
 }
 
-// 触摸绘画
+// 触摸绘画 关键配置 passive:false 允许阻止滚动
+const touchOpt = { passive: false };
 drawCanvas.addEventListener("touchstart", e => {
   if (!drawMode) return;
   e.preventDefault();
   const p = getDrawPos(e.touches[0].clientX, e.touches[0].clientY);
   drawStart(p.x, p.y);
-});
+}, touchOpt);
+
 drawCanvas.addEventListener("touchmove", e => {
   if (!drawMode || !isDrawing) return;
   e.preventDefault();
   const p = getDrawPos(e.touches[0].clientX, e.touches[0].clientY);
   drawMove(p.x, p.y);
-});
-drawCanvas.addEventListener("touchend", drawEnd);
-drawCanvas.addEventListener("touchcancel", drawEnd);
+}, touchOpt);
+
+drawCanvas.addEventListener("touchend", drawEnd, touchOpt);
+drawCanvas.addEventListener("touchcancel", drawEnd, touchOpt);
 
 // PC鼠标绘画
 drawCanvas.addEventListener("mousedown", e => {
@@ -878,8 +869,16 @@ document.getElementById("confirmCrop").onclick = () => {
   openSavePreview();
 };
 
-// 保存图片
-document.getElementById("saveEdit").onclick = openSavePreview;
+// 保存图片（增加微信提示）
+document.getElementById("saveEdit").onclick = function() {
+  // 微信浏览器提示
+  if(isWeChatBrowser()){
+    alert("微信内置浏览器存在画布安全限制，无法导出保存图片！请点击右上角【...】→在浏览器打开后重试");
+    return;
+  }
+  openSavePreview();
+};
+
 function openSavePreview() {
   const merge = document.createElement("canvas");
   const mctx = merge.getContext("2d");
@@ -919,6 +918,16 @@ window.addEventListener("scroll", () => {
   }
 });
 backTopBtn.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
+// 微信下拉刷新拦截优化绘画体验
+if(isWeChatBrowser()){
+  const modalWrap = document.querySelector(".modal-content");
+  modalWrap.addEventListener("touchmove", function(e){
+    if(e.touches.length === 1){
+      e.preventDefault();
+    }
+  },{passive:false})
+}
 </script>
 </body>
 </html>
