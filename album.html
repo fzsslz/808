@@ -194,13 +194,15 @@
         .color-box.active {
             box-shadow: 0 0 0 2px #1677ff;
         }
-        /* 核心修复：画布固定悬浮覆盖图片，禁止跟随transform */
+        /* 修复画布层级，精准贴合大图，跟随缩放拖拽 */
         #drawCanvas {
             position: absolute;
             pointer-events: none;
             touch-action: none;
             -webkit-user-select: none;
             user-select: none;
+            top: 0;
+            left: 0;
         }
         #drawCanvas.draw-mode {
             pointer-events: auto;
@@ -442,6 +444,10 @@
         <div class="edit-bar">
             <button id="drawTool">画笔</button>
             <button id="eraserTool">橡皮</button>
+            <!-- 新增画笔粗细调节按钮 -->
+            <button class="width-btn active" data-width="4">细</button>
+            <button class="width-btn" data-width="8">常规</button>
+            <button class="width-btn" data-width="14">粗</button>
             <div class="color-box" style="background:#ff3333;" data-color="#ff3333"></div>
             <div class="color-box" style="background:#ffffff;" data-color="#ffffff"></div>
             <div class="color-box" style="background:#33ff33;" data-color="#33ff33"></div>
@@ -520,27 +526,13 @@ let drawHistory = [];
 let isDrawing = false;
 let drawMode = false;
 let drawColor = "#ff3333";
-let lineWidth = 8;
+let lineWidth = 8; // 默认常规粗细
 let isEraser = false;
 const dpr = window.devicePixelRatio || 1;
 let lastDrawX = 0, lastDrawY = 0;
 let editFinalImg = null;
 
-function updateImgTransform() {
-  bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
-}
-function resetImgTransform() {
-  scale = 1;
-  offsetX = 0;
-  offsetY = 0;
-  updateImgTransform();
-}
-function clearDrawCanvas() {
-  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-  drawHistory = [];
-}
-
-// 画布实时跟随图片可视区域，不绑定transform
+// 图片缩放拖拽实时同步画布位置大小，彻底修复偏移
 function syncCanvasPosition() {
   const imgRect = bigImg.getBoundingClientRect();
   drawCanvas.style.left = imgRect.left + "px";
@@ -555,6 +547,31 @@ function syncCanvasPosition() {
   drawCtx.lineJoin = "round";
 }
 
+function updateImgTransform() {
+  bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+  syncCanvasPosition();
+}
+function resetImgTransform() {
+  scale = 1;
+  offsetX = 0;
+  offsetY = 0;
+  updateImgTransform();
+}
+function clearDrawCanvas() {
+  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  drawHistory = [];
+}
+
+// 【核心修复】精准坐标转换，解决缩放/拖拽后画笔大幅偏移问题
+function getDrawGlobalPos(clientX, clientY) {
+  const canvasRect = drawCanvas.getBoundingClientRect();
+  // 精准映射画布内部坐标，跟随缩放自动适配
+  return {
+    x: clientX - canvasRect.left,
+    y: clientY - canvasRect.top
+  };
+}
+
 function openPreview(index) {
   resetImgTransform();
   clearDrawCanvas();
@@ -563,6 +580,9 @@ function openPreview(index) {
   document.querySelectorAll(".edit-bar button").forEach(b => b.classList.remove("active"));
   document.querySelectorAll(".color-box").forEach(c => c.classList.remove("active"));
   document.querySelector(`.color-box[data-color="${drawColor}"]`)?.classList.add("active");
+  // 恢复默认画笔粗细选中
+  document.querySelectorAll(".width-btn").forEach(btn=>btn.classList.remove("active"));
+  document.querySelector('.width-btn[data-width="8"]').classList.add("active");
 
   currentIndex = index;
   const targetImg = allImgs[currentIndex];
@@ -642,7 +662,6 @@ bigImg.addEventListener("wheel", e => {
   offsetX -= mouseX * (scale - oldScale);
   offsetY -= mouseY * (scale - oldScale);
   updateImgTransform();
-  syncCanvasPosition();
 });
 
 // 鼠标拖拽
@@ -657,7 +676,6 @@ document.addEventListener("mousemove", e => {
   offsetX = e.clientX - dragStartX;
   offsetY = e.clientY - dragStartY;
   updateImgTransform();
-  syncCanvasPosition();
 });
 document.addEventListener("mouseup", () => isDrag = false);
 bigImg.addEventListener("dblclick", resetImgTransform);
@@ -684,7 +702,6 @@ bigImg.addEventListener("touchmove", e => {
     offsetX = e.touches[0].clientX - dragStartX;
     offsetY = e.touches[0].clientY - dragStartY;
     updateImgTransform();
-    syncCanvasPosition();
   } else if (e.touches.length === 2) {
     const t1 = e.touches[0], t2 = e.touches[1];
     const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
@@ -697,20 +714,11 @@ bigImg.addEventListener("touchmove", e => {
     touchCenterX = (t1.clientX + t2.clientX) / 2;
     touchCenterY = (t1.clientY + t2.clientY) / 2;
     updateImgTransform();
-    syncCanvasPosition();
   }
 });
 bigImg.addEventListener("touchend", () => isDrag = false);
 
-// 精准坐标换算，彻底解决偏移
-function getDrawGlobalPos(clientX, clientY) {
-  const canvasRect = drawCanvas.getBoundingClientRect();
-  return {
-    x: (clientX - canvasRect.left) * dpr,
-    y: (clientY - canvasRect.top) * dpr
-  };
-}
-
+// 绘画逻辑优化，偏移彻底修复
 function drawStart(x, y) {
   isDrawing = true;
   lastDrawX = x;
@@ -719,11 +727,11 @@ function drawStart(x, y) {
   drawCtx.moveTo(x, y);
   if (isEraser) {
     drawCtx.globalCompositeOperation = "destination-out";
-    drawCtx.lineWidth = lineWidth * 3 * dpr;
+    drawCtx.lineWidth = lineWidth * 3;
   } else {
     drawCtx.globalCompositeOperation = "source-over";
     drawCtx.strokeStyle = drawColor;
-    drawCtx.lineWidth = lineWidth * dpr;
+    drawCtx.lineWidth = lineWidth;
   }
 }
 function drawMove(x, y) {
@@ -787,6 +795,7 @@ eraserTool.onclick = () => {
   eraserTool.classList.add("active");
   drawTool.classList.remove("active");
 };
+// 颜色选择
 document.querySelectorAll(".color-box").forEach(box => {
   box.onclick = () => {
     drawColor = box.dataset.color;
@@ -794,6 +803,15 @@ document.querySelectorAll(".color-box").forEach(box => {
     box.classList.add("active");
   };
 });
+// 新增画笔粗细切换事件
+document.querySelectorAll(".width-btn").forEach(btn=>{
+  btn.onclick = ()=>{
+    lineWidth = Number(btn.dataset.width);
+    document.querySelectorAll(".width-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+  }
+})
+// 撤销绘制
 document.getElementById("undoDraw").onclick = () => {
   if (drawHistory.length === 0) return;
   drawHistory.pop();
