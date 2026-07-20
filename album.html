@@ -66,13 +66,11 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             transition: transform 0.3s;
             cursor: pointer;
-            will-change: transform;
         }
         .album img:hover {
             transform: scale(1.05);
         }
 
-        /* 预览弹窗 */
         .modal {
             display: none;
             position: fixed;
@@ -82,7 +80,6 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.92);
             z-index: 9999;
-            text-align: center;
             overflow: hidden;
         }
         body.modal-open {
@@ -94,8 +91,7 @@
         .modal-content {
             position: relative;
             width: 100vw;
-            height: calc(100vh - 120px);
-            overflow: hidden;
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -107,7 +103,6 @@
             box-shadow: 0 0 30px rgba(255,255,255,0.2);
             cursor: grab;
             touch-action: none;
-            will-change: transform;
             transform-origin: center center;
         }
         #bigImg:active {
@@ -158,7 +153,6 @@
         .prev-btn { left: 20px; }
         .next-btn { right: 20px; }
 
-        /* 底部编辑工具栏 */
         .edit-bar {
             position: fixed;
             bottom: 0;
@@ -200,20 +194,17 @@
         .color-box.active {
             box-shadow: 0 0 0 2px #1677ff;
         }
-        /* 涂鸦画布 修正定位 */
+        /* 核心修复：画布固定悬浮覆盖图片，禁止跟随transform */
         #drawCanvas {
             position: absolute;
             pointer-events: none;
             touch-action: none;
             -webkit-user-select: none;
             user-select: none;
-            transform-origin: center center;
-            transform: translateZ(0);
         }
         #drawCanvas.draw-mode {
             pointer-events: auto;
         }
-        /* 裁剪弹窗 */
         .crop-box {
             display: none;
             position: fixed;
@@ -245,7 +236,6 @@
             font-size: 15px;
             cursor: pointer;
         }
-        /* 保存预览弹窗 */
         .save-preview {
             display: none;
             position: fixed;
@@ -449,7 +439,6 @@
             <img id="bigImg" crossOrigin="anonymous">
             <canvas id="drawCanvas"></canvas>
         </div>
-        <!-- 底部编辑工具栏 -->
         <div class="edit-bar">
             <button id="drawTool">画笔</button>
             <button id="eraserTool">橡皮</button>
@@ -463,7 +452,6 @@
         </div>
     </div>
 
-    <!-- 裁剪弹窗 -->
     <div class="crop-box" id="cropModal">
         <canvas class="crop-canvas" id="cropCanvas"></canvas>
         <div class="crop-actions">
@@ -472,7 +460,6 @@
         </div>
     </div>
 
-    <!-- 保存预览弹窗（长按保存） -->
     <div class="save-preview" id="saveModal">
         <img id="saveImg">
         <div class="save-tip">长按下方图片保存到手机相册</div>
@@ -484,12 +471,9 @@
     </button>
 
 <script>
-// 判断微信环境
 function isWeChatBrowser() {
     return /MicroMessenger/i.test(navigator.userAgent);
 }
-
-// 深色模式初始化
 (function(){
   const saveTheme = localStorage.getItem("siteTheme");
   const darkBtn = document.getElementById("darkBtn");
@@ -507,7 +491,6 @@ function toggleDark(){
   localStorage.setItem("siteTheme", isDark ? "dark" : "light");
 }
 
-// 基础DOM
 const imgWrap = document.getElementById("imgList");
 const allImgs = Array.from(imgWrap.querySelectorAll(".album img"));
 const modal = document.getElementById('imgModal');
@@ -524,7 +507,6 @@ const cropCtx = cropCanvas.getContext("2d");
 const saveModal = document.getElementById("saveModal");
 const saveImg = document.getElementById("saveImg");
 
-// 全局状态
 let currentIndex = 0;
 let scale = 1;
 let offsetX = 0;
@@ -534,7 +516,6 @@ let dragStartX = 0, dragStartY = 0;
 let touchStartDist = 0;
 let touchCenterX = 0, touchCenterY = 0;
 
-// 绘画状态
 let drawHistory = [];
 let isDrawing = false;
 let drawMode = false;
@@ -545,45 +526,35 @@ const dpr = window.devicePixelRatio || 1;
 let lastDrawX = 0, lastDrawY = 0;
 let editFinalImg = null;
 
-// 刷新图片+画布变换
 function updateImgTransform() {
-  const transStr = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
-  bigImg.style.transform = transStr;
-  drawCanvas.style.transform = transStr;
+  bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
 }
-
-// 重置缩放偏移
 function resetImgTransform() {
   scale = 1;
   offsetX = 0;
   offsetY = 0;
   updateImgTransform();
 }
-
-// 清空绘画记录
 function clearDrawCanvas() {
   drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
   drawHistory = [];
 }
 
-// 【修复核心】画布完全贴合大图，四边均可绘画
-function resizeDrawCanvas() {
-  const rect = bigImg.getBoundingClientRect();
-  // 画布位置尺寸严格匹配图片
-  drawCanvas.style.left = rect.left + "px";
-  drawCanvas.style.top = rect.top + "px";
-  drawCanvas.style.width = rect.width + "px";
-  drawCanvas.style.height = rect.height + "px";
-  // 高清画布像素
-  drawCanvas.width = rect.width * dpr;
-  drawCanvas.height = rect.height * dpr;
+// 画布实时跟随图片可视区域，不绑定transform
+function syncCanvasPosition() {
+  const imgRect = bigImg.getBoundingClientRect();
+  drawCanvas.style.left = imgRect.left + "px";
+  drawCanvas.style.top = imgRect.top + "px";
+  drawCanvas.style.width = imgRect.width + "px";
+  drawCanvas.style.height = imgRect.height + "px";
+  drawCanvas.width = imgRect.width * dpr;
+  drawCanvas.height = imgRect.height * dpr;
   drawCtx.setTransform(1,0,0,1,0,0);
   drawCtx.scale(dpr, dpr);
   drawCtx.lineCap = "round";
   drawCtx.lineJoin = "round";
 }
 
-// 打开大图
 function openPreview(index) {
   resetImgTransform();
   clearDrawCanvas();
@@ -601,12 +572,9 @@ function openPreview(index) {
   bigImg.src = targetImg.src;
   bigImg.onload = () => {
     loadingTip.style.display = "none";
-    // 延迟等待页面重排完成再更新画布
-    setTimeout(resizeDrawCanvas, 80);
+    setTimeout(syncCanvasPosition, 100);
   };
 }
-
-// 关闭预览
 function closeModal() {
   modal.classList.remove('active');
   document.body.classList.remove("modal-open");
@@ -615,8 +583,6 @@ function closeModal() {
   drawMode = false;
   drawCanvas.classList.remove("draw-mode");
 }
-
-// 上一张
 function prevImg() {
   resetImgTransform();
   clearDrawCanvas();
@@ -630,11 +596,9 @@ function prevImg() {
   loadingTip.style.display = "block";
   bigImg.onload = () => {
     loadingTip.style.display = "none";
-    setTimeout(resizeDrawCanvas, 80);
+    setTimeout(syncCanvasPosition, 100);
   };
 }
-
-// 下一张
 function nextImg() {
   resetImgTransform();
   clearDrawCanvas();
@@ -648,11 +612,10 @@ function nextImg() {
   loadingTip.style.display = "block";
   bigImg.onload = () => {
     loadingTip.style.display = "none";
-    setTimeout(resizeDrawCanvas, 80);
+    setTimeout(syncCanvasPosition, 100);
   };
 }
 
-// 绑定切换/关闭
 closeBtn.onclick = closeModal;
 prevBtn.onclick = prevImg;
 nextBtn.onclick = nextImg;
@@ -666,7 +629,6 @@ document.addEventListener("keydown", e => {
   if (e.key === "ArrowRight") nextImg();
 });
 
-// ========== 缩放、拖拽 ==========
 // 鼠标滚轮缩放
 bigImg.addEventListener("wheel", e => {
   e.preventDefault();
@@ -674,14 +636,13 @@ bigImg.addEventListener("wheel", e => {
   const oldScale = scale;
   scale += e.deltaY < 0 ? zoomSpeed : -zoomSpeed;
   scale = Math.max(0.4, Math.min(4, scale));
-
   const rect = bigImg.getBoundingClientRect();
   const mouseX = e.clientX - rect.left;
   const mouseY = e.clientY - rect.top;
   offsetX -= mouseX * (scale - oldScale);
   offsetY -= mouseY * (scale - oldScale);
   updateImgTransform();
-  resizeDrawCanvas();
+  syncCanvasPosition();
 });
 
 // 鼠标拖拽
@@ -696,12 +657,12 @@ document.addEventListener("mousemove", e => {
   offsetX = e.clientX - dragStartX;
   offsetY = e.clientY - dragStartY;
   updateImgTransform();
-  resizeDrawCanvas();
+  syncCanvasPosition();
 });
 document.addEventListener("mouseup", () => isDrag = false);
 bigImg.addEventListener("dblclick", resetImgTransform);
 
-// 触摸双指缩放/拖拽
+// 触摸缩放拖拽
 bigImg.addEventListener("touchstart", e => {
   if (drawMode) return;
   if (e.touches.length === 1) {
@@ -723,7 +684,7 @@ bigImg.addEventListener("touchmove", e => {
     offsetX = e.touches[0].clientX - dragStartX;
     offsetY = e.touches[0].clientY - dragStartY;
     updateImgTransform();
-    resizeDrawCanvas();
+    syncCanvasPosition();
   } else if (e.touches.length === 2) {
     const t1 = e.touches[0], t2 = e.touches[1];
     const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
@@ -736,17 +697,17 @@ bigImg.addEventListener("touchmove", e => {
     touchCenterX = (t1.clientX + t2.clientX) / 2;
     touchCenterY = (t1.clientY + t2.clientY) / 2;
     updateImgTransform();
-    resizeDrawCanvas();
+    syncCanvasPosition();
   }
 });
 bigImg.addEventListener("touchend", () => isDrag = false);
 
-// ========== 绘画核心 全屏四边均可绘制 ==========
-function getDrawPos(clientX, clientY) {
-  const rect = drawCanvas.getBoundingClientRect();
+// 精准坐标换算，彻底解决偏移
+function getDrawGlobalPos(clientX, clientY) {
+  const canvasRect = drawCanvas.getBoundingClientRect();
   return {
-    x: (clientX - rect.left) * dpr,
-    y: (clientY - rect.top) * dpr
+    x: (clientX - canvasRect.left) * dpr,
+    y: (clientY - canvasRect.top) * dpr
   };
 }
 
@@ -778,37 +739,38 @@ function drawEnd() {
   drawHistory.push(drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height));
 }
 
+// 触摸绘画绑定
 const touchOpt = { passive: false };
 drawCanvas.addEventListener("touchstart", e => {
   if (!drawMode) return;
   e.preventDefault();
-  const p = getDrawPos(e.touches[0].clientX, e.touches[0].clientY);
+  const p = getDrawGlobalPos(e.touches[0].clientX, e.touches[0].clientY);
   drawStart(p.x, p.y);
 }, touchOpt);
 drawCanvas.addEventListener("touchmove", e => {
   if (!drawMode || !isDrawing) return;
   e.preventDefault();
-  const p = getDrawPos(e.touches[0].clientX, e.touches[0].clientY);
+  const p = getDrawGlobalPos(e.touches[0].clientX, e.touches[0].clientY);
   drawMove(p.x, p.y);
 }, touchOpt);
 drawCanvas.addEventListener("touchend", drawEnd, touchOpt);
 drawCanvas.addEventListener("touchcancel", drawEnd, touchOpt);
 
-// 鼠标绘画
+// 鼠标绘画绑定
 drawCanvas.addEventListener("mousedown", e => {
   if (!drawMode) return;
-  const p = getDrawPos(e.clientX, e.clientY);
+  const p = getDrawGlobalPos(e.clientX, e.clientY);
   drawStart(p.x, p.y);
 });
 drawCanvas.addEventListener("mousemove", e => {
   if (!drawMode || !isDrawing) return;
-  const p = getDrawPos(e.clientX, e.clientY);
+  const p = getDrawGlobalPos(e.clientX, e.clientY);
   drawMove(p.x, p.y);
 });
 drawCanvas.addEventListener("mouseup", drawEnd);
 drawCanvas.addEventListener("mouseleave", drawEnd);
 
-// 工具栏绑定
+// 工具栏逻辑
 const drawTool = document.getElementById("drawTool");
 const eraserTool = document.getElementById("eraserTool");
 drawTool.onclick = () => {
@@ -839,7 +801,7 @@ document.getElementById("undoDraw").onclick = () => {
   if (drawHistory.length > 0) drawCtx.putImageData(drawHistory[drawHistory.length - 1], 0, 0);
 };
 
-// 裁剪
+// 裁剪功能
 document.getElementById("cropTool").onclick = () => {
   cropModal.classList.add("active");
   const img = new Image();
@@ -865,10 +827,10 @@ document.getElementById("confirmCrop").onclick = () => {
   openSavePreview();
 };
 
-// 保存图片
+// 图片合并保存
 document.getElementById("saveEdit").onclick = function() {
   if(isWeChatBrowser()){
-    alert("微信内置浏览器存在画布安全限制，无法导出保存图片！请点击右上角【...】→在浏览器打开后重试");
+    alert("微信内置浏览器安全限制：画布无法导出图片，请点击右上角··· → 在浏览器打开网页");
     return;
   }
   openSavePreview();
@@ -890,7 +852,6 @@ function openSavePreview() {
 }
 document.getElementById("closeSave").onclick = () => saveModal.classList.remove("active");
 
-// 空白图片点击过滤
 allImgs.forEach((img, idx) => {
   if (!img.src || img.src.endsWith('/')) {
     img.style.cursor = "default";
@@ -900,7 +861,7 @@ allImgs.forEach((img, idx) => {
   img.onclick = () => openPreview(idx);
 });
 
-// 返回顶部
+// 返回顶部按钮
 const backTopBtn = document.getElementById("backTopBtn");
 window.addEventListener("scroll", () => {
   backTopBtn.style.opacity = window.scrollY > 300 ? "1" : "0";
@@ -908,7 +869,7 @@ window.addEventListener("scroll", () => {
 });
 backTopBtn.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
-// 微信下拉拦截
+// 微信滑动优化
 if(isWeChatBrowser()){
   const modalWrap = document.querySelector(".modal-content");
   modalWrap.addEventListener("touchmove", e=>{
