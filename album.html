@@ -158,15 +158,14 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 110px;
             background: rgba(0,0,0,0.7);
             display: none;
-            padding: 10px;
+            padding: 12px 16px;
             z-index: 10001;
         }
         .modal.active .edit-bar {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
@@ -193,6 +192,23 @@
         }
         .color-box.active {
             box-shadow: 0 0 0 2px #1677ff;
+        }
+        /* 画笔滑块样式 */
+        .slider-wrap{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            background:#ffffff22;
+            padding:4px 10px;
+            border-radius:6px;
+        }
+        #lineSlider{
+            width:120px;
+        }
+        .size-label{
+            color:#fff;
+            font-size:13px;
+            min-width:32px;
         }
         /* 修复画布层级，精准贴合大图，跟随缩放拖拽 */
         #drawCanvas {
@@ -221,10 +237,19 @@
         .crop-box.active {
             display: flex;
         }
+        .crop-container{
+            position:relative;
+        }
         .crop-canvas {
             max-width: 90vw;
             max-height: 70vh;
             border: 2px solid white;
+        }
+        /* 裁剪选区框 */
+        #cropSelector{
+            position:absolute;
+            border:2px dashed #fff;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.45);
         }
         .crop-actions {
             margin-top: 15px;
@@ -444,10 +469,12 @@
         <div class="edit-bar">
             <button id="drawTool">画笔</button>
             <button id="eraserTool">橡皮</button>
-            <!-- 新增画笔粗细调节按钮 -->
-            <button class="width-btn active" data-width="4">细</button>
-            <button class="width-btn" data-width="8">常规</button>
-            <button class="width-btn" data-width="14">粗</button>
+            <!-- 滑动条替代原有按钮 -->
+            <div class="slider-wrap">
+                <span class="size-label">粗细</span>
+                <input type="range" id="lineSlider" min="2" max="24" value="8" step="1">
+                <span class="size-label" id="sizeVal">8</span>
+            </div>
             <div class="color-box" style="background:#ff3333;" data-color="#ff3333"></div>
             <div class="color-box" style="background:#ffffff;" data-color="#ffffff"></div>
             <div class="color-box" style="background:#33ff33;" data-color="#33ff33"></div>
@@ -459,7 +486,10 @@
     </div>
 
     <div class="crop-box" id="cropModal">
-        <canvas class="crop-canvas" id="cropCanvas"></canvas>
+        <div class="crop-container">
+            <canvas class="crop-canvas" id="cropCanvas"></canvas>
+            <div id="cropSelector"></div>
+        </div>
         <div class="crop-actions">
             <button id="confirmCrop">确认裁剪</button>
             <button id="cancelCrop">取消</button>
@@ -510,6 +540,7 @@ const drawCtx = drawCanvas.getContext("2d");
 const cropModal = document.getElementById("cropModal");
 const cropCanvas = document.getElementById("cropCanvas");
 const cropCtx = cropCanvas.getContext("2d");
+const cropSelector = document.getElementById("cropSelector");
 const saveModal = document.getElementById("saveModal");
 const saveImg = document.getElementById("saveImg");
 
@@ -526,13 +557,25 @@ let drawHistory = [];
 let isDrawing = false;
 let drawMode = false;
 let drawColor = "#ff3333";
-let lineWidth = 8; // 默认常规粗细
+let lineWidth = 8;
 let isEraser = false;
 const dpr = window.devicePixelRatio || 1;
 let lastDrawX = 0, lastDrawY = 0;
 let editFinalImg = null;
 
-// 图片缩放拖拽实时同步画布位置大小，彻底修复偏移
+//裁剪全局变量
+let cropStartX = 0, cropStartY = 0;
+let cropIsDraw = false;
+
+//画笔粗细滑块绑定
+const lineSlider = document.getElementById("lineSlider");
+const sizeVal = document.getElementById("sizeVal");
+lineSlider.oninput = function(){
+    lineWidth = Number(this.value);
+    sizeVal.innerText = lineWidth;
+}
+
+// 图片缩放拖拽实时同步画布位置大小
 function syncCanvasPosition() {
   const imgRect = bigImg.getBoundingClientRect();
   drawCanvas.style.left = imgRect.left + "px";
@@ -562,10 +605,9 @@ function clearDrawCanvas() {
   drawHistory = [];
 }
 
-// 【核心修复】精准坐标转换，解决缩放/拖拽后画笔大幅偏移问题
+// 精准坐标转换
 function getDrawGlobalPos(clientX, clientY) {
   const canvasRect = drawCanvas.getBoundingClientRect();
-  // 精准映射画布内部坐标，跟随缩放自动适配
   return {
     x: clientX - canvasRect.left,
     y: clientY - canvasRect.top
@@ -580,9 +622,6 @@ function openPreview(index) {
   document.querySelectorAll(".edit-bar button").forEach(b => b.classList.remove("active"));
   document.querySelectorAll(".color-box").forEach(c => c.classList.remove("active"));
   document.querySelector(`.color-box[data-color="${drawColor}"]`)?.classList.add("active");
-  // 恢复默认画笔粗细选中
-  document.querySelectorAll(".width-btn").forEach(btn=>btn.classList.remove("active"));
-  document.querySelector('.width-btn[data-width="8"]').classList.add("active");
 
   currentIndex = index;
   const targetImg = allImgs[currentIndex];
@@ -718,7 +757,7 @@ bigImg.addEventListener("touchmove", e => {
 });
 bigImg.addEventListener("touchend", () => isDrag = false);
 
-// 绘画逻辑优化，偏移彻底修复
+//绘画逻辑
 function drawStart(x, y) {
   isDrawing = true;
   lastDrawX = x;
@@ -803,14 +842,7 @@ document.querySelectorAll(".color-box").forEach(box => {
     box.classList.add("active");
   };
 });
-// 新增画笔粗细切换事件
-document.querySelectorAll(".width-btn").forEach(btn=>{
-  btn.onclick = ()=>{
-    lineWidth = Number(btn.dataset.width);
-    document.querySelectorAll(".width-btn").forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-  }
-})
+
 // 撤销绘制
 document.getElementById("undoDraw").onclick = () => {
   if (drawHistory.length === 0) return;
@@ -819,7 +851,7 @@ document.getElementById("undoDraw").onclick = () => {
   if (drawHistory.length > 0) drawCtx.putImageData(drawHistory[drawHistory.length - 1], 0, 0);
 };
 
-// 裁剪功能
+// ============【修复裁剪模块】============
 document.getElementById("cropTool").onclick = () => {
   cropModal.classList.add("active");
   const img = new Image();
@@ -828,29 +860,69 @@ document.getElementById("cropTool").onclick = () => {
     cropCanvas.width = img.width;
     cropCanvas.height = img.height;
     cropCtx.drawImage(img, 0, 0);
+    cropSelector.style.width = "60%";
+    cropSelector.style.height = "60%";
+    cropSelector.style.left = "20%";
+    cropSelector.style.top = "20%";
   };
 };
-document.getElementById("cancelCrop").onclick = () => cropModal.classList.remove("active");
+
+function updateCropBox(startX, startY, curX, curY) {
+  let x = Math.min(startX, curX);
+  let y = Math.min(startY, curY);
+  let w = Math.abs(curX - startX);
+  let h = Math.abs(curY - startY);
+  const maxW = cropCanvas.clientWidth;
+  const maxH = cropCanvas.clientHeight;
+  x = Math.max(0, Math.min(x, maxW - w));
+  y = Math.max(0, Math.min(y, maxH - h));
+  cropSelector.style.left = x + "px";
+  cropSelector.style.top = y + "px";
+  cropSelector.style.width = w + "px";
+  cropSelector.style.height = h + "px";
+}
+
+cropCanvas.onmousedown = (e)=>{
+    cropIsDraw = true;
+    const rect = cropCanvas.getBoundingClientRect();
+    cropStartX = e.clientX - rect.left;
+    cropStartY = e.clientY - rect.top;
+}
+cropCanvas.onmousemove = (e)=>{
+    if(!cropIsDraw) return;
+    const rect = cropCanvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    updateCropBox(cropStartX, cropStartY, mx, my);
+}
+cropCanvas.onmouseup = ()=> cropIsDraw = false;
+cropCanvas.onmouseleave = ()=> cropIsDraw = false;
+
+document.getElementById("cancelCrop").onclick = () => {
+    cropModal.classList.remove("active");
+};
 document.getElementById("confirmCrop").onclick = () => {
-  const size = Math.min(cropCanvas.width, cropCanvas.height);
-  const x = (cropCanvas.width - size) / 2;
-  const y = (cropCanvas.height - size) / 2;
-  const temp = document.createElement("canvas");
-  temp.width = size;
-  temp.height = size;
-  const tctx = temp.getContext("2d");
-  tctx.drawImage(cropCanvas, x, y, size, size, 0, 0, size, size);
-  editFinalImg = temp.toDataURL("image/png");
-  cropModal.classList.remove("active");
-  openSavePreview();
+    const selRect = cropSelector.getBoundingClientRect();
+    const canvasRect = cropCanvas.getBoundingClientRect();
+    const scaleX = cropCanvas.width / canvasRect.width;
+    const scaleY = cropCanvas.height / canvasRect.height;
+    const sx = (selRect.left - canvasRect.left) * scaleX;
+    const sy = (selRect.top - canvasRect.top) * scaleY;
+    const sw = selRect.width * scaleX;
+    const sh = selRect.height * scaleY;
+
+    const temp = document.createElement("canvas");
+    temp.width = sw;
+    temp.height = sh;
+    const tctx = temp.getContext("2d");
+    tctx.drawImage(cropCanvas, sx, sy, sw, sh, 0, 0, sw, sh);
+    editFinalImg = temp.toDataURL("image/png");
+    cropModal.classList.remove("active");
+    openSavePreview();
 };
 
-// 图片合并保存
+// ============【修复图片保存，兼容微信】============
 document.getElementById("saveEdit").onclick = function() {
-  if(isWeChatBrowser()){
-    alert("微信内置浏览器安全限制：画布无法导出图片，请点击右上角··· → 在浏览器打开网页");
-    return;
-  }
   openSavePreview();
 };
 function openSavePreview() {
@@ -858,11 +930,12 @@ function openSavePreview() {
   const mctx = merge.getContext("2d");
   const img = new Image();
   img.src = bigImg.src;
+  img.crossOrigin = "anonymous";
   img.onload = () => {
     merge.width = img.width;
     merge.height = img.height;
     mctx.drawImage(img, 0, 0);
-    mctx.drawImage(drawCanvas, 0, 0, img.width, img.height);
+    mctx.drawImage(drawCanvas, 0,0,img.width,img.height);
     editFinalImg = merge.toDataURL("image/png");
     saveImg.src = editFinalImg;
     saveModal.classList.add("active");
