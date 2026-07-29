@@ -244,12 +244,14 @@
             max-width: 90vw;
             max-height: 70vh;
             border: 2px solid white;
+            touch-action: none;
         }
         /* 裁剪选区框 */
         #cropSelector{
             position:absolute;
             border:2px dashed #fff;
             box-shadow: 0 0 0 9999px rgba(0,0,0,0.45);
+            pointer-events:none;
         }
         .crop-actions {
             margin-top: 15px;
@@ -564,8 +566,8 @@ let lastDrawX = 0, lastDrawY = 0;
 let editFinalImg = null;
 
 //裁剪全局变量
-let cropStartX = 0, cropStartY = 0;
-let cropIsDraw = false;
+let cropActive = false;
+let cropStart = {x:0,y:0};
 
 //画笔粗细滑块绑定
 const lineSlider = document.getElementById("lineSlider");
@@ -851,77 +853,107 @@ document.getElementById("undoDraw").onclick = () => {
   if (drawHistory.length > 0) drawCtx.putImageData(drawHistory[drawHistory.length - 1], 0, 0);
 };
 
-// ============【修复裁剪模块】============
-document.getElementById("cropTool").onclick = () => {
-  cropModal.classList.add("active");
-  const img = new Image();
-  img.src = bigImg.src;
-  img.onload = () => {
-    cropCanvas.width = img.width;
-    cropCanvas.height = img.height;
-    cropCtx.drawImage(img, 0, 0);
-    cropSelector.style.width = "60%";
-    cropSelector.style.height = "60%";
-    cropSelector.style.left = "20%";
-    cropSelector.style.top = "20%";
-  };
-};
-
-function updateCropBox(startX, startY, curX, curY) {
-  let x = Math.min(startX, curX);
-  let y = Math.min(startY, curY);
-  let w = Math.abs(curX - startX);
-  let h = Math.abs(curY - startY);
-  const maxW = cropCanvas.clientWidth;
-  const maxH = cropCanvas.clientHeight;
-  x = Math.max(0, Math.min(x, maxW - w));
-  y = Math.max(0, Math.min(y, maxH - h));
-  cropSelector.style.left = x + "px";
-  cropSelector.style.top = y + "px";
-  cropSelector.style.width = w + "px";
-  cropSelector.style.height = h + "px";
+// ======================== 【重写全新裁剪模块】 ========================
+document.getElementById("cropTool").onclick = function(){
+    cropModal.classList.add("active");
+    const img = new Image();
+    img.src = bigImg.src;
+    img.onload = function(){
+        cropCanvas.width = img.width;
+        cropCanvas.height = img.height;
+        cropCtx.drawImage(img,0,0);
+        // 默认选区居中
+        cropSelector.style.left = "15%";
+        cropSelector.style.top = "15%";
+        cropSelector.style.width = "70%";
+        cropSelector.style.height = "70%";
+    }
 }
 
-cropCanvas.onmousedown = (e)=>{
-    cropIsDraw = true;
+// 获取画布内相对坐标
+function getCropPoint(e){
     const rect = cropCanvas.getBoundingClientRect();
-    cropStartX = e.clientX - rect.left;
-    cropStartY = e.clientY - rect.top;
+    if(e.touches){
+        return {
+            x: e.touches[0].clientX - rect.left,
+            y: e.touches[0].clientY - rect.top
+        }
+    }else{
+        return {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        }
+    }
 }
-cropCanvas.onmousemove = (e)=>{
-    if(!cropIsDraw) return;
-    const rect = cropCanvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    updateCropBox(cropStartX, cropStartY, mx, my);
-}
-cropCanvas.onmouseup = ()=> cropIsDraw = false;
-cropCanvas.onmouseleave = ()=> cropIsDraw = false;
-
-document.getElementById("cancelCrop").onclick = () => {
-    cropModal.classList.remove("active");
-};
-document.getElementById("confirmCrop").onclick = () => {
-    const selRect = cropSelector.getBoundingClientRect();
+// 更新选区位置，限制不超出画布
+function renderCropBox(start, now){
     const canvasRect = cropCanvas.getBoundingClientRect();
-    const scaleX = cropCanvas.width / canvasRect.width;
-    const scaleY = cropCanvas.height / canvasRect.height;
-    const sx = (selRect.left - canvasRect.left) * scaleX;
-    const sy = (selRect.top - canvasRect.top) * scaleY;
+    let x1 = Math.max(0, Math.min(start.x, now.x));
+    let y1 = Math.max(0, Math.min(start.y, now.y));
+    let x2 = Math.min(canvasRect.width, Math.max(start.x, now.x));
+    let y2 = Math.min(canvasRect.height, Math.max(start.y, now.y));
+
+    cropSelector.style.left = x1 + "px";
+    cropSelector.style.top = y1 + "px";
+    cropSelector.style.width = (x2 - x1) + "px";
+    cropSelector.style.height = (y2 - y1) + "px";
+}
+
+//鼠标
+cropCanvas.onmousedown = function(e){
+    cropActive = true;
+    cropStart = getCropPoint(e);
+}
+cropCanvas.onmousemove = function(e){
+    if(!cropActive) return;
+    renderCropBox(cropStart, getCropPoint(e));
+}
+cropCanvas.onmouseup = ()=> cropActive = false;
+cropCanvas.onmouseleave = ()=> cropActive = false;
+
+//触屏
+cropCanvas.addEventListener("touchstart",e=>{
+    e.preventDefault();
+    cropActive = true;
+    cropStart = getCropPoint(e);
+},{passive:false});
+cropCanvas.addEventListener("touchmove",e=>{
+    e.preventDefault();
+    if(!cropActive) return;
+    renderCropBox(cropStart, getCropPoint(e));
+},{passive:false});
+cropCanvas.addEventListener("touchend",()=>cropActive=false);
+cropCanvas.addEventListener("touchcancel",()=>cropActive=false);
+
+document.getElementById("cancelCrop").onclick = function(){
+    cropModal.classList.remove("active");
+}
+
+document.getElementById("confirmCrop").onclick = function(){
+    const selRect = cropSelector.getBoundingClientRect();
+    const canvasDisplayRect = cropCanvas.getBoundingClientRect();
+    // 屏幕尺寸 -> 原图真实像素换算
+    const scaleX = cropCanvas.width / canvasDisplayRect.width;
+    const scaleY = cropCanvas.height / canvasDisplayRect.height;
+
+    const sx = (selRect.left - canvasDisplayRect.left) * scaleX;
+    const sy = (selRect.top - canvasDisplayRect.top) * scaleY;
     const sw = selRect.width * scaleX;
     const sh = selRect.height * scaleY;
 
-    const temp = document.createElement("canvas");
-    temp.width = sw;
-    temp.height = sh;
-    const tctx = temp.getContext("2d");
-    tctx.drawImage(cropCanvas, sx, sy, sw, sh, 0, 0, sw, sh);
-    editFinalImg = temp.toDataURL("image/png");
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = sw;
+    tempCanvas.height = sh;
+    const tempCtx = tempCanvas.getContext("2d");
+    tempCtx.drawImage(cropCanvas, sx, sy, sw, sh, 0, 0, sw, sh);
+
+    editFinalImg = tempCanvas.toDataURL("image/png");
     cropModal.classList.remove("active");
     openSavePreview();
-};
+}
+// ======================== 裁剪模块结束 ========================
 
-// ============【修复图片保存，兼容微信】============
+// ============【图片保存】============
 document.getElementById("saveEdit").onclick = function() {
   openSavePreview();
 };
