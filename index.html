@@ -12,6 +12,9 @@
       font-family: "Microsoft YaHei", sans-serif;
       transition: background 0.3s, color 0.3s, transform 0.25s ease, box-shadow 0.3s ease;
     }
+    html{
+      scroll-behavior: smooth;
+    }
 
     body {
       background: linear-gradient(135deg, #f7fafe 0%, #e8f1ff 100%);
@@ -34,23 +37,24 @@
       background: #2c2c3b;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
-    body.dark .album-help-modal .modal-inner{
-      background: #2c2c3b;
-    }
 
-    /* 导航栏 美化渐变 */
+    /* 导航栏 美化渐变+粘性悬浮 */
     header {
       background: linear-gradient(90deg, #0f68e8, #3388ff);
       color: white;
       padding: 18px 20px;
       text-align: center;
-      box-shadow: 0 3px 10px rgba(22, 119, 255, 0.22);
+      box-shadow: 0 4px 14px rgba(22, 119, 255, 0.22);
+      position: sticky;
+      top: 0;
+      z-index: 99;
     }
 
     .title {
       font-size: 24px;
       font-weight: bold;
       letter-spacing: 0.5px;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.12);
     }
 
     nav {
@@ -81,10 +85,14 @@
 
     .section {
       background: white;
-      border-radius: 16px;
+      border-radius: 18px;
       padding: 28px;
       margin-bottom: 28px;
       box-shadow: 0 3px 14px rgba(22, 119, 255, 0.07);
+    }
+    .section:hover{
+      transform: translateY(-3px);
+      box-shadow: 0 7px 22px rgba(22, 119, 255, 0.11);
     }
 
     .section h2 {
@@ -96,26 +104,6 @@
     }
     body.dark .section h2{
       color: #7cb8ff;
-    }
-
-    /* 相册样式 */
-    .album {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 14px;
-    }
-
-    .album img {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      transition: transform 0.2s;
-    }
-
-    .album img:hover {
-      transform: scale(1.04);
     }
 
     /* 文件下载 */
@@ -231,12 +219,9 @@
       margin: 24px 0;
     }
 
-    /* 入场弹窗+粒子特效 全新淡入淡出动画 */
-    .temp-bg{min-height:100vh;background:linear-gradient(135deg,#2c2454 0%,#1f3a70 50%,#333847 100%);background-attachment:fixed;font-family:"Microsoft Yahei",sans-serif;overflow-x:hidden}
+    /* 入场弹窗+粒子特效 */
     #particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:997;pointer-events:none;opacity:1;transition:opacity 0.8s ease}
     #particles.fade-out{opacity:0}
-    .main-box{position:relative;z-index:2;width:90%;max-width:1000px;margin:0 auto;padding:40px 20px;color:#fff;text-align:center;animation:pageFade 1.5s ease-in-out}
-    @keyframes pageFade{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 
     /* 弹窗遮罩 淡入淡出 */
     .modal-mask{
@@ -284,6 +269,7 @@
       font-size:15px;color:#d0d8ff;line-height:1.7;margin-bottom:30px;
       opacity:0;transform:translateY(10px);
       transition:all 0.7s ease 0.5s;
+      text-align:left;
     }
     .modal-mask.show .modal-text,
     .modal-mask.show .modal-tips{
@@ -302,61 +288,12 @@
     }
     .confirm-btn:hover{background:rgba(255,255,255,0.4);box-shadow:0 0 15px rgba(150,180,255,0.5)}
 
-    /* 班级AI悬浮按钮 */
-    .doubao-float-btn {
-      position: fixed;
-      bottom: 85px;
-      right: 24px;
-      padding: 10px 18px;
-      border-radius: 50px;
-      background: #1677ff;
-      color: white;
-      border: none;
-      font-size: 15px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      z-index: 9999;
-    }
-    .doubao-float-btn:hover{
-      background:#0f68e8;
-      transform: scale(1.05);
-    }
-    .doubao-modal {
-      display: none;
-      position: fixed;
-      bottom: 150px;
-      right: 24px;
-      width: 400px;
-      height: 600px;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-      z-index: 9998;
-      background: white;
-    }
-    .doubao-close {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: rgba(0,0,0,0.5);
-      color: white;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-      z-index: 9999;
-    }
     @media (max-width: 480px) {
-      .doubao-modal {
-        display: none !important;
-      }
       .modal-box{padding:30px 20px;}
       .modal-text{font-size:20px;}
     }
 
-    /* 统一返回顶部按钮（滚动显隐） */
+    /* 返回顶部按钮（滚动显隐） */
     #backTopBtn {
       position:fixed;right:24px;bottom:80px;width:50px;height:50px;border-radius:50%;
       background:#165DFF;border:none;opacity:0;visibility:hidden;
@@ -368,283 +305,201 @@
     }
     #backTopBtn:hover{background:#0E4BDB; transform:scale(1.08);}
 
-    /* ============ 新增：相册功能介绍弹窗独立样式 ============ */
-    .album-help-mask{
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      z-index: 10000;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+    /* 链接按钮统一美化 */
+    .nav-link{
+      display:inline-block;
+      margin:6px 4px;
     }
-    .album-help-mask.show{
-      display: flex;
+
+    /* 新增：访问量展示模块样式 */
+    .visit-box{
+      text-align:center;
+      padding:16px;
+      border-radius:16px;
+      background:#f0f6ff;
+      max-width:500px;
+      margin:20px auto;
     }
-    .album-help-modal .modal-inner{
-      width: 100%;
-      max-width: 540px;
-      background: #ffffff;
-      border-radius: 18px;
-      padding: 32px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-    }
-    .album-help-modal h3{
-      text-align: center;
-      color: #1677ff;
-      font-size: 22px;
-      margin-bottom: 20px;
-    }
-    body.dark .album-help-modal h3{
-      color: #7cb8ff;
-    }
-    .album-help-modal ul{
-      padding-left: 22px;
-      line-height: 1.85;
-      font-size: 15px;
-      color: #444;
-    }
-    body.dark .album-help-modal ul{
-      color: #ddd;
-    }
-    .album-help-modal li{
-      margin: 10px 0;
-    }
-    .album-help-modal li strong{
-      color: #1677ff;
-    }
-    body.dark .album-help-modal li strong{
-      color: #7cb8ff;
-    }
-    .album-close-btn{
-      width: 100%;
-      margin-top: 26px;
-      padding: 11px;
-      border: none;
-      border-radius: 12px;
-      background: #1677ff;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .album-close-btn:hover{
-      background: #0f68e8;
-    }
-    /* 弹窗触发按钮 */
-    .album-tip-btn{
-      margin-top:12px;
-      padding:9px 18px;
-      border:1px solid #1677ff;
-      background: transparent;
-      color:#1677ff;
-      border-radius:10px;
-      cursor:pointer;
-      font-size:15px;
-    }
-    .album-tip-btn:hover{
-      background:#1677ff;
-      color:white;
+    body.dark .visit-box{
+      background:#272b3b;
     }
   </style>
 </head>
 
 <body>
-<!-- 深色模式按钮 仅保留一个，ID唯一 -->
-<button onclick="toggleDark()" style="position:fixed;top:20px;right:20px;padding:10px 16px;background:#3498db;color:white;border:none;border-radius:50px;cursor:pointer;font-weight:bold;z-index:999;" id="darkBtn">🌙 深色模式</button> 
+<!-- 深色模式按钮 -->
+<button onclick="toggleDark()" style="position:fixed;top:20px;right:20px;padding:10px 16px;background:#3498db;color:white;border:none;border-radius:50px;cursor:pointer;font-weight:bold;z-index:999;" id="darkBtn">🌙 深色模式</button>
 
-  <header>
-    <div class="title">福州第三十六中2024级八班班级网站</div>
-    <nav>
-      <a href="#home">首页</a>
-      <a href="#album">班级相册</a>
-      <a href="#files">文件资料</a>
-    </nav>
-  </header>
+<header>
+  <div class="title">福州第三十六中2024级八班班级网站</div>
+  <nav>
+    <a href="#home">首页</a>
+    <a href="#album">班级相册</a>
+    <a href="#files">文件资料</a>
+  </nav>
+</header>
 
-  <div class="container">
-    <!-- 首页介绍 -->
-    <div class="section" id="home">
-      <h2>班级介绍</h2>
-      <p>欢迎来到福州第三十六中学2024级8班班级网站，这里记录我们的学习、活动与成长瞬间。</p>
+<div class="container">
+  <!-- 首页介绍 -->
+  <div class="section" id="home">
+    <h2>班级介绍</h2>
+    <p>欢迎来到福州第三十六中学2024级8班班级网站，这里记录我们的学习、活动与成长瞬间。</p>
+  </div>
+
+  <!-- 访问统计模块【新增功能】 -->
+  <div class="visit-box">
+    <span>👀 网站访问总次数：<strong id="visitCount">0</strong></span>
+  </div>
+
+  <!-- 开学倒计时 -->
+  <div class="exam-countdown">
+    <div class="exam-title">开学倒计时</div>
+    <div class="summer-text" id="summerTip" style="display:none;">☀️ 暑假快乐！</div>
+    <div class="time-box" id="timeBox">
+      <div class="time-item"><div class="time-num" id="day">0</div><div class="time-text">天</div></div>
+      <div class="time-item"><div class="time-num" id="hour">0</div><div class="time-text">时</div></div>
+      <div class="time-item"><div class="time-num" id="min">0</div><div class="time-text">分</div></div>
+      <div class="time-item"><div class="time-num" id="sec">0</div><div class="time-text">秒</div></div>
     </div>
+    <div class="slogan">全力以赴，未来可期 ✨</div>
+  </div>
 
-    <!-- 开学倒计时 -->
-    <div class="exam-countdown">
-      <div class="exam-title">开学倒计时</div>
-      <!-- 暑假文字，7.3及之前显示 -->
-      <div class="summer-text" id="summerTip" style="display:none;">☀️ 暑假快乐！</div>
-      <!-- 倒计时数字容器 -->
-      <div class="time-box" id="timeBox">
-        <div class="time-item"><div class="time-num" id="day">0</div><div class="time-text">天</div></div>
-        <div class="time-item"><div class="time-num" id="hour">0</div><div class="time-text">时</div></div>
-        <div class="time-item"><div class="time-num" id="min">0</div><div class="time-text">分</div></div>
-        <div class="time-item"><div class="time-num" id="sec">0</div><div class="time-text">秒</div></div>
-      </div>
-      <div class="slogan">全力以赴，未来可期 ✨</div>
+  <!-- 交互版名言卡片 -->
+  <div onclick="showNewQuote()"
+  style="cursor: pointer;
+  max-width: 600px;
+  margin: 30px auto;
+  padding: 30px;
+  border-radius: 20px;
+  background: #f8f9ff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  text-align: center;">
+    <div id="quote"
+    style="font-size: 26px;
+    color: #2d7dd2;
+    font-weight: 600;
+    font-family: 'Microsoft YaHei', sans-serif;
+    transition: opacity 0.3s ease;
+    line-height: 1.6;">
+      点击这里刷新名言
     </div>
-
-    <!-- 交互版名言卡片 -->
-    <div onclick="showNewQuote()"      
-    style="cursor: pointer;             
-    max-width: 600px;             
-    margin: 30px auto;             
-    padding: 30px;             
-    border-radius: 20px;            
-    background: #f8f9ff;            
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);            
-    text-align: center;">    
-      <div id="quote"                           
-      style="font-size: 26px;                                                
-      color: #2d7dd2;                                                
-      font-weight: 600;                                                
-      font-family: 'Microsoft YaHei', sans-serif;                                                
-      transition: opacity 0.3s ease;                                                
-      line-height: 1.6;">        
-        点击这里刷新名言        
-      </div>        
-      <div style="margin-top: 20px;                                                
-      font-size: 16px;                                                
-      color: #666;                                                
-      font-family: 'Microsoft YaHei', sans-serif;">        
-        ✨ 点击换一句        
-      </div>
-    </div>
-
-    <!-- 班级相册 - 改成超链接按钮 + 新增功能介绍按钮 -->
-    <div class="section" id="album">
-      <h2>班级相册</h2>
-      <p>相册页面全新升级，支持图片涂鸦、裁剪、本地保存等编辑功能，点击下方按钮查看全部功能说明。</p>
-      <button class="album-tip-btn" onclick="openAlbumTip()">📷 相册新功能介绍</button>
-      <br><br>
-      <a href="album.html" class="nav-link" style="display:inline-block; background:#4285F4; color:#fff; padding:10px 22px; border-radius:10px; text-decoration:none; font-weight:bold; transition:all 0.3s;" onmouseover="this.style.backgroundColor='#3367D6'" onmouseout="this.style.backgroundColor='#4285F4'">📸 查看照片入口</a>
-      <a href="vedio.html" class="nav-link" style="display:inline-block; background:#4285F4; color:#fff; padding:10px 22px; border-radius:10px; text-decoration:none; font-weight:bold; transition:all 0.3s;" onmouseover="this.style.backgroundColor='#3367D6'" onmouseout="this.style.backgroundColor='#4285F4'">🎬 查看视频入口</a >
-    </div>
-
-    <!-- 一键复制班级网址 -->
-    <button onclick="copySite()" 
-    style="width:100%; padding:14px; background:#165DFF; color:white; border:none; border-radius:14px; font-size:16px; cursor:pointer; margin:10px 0;box-shadow:0 3px 10px rgba(22,93,255,0.15);">
-      🔗 一键复制班级网站网址
-    </button>
-
-    <!-- 游戏列表 外层补ul，修复裸li问题 -->
-    <ul class="game-list">
-      <li style="margin: 0;">      
-        <a href="222.html" target="_blank" style="display: block; padding: 22px 16px; border-radius: 12px;          
-        background: linear-gradient(135deg,#165DFF,#468CFF); border: none;         
-        text-decoration: none; color: #fff; font-size: 16px; font-weight: bold;         
-        transition: all 0.3s ease; box-shadow: 0 5px 12px rgba(22,93,255,0.2); text-align:center;">
-          🎮 五子棋
-        </a>    
-      </li>
-      <li style="margin: 0;">      
-        <a href="snake.html" target="_blank" style="display: block; padding: 22px 16px; border-radius: 12px;          
-        background: linear-gradient(135deg,#00C853,#69F0AE); border: none;         
-        text-decoration: none; color: #fff; font-size: 16px; font-weight: bold;         
-        transition: all 0.3s ease; box-shadow: 0 5px 12px rgba(0,200,83,0.2); text-align:center;">
-          🐍 贪吃蛇
-        </a>    
-      </li>
-      <li style="margin: 0;">      
-        <a href="saolei.html" target="_blank" style="display: block; padding: 22px 16px; border-radius: 12px;          
-        background: linear-gradient(135deg,#FF5722,#FFAB73); border: none;         
-        text-decoration: none; color: #fff; font-size: 16px; font-weight: bold;         
-        transition: all 0.3s ease; box-shadow: 0 5px 12px rgba(255,87,34,0.2); text-align:center;">
-          💣 扫雷
-        </a>    
-      </li>
-      <li style="margin: 0;">      
-        <a href="fangkuai.html" target="_blank" style="display: block; padding: 22px 16px; border-radius: 12px;          
-        background: linear-gradient(135deg,#7B1FA2,#CE93D8); border: none;         
-        text-decoration: none; color: #fff; font-size: 16px; font-weight: bold;         
-        transition: all 0.3s ease; box-shadow: 0 5px 12px rgba(123,31,162,0.2); text-align:center;">
-          🧩 俄罗斯方块
-        </a>    
-      </li>
-    </ul>
-
-    <!-- 文件资料 -->
-    <div class="section" id="files" style="margin: 30px 0;">
-      <h2 style="font-size: 22px; font-weight: bold; color: #165DFF; margin-bottom: 16px;">📁 文件资料</h2>
-      <ul class="file-list" style="list-style: none; padding: 0; margin: 0; display: grid; gap: 12px;">
-        <li style="margin: 0;">
-          <a href="notice.html" target="_blank" style="display: block; padding: 16px 20px; border-radius: 14px; 
-          background: rgba(255,255,255,0.85); border: 1px solid rgba(22,93,255,0.2);
-          text-decoration: none; color: #1E293B; font-size: 16px; font-weight: 500;
-          transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(22,93,255,0.1);">
-            📢 班级通知
-          </a>
-        </li>
-        <li style="margin: 0;">
-          <a href="kcb.jpg" target="_blank" style="display: block; padding: 16px 20px; border-radius: 14px; 
-          background: rgba(255,255,255,0.85); border: 1px solid rgba(22,93,255,0.2);
-          text-decoration: none; color: #1E293B; font-size: 16px; font-weight: 500;
-          transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(22,93,255,0.1);">
-            📅 课程表图片
-          </a>
-        </li>
-        <li style="margin: 0;">
-          <a href="https://docs.qq.com/sheet/DQmVta2ZoVHNoQ0V3" target="_blank" style="display: block; padding: 16px 20px; border-radius: 14px; 
-          background: rgba(22,93,255,0.9); border: 1px solid #165DFF;
-          text-decoration: none; color: #ffffff; font-size: 16px; font-weight: bold;
-          transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(22,93,255,0.2);">
-            📊 德育分表格
-          </a>
-        </li>
-      </ul>
+    <div style="margin-top: 20px;
+    font-size: 16px;
+    color: #666;
+    font-family: 'Microsoft YaHei', sans-serif;">
+      ✨ 点击换一句
     </div>
   </div>
 
-  <!-- 统一滚动显隐回到顶部按钮 -->
-  <button id="backTopBtn">
-    <span></span>
+  <!-- 班级相册（删除功能按钮） -->
+  <div class="section" id="album">
+    <h2>班级相册</h2>
+    <p>存放班级各类活动照片视频，记录大家成长点滴。</p>
+    <br>
+    <a href="album.html" class="nav-link" style="background:#4285F4; color:#fff; padding:10px 22px; border-radius:10px; text-decoration:none; font-weight:bold;" onmouseover="this.style.backgroundColor='#3367D6'" onmouseout="this.style.backgroundColor='#4285F4'">📸 查看照片入口</a>
+    <a href="vedio.html" class="nav-link" style="background:#4285F4; color:#fff; padding:10px 22px; border-radius:10px; text-decoration:none; font-weight:bold;" onmouseover="this.style.backgroundColor='#3367D6'" onmouseout="this.style.backgroundColor='#4285F4'">🎬 查看视频入口</a>
+  </div>
+
+  <!-- 一键复制班级网址 -->
+  <button onclick="copySite()"
+  style="width:100%; padding:14px; background:#165DFF; color:white; border:none; border-radius:14px; font-size:16px; cursor:pointer; margin:10px 0;box-shadow:0 3px 10px rgba(22,93,255,0.15);">
+    🔗 一键复制班级网站网址
   </button>
 
-  <footer>
-    福州第三十六中学2024级8班 © 2026
-  </footer>
+  <!-- 游戏列表 -->
+  <ul class="game-list">
+    <li style="margin: 0;">
+      <a href="222.html" target="_blank" style="display: block; padding: 22px 16px; border-radius: 12px;
+      background: linear-gradient(135deg,#165DFF,#468CFF); border: none;
+      text-decoration: none; color: #fff; font-size: 16px; font-weight: bold;
+      transition: all 0.3s ease; box-shadow: 0 5px 12px rgba(22,93,255,0.2); text-align:center;">
+        🎮 五子棋
+      </a>
+    </li>
+    <li style="margin: 0;">
+      <a href="snake.html" target="_blank" style="display: block; padding: 22px 16px; border-radius: 12px;
+      background: linear-gradient(135deg,#00C853,#69F0AE); border: none;
+      text-decoration: none; color: #fff; font-size: 16px; font-weight: bold;
+      transition: all 0.3s ease; box-shadow: 0 5px 12px rgba(0,200,83,0.2); text-align:center;">
+        🐍 贪吃蛇
+      </a>
+    </li>
+    <li style="margin: 0;">
+      <a href="saolei.html" target="_blank" style="display: block; padding: 22px 16px; border-radius: 12px;
+      background: linear-gradient(135deg,#FF5722,#FFAB73); border: none;
+      text-decoration: none; color: #fff; font-size: 16px; font-weight: bold;
+      transition: all 0.3s ease; box-shadow: 0 5px 12px rgba(255,87,34,0.2); text-align:center;">
+        💣 扫雷
+      </a>
+    </li>
+    <li style="margin: 0;">
+      <a href="fangkuai.html" target="_blank" style="display: block; padding: 22px 16px; border-radius: 12px;
+      background: linear-gradient(135deg,#7B1FA2,#CE93D8); border: none;
+      text-decoration: none; color: #fff; font-size: 16px; font-weight: bold;
+      transition: all 0.3s ease; box-shadow: 0 5px 12px rgba(123,31,162,0.2); text-align:center;">
+        🧩 俄罗斯方块
+      </a>
+    </li>
+  </ul>
 
-<!-- 入场弹窗+粒子特效（原有弹窗完全保留） -->
+  <!-- 文件资料 -->
+  <div class="section" id="files" style="margin: 30px 0;">
+    <h2 style="font-size: 22px; font-weight: bold; color: #165DFF; margin-bottom: 16px;">📁 文件资料</h2>
+    <ul class="file-list" style="list-style: none; padding: 0; margin: 0; display: grid; gap: 12px;">
+      <li style="margin: 0;">
+        <a href="notice.html" target="_blank" style="display: block; padding: 16px 20px; border-radius: 14px;
+        background: rgba(255,255,255,0.85); border: 1px solid rgba(22,93,255,0.2);
+        text-decoration: none; color: #1E293B; font-size: 16px; font-weight: 500;
+        transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(22,93,255,0.1);">
+          📢 班级通知
+        </a>
+      </li>
+      <li style="margin: 0;">
+        <a href="kcb.jpg" target="_blank" style="display: block; padding: 16px 20px; border-radius: 14px;
+        background: rgba(255,255,255,0.85); border: 1px solid rgba(22,93,255,0.2);
+        text-decoration: none; color: #1E293B; font-size: 16px; font-weight: 500;
+        transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(22,93,255,0.1);">
+          📅 课程表图片
+        </a>
+      </li>
+      <li style="margin: 0;">
+        <a href="https://docs.qq.com/sheet/DQmVta2ZoVHNoQ0V3" target="_blank" style="display: block; padding: 16px 20px; border-radius: 14px;
+        background: rgba(22,93,255,0.9); border: 1px solid #165DFF;
+        text-decoration: none; color: #ffffff; font-size: 16px; font-weight: bold;
+        transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(22,93,255,0.2);">
+          📊 德育分表格
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- 返回顶部按钮 -->
+<button id="backTopBtn">
+  <span></span>
+</button>
+
+<footer>
+  福州第三十六中学2024级8班 © 2026
+</footer>
+
+<!-- 入场弹窗+粒子特效 -->
 <canvas id="particles"></canvas>
 <div class="modal-mask" id="welcomeModal">
   <div class="modal-box">
     <p class="modal-text">欢迎进入 2024级8班班级网站</p>
     <p class="modal-tips">💡 使用小提示：
-<br>1. 相册、视频页面图片素材较多，打开需要加载几秒，请耐心等待
-<br>2. 首次进入网站会加载全部资源，可能轻微卡顿，第二次浏览会流畅很多
-<br>3. 右上角可切换深色/浅色模式，夜间浏览更护眼</p>
+<br>1. 相册页面功能一览：双指缩放、涂鸦标注、自由裁剪、图片本地保存、原图直接保存，支持深色模式同步
+<br>2. 相册、视频页面图片素材较多，打开需要加载几秒，请耐心等待
+<br>3. 首次进入网站会加载全部资源，可能轻微卡顿，第二次浏览会流畅很多
+<br>4. 右上角可切换深色/浅色模式，夜间浏览更护眼
+<br>5. 中间名言卡片点击可以随机切换励志语录</p>
     <button class="confirm-btn" id="closeBtn">开始浏览</button>
   </div>
 </div>
 
-<!-- ========== 新增：相册功能独立弹窗（不改动原有任何弹窗） ========== -->
-<div class="album-help-mask" id="albumTipMask">
-  <div class="album-help-modal">
-    <div class="modal-inner">
-      <h3>📸 班级相册全新功能一览</h3>
-      <ul>
-        <li><strong>1. 双指缩放预览</strong>：放大缩小图片，滑动拖拽查看细节</li>
-        <li><strong>2. 涂鸦标注工具</strong>：四色画笔+橡皮擦，支持撤销绘制笔迹</li>
-        <li><strong>3. 图片自由裁剪</strong>：正方形一键裁切、自定义截取画面</li>
-        <li><strong>4. 本地保存图片</strong>编辑完成后长按预览图保存至手机相册</li>
-        <li><strong>5. 原图快速保存</strong>不编辑时直接长按图片保存原始照片</li>
-        <li><strong>6. 自动清空画布</strong>切换图片/关闭预览自动清除涂鸦</li>
-        <li><strong>7. 全深色模式适配</strong>相册页面跟随网站明暗主题同步切换</li>
-      </ul>
-      <button class="album-close-btn" onclick="closeAlbumTip()">了解，前往相册</button>
-    </div>
-  </div>
-</div>
-
-<!-- 班级AI悬浮按钮 -->
-<button class="doubao-float-btn" id="doubaoBtn">🤖 班级AI</button>
-<div class="doubao-modal" id="doubaoModal">
-  <button class="doubao-close" onclick="document.getElementById('doubaoModal').style.display='none'">×</button>
-  <iframe src="https://doubao.com/bot/BWXWUBEB" style="width:100%;height:100%;border:none;" allow="autoplay; fullscreen"></iframe>
-</div>
-
 <script>
-// 页面加载自动同步深浅色记忆（和相册/通知/视频跨页面同步）
+// 页面加载自动同步深浅色记忆
 (function(){
   const saveTheme = localStorage.getItem("siteTheme");
   const darkBtn = document.getElementById("darkBtn");
@@ -654,32 +509,25 @@
   }
 })();
 
-// ==================== 新增相册弹窗JS（完全独立，不干扰原有逻辑） ====================
-const albumMask = document.getElementById("albumTipMask");
-function openAlbumTip(){
-  albumMask.classList.add("show");
+// ============ 新增：本地存储访问计数 ============
+function setVisitCounter(){
+  let count = Number(localStorage.getItem("visitTotal")) || 0;
+  count++;
+  localStorage.setItem("visitTotal",count);
+  document.getElementById("visitCount").innerText = count;
 }
-function closeAlbumTip(){
-  albumMask.classList.remove("show");
-}
-// 点击遮罩空白关闭弹窗
-albumMask.onclick = function(e){
-  if(e.target === albumMask) closeAlbumTip();
-}
+setVisitCounter();
 
-// 入场弹窗&粒子 淡入淡出动画重写（原有代码完全保留未修改）
+// 入场弹窗&粒子
 const modalMask=document.getElementById('welcomeModal'),
       closeBtn=document.getElementById('closeBtn'),
-      canvas=document.getElementById('particles'),
-      body=document.body;
+      canvas=document.getElementById('particles');
 let animationId=null;
 
-// 页面载入自动弹出弹窗
 window.addEventListener('load',()=>{
   setTimeout(()=>modalMask.classList.add('show'),100);
 })
 
-// 关闭弹窗 粒子淡出+遮罩淡出
 function closeModal(){
   modalMask.classList.remove('show');
   modalMask.classList.add('hide');
@@ -693,10 +541,9 @@ function closeModal(){
 }
 closeBtn.addEventListener('click',closeModal);
 modalMask.addEventListener('click',e=>{if(e.target===modalMask)closeModal()});
-// 35秒自动关闭
 setTimeout(closeModal,35000);
 
-// 粒子动画（原代码不动）
+// 粒子动画
 const ctx=canvas.getContext('2d');
 let w,h,centerX,centerY,particles=[];
 const particleNum=60;
@@ -746,7 +593,7 @@ function animate(){
 }
 animate();
 
-// 回到顶部按钮滚动显隐逻辑（原代码不动）
+// 回到顶部按钮
 const backTopBtn = document.getElementById("backTopBtn");
 backTopBtn.onmouseover = ()=> backTopBtn.style.background="#0E4BDB";
 backTopBtn.onmouseout = ()=> backTopBtn.style.background="#165DFF";
@@ -761,16 +608,14 @@ window.addEventListener("scroll",()=>{
 })
 backTopBtn.onclick = ()=> window.scrollTo({top:0,behavior:"smooth"});
 
-// ========== 修改后的开学倒计时逻辑（原代码原样保留） ==========
-const startSummerEnd = new Date("2026/07/03 23:59:59").getTime(); //7月3日截止
-const schoolDay = new Date("2026/09/01 00:00:00").getTime();     //9月1日开学
+// 开学倒计时
+const startSummerEnd = new Date("2026/07/03 23:59:59").getTime();
+const schoolDay = new Date("2026/09/01 00:00:00").getTime();
 const summerTipDom = document.getElementById("summerTip");
 const timeBoxDom = document.getElementById("timeBox");
 
 function updateCountdown(){
   const now = new Date().getTime();
-
-  // 判断是否在7.3及之前，显示暑假快乐
   if(now <= startSummerEnd){
     summerTipDom.style.display = "block";
     timeBoxDom.style.display = "none";
@@ -779,14 +624,12 @@ function updateCountdown(){
     summerTipDom.style.display = "none";
     timeBoxDom.style.display = "flex";
   }
-
-  // 7.4之后正常计算开学倒计时
   const diff = schoolDay - now;
   const d = Math.floor(diff / (1000*60*60*24));
   const h = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
   const m = Math.floor((diff % (1000*60*60)) / (1000*60));
   const s = Math.floor((diff % (1000*60)) / 1000);
-  
+
   document.getElementById("day").innerText = d < 0 ? 0 : d;
   document.getElementById("hour").innerText = h < 0 ? 0 : h;
   document.getElementById("min").innerText = m < 0 ? 0 : m;
@@ -795,40 +638,40 @@ function updateCountdown(){
 updateCountdown();
 setInterval(updateCountdown, 1000);
 
-// 名言轮换（原代码不动）
-const quotes = [            
-"以梦为马，不负韶华",            
-"乾坤未定，你我皆是黑马",            
-"星光不问赶路人，时光不负有心人",            
-"愿你笔锋所至，梦想开花",            
-"少年应有鸿鹄志，敢乘长风破万里浪",            
-"努力的意义，就是以后全是喜欢的人和事",            
-"今朝秣马坚如铁，他日功成朝天阙",            
-"我是帅哥",    
-"聚是一团火，散是满天星",    
-"我们在一起，就很了不起",    
-"始于初秋，终于盛夏，一路同行",    
-"同乘一班，共赴山海",    
-"时光不老，我们不散",    
-"最好的我们，最好的班级",                                                                                                                   
-"三人行，必有我师焉",    
-"锲而不舍，金石可镂",    
-"黑发不知勤学早，白首方悔读书迟",    
-"欲穷千里目，更上一层楼",    
+// 名言轮换
+const quotes = [
+"以梦为马，不负韶华",
+"乾坤未定，你我皆是黑马",
+"星光不问赶路人，时光不负有心人",
+"愿你笔锋所至，梦想开花",
+"少年应有鸿鹄志，敢乘长风破万里浪",
+"努力的意义，就是以后全是喜欢的人和事",
+"今朝秣马坚如铁，他日功成朝天阙",
+"我是帅哥",
+"聚是一团火，散是满天星",
+"我们在一起，就很了不起",
+"始于初秋，终于盛夏，一路同行",
+"同乘一班，共赴山海",
+"时光不老，我们不散",
+"最好的我们，最好的班级",
+"三人行，必有我师焉",
+"锲而不舍，金石可镂",
+"黑发不知勤学早，白首方悔读书迟",
+"欲穷千里目，更上一层楼",
 "物理老师好帅"
 ];
-function showNewQuote() {                
-    const quoteText = document.getElementById("quote");                
-    quoteText.style.opacity = "0";                
-    setTimeout(() => {                                
-        const randomIndex = Math.floor(Math.random() * quotes.length);                                
-        quoteText.innerText = quotes[randomIndex];                                
-        quoteText.style.opacity = "1";                
+function showNewQuote() {
+    const quoteText = document.getElementById("quote");
+    quoteText.style.opacity = "0";
+    setTimeout(() => {
+        const randomIndex = Math.floor(Math.random() * quotes.length);
+        quoteText.innerText = quotes[randomIndex];
+        quoteText.style.opacity = "1";
     }, 200);
 }
 window.onload = showNewQuote;
 
-// 深色模式【带本地存储，跨页面同步】（原代码不动）
+// 深色模式【本地存储】
 function toggleDark() {
   const body = document.body;
   const btn = document.getElementById("darkBtn");
@@ -844,7 +687,7 @@ function toggleDark() {
   localStorage.setItem("siteTheme", nowTheme);
 }
 
-// 复制网址【增加本地file://环境兼容】（原代码不动）
+// 复制网址
 function copySite(){
   const url = window.location.href;
   if(navigator.clipboard && window.isSecureContext){
@@ -857,7 +700,6 @@ function copySite(){
     fallbackCopy(url);
   }
 }
-// 本地文件降级复制方案
 function fallbackCopy(text){
   const input = document.createElement('input');
   input.value = text;
@@ -867,19 +709,6 @@ function fallbackCopy(text){
   document.body.removeChild(input);
   alert("复制成功！");
 }
-
-// 班级AI弹窗/跳转（原代码不动）
-const doubaoBtn = document.getElementById('doubaoBtn');
-const doubaoModal = document.getElementById('doubaoModal');
-const BOT_URL = "https://doubao.com/bot/bwxwUvEv";
-doubaoBtn.addEventListener('click', () => {
-  const isMobile = window.innerWidth <= 480 || /Android|iPhone|iPad/i.test(navigator.userAgent);
-  if (isMobile) {
-    window.open(BOT_URL, '_blank');
-  } else {
-    doubaoModal.style.display = 'block';
-  }
-});
 </script>
 </body>
 </html>
