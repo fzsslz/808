@@ -5,710 +5,1271 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>福州第三十六中2024级八班班级网站</title>
   <style>
+    :root {
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --primary-deep: #4f46e5;
+      --pink: #ec4899;
+      --pink-light: #f472b6;
+      --pink-deep: #db2777;
+      --primary-text: #4f46e5;
+      --danger-red: #ef4444;
+      --sky-blue: #38bdf8;
+      --accent-orange: #ff7675;
+      --light-bg: #fdf4ff;
+      --light-bg-2: #e0e7ff;
+      --card-light: #ffffff;
+      --card-bg-light: #f8f9ff;
+      --text-main: #334155;
+      --text-secondary: #64748b;
+      --text-weak: #94a3b8;
+      --dark-bg-1: #1e1b4b;
+      --dark-bg-2: #312e81;
+      --dark-card: #444084;
+      --dark-card-inner: #5b579a;
+      --dark-text: #ffffff;
+      --dark-text-secondary: #c7d2fe;
+      --radius-sm: 8px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-full: 999px;
+      --shadow-sm: 0 2px 8px rgba(99, 102, 241, 0.08);
+      --shadow-md: 0 8px 20px rgba(99, 102, 241, 0.12);
+      --shadow-lg: 0 12px 28px rgba(99, 102, 241, 0.18);
+      --shadow-xl: 0 18px 40px rgba(99, 102, 241, 0.22);
+      --shadow-dark: 0 4px 12px rgba(0,0,0,0.35);
+      --transition-fast: 0.25s ease;
+      --transition-normal: 0.35s ease;
+    }
+
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: "Microsoft YaHei", sans-serif;
-      transition: background 0.3s, color 0.3s, transform 0.25s ease, box-shadow 0.3s ease;
+      font-family: "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+      transition: background var(--transition-normal), color var(--transition-normal), transform var(--transition-fast), box-shadow var(--transition-normal);
     }
-    html{
+
+    html {
       scroll-behavior: smooth;
+      scroll-padding-top: 96px;
     }
 
     body {
-      background: linear-gradient(135deg, #f7fafe 0%, #e8f1ff 100%);
-      color: #333;
+      background:
+        radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 90% 20%, rgba(236, 72, 153, 0.08) 0%, transparent 50%),
+        linear-gradient(135deg, var(--light-bg) 0%, var(--light-bg-2) 100%);
+      color: var(--text-main);
       overflow-x: hidden;
       min-height: 100vh;
+      line-height: 1.65;
+      position: relative;
     }
 
-    /* 深色模式样式统一管理 */
     body.dark {
-      background: linear-gradient(135deg, #121218 0%, #1c202e 100%);
-      color: #ffffff;
+      background:
+        radial-gradient(circle at 10% 10%, rgba(129, 140, 248, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 90% 20%, rgba(244, 114, 182, 0.12) 0%, transparent 50%),
+        linear-gradient(135deg, var(--dark-bg-1) 0%, var(--dark-bg-2) 100%);
+      color: var(--dark-text);
     }
+
     body.dark .section {
-      background: #2c2c3b;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+      background: var(--dark-card);
+      box-shadow: var(--shadow-dark);
     }
+
     body.dark .exam-countdown,
     body.dark [onclick="showNewQuote()"] {
-      background: #2c2c3b;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      background: var(--dark-card);
+      box-shadow: var(--shadow-dark);
     }
 
-    /* 导航栏 美化渐变+粘性悬浮 */
+    body.dark .visit-box {
+      background: #3b3775;
+    }
+
+    body.dark footer {
+      background: linear-gradient(135deg, #312e81, #1e1b4b);
+    }
+
+    /* ========== 鼠标跟随星光 ========== */
+    .star-trail {
+      position: fixed;
+      width: 6px;
+      height: 6px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.8), transparent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      animation: starFade 0.8s ease-out forwards;
+    }
+
+    @keyframes starFade {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(0.2) translateY(-20px);
+        opacity: 0;
+      }
+    }
+
+    /* ========== 爱心飘落 ========== */
+    .heart {
+      position: fixed;
+      top: -50px;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.75;
+      font-size: 20px;
+      animation: heartFall linear infinite;
+    }
+
+    @keyframes heartFall {
+      0% {
+        transform: translateY(0) rotate(0deg) scale(1);
+      }
+      50% {
+        transform: translateY(50vh) rotate(180deg) scale(1.1);
+      }
+      100% {
+        transform: translateY(100vh) rotate(360deg) scale(0.9);
+      }
+    }
+
+    /* ========== 导航栏 ========== */
     header {
-      background: linear-gradient(90deg, #0f68e8, #3388ff);
+      background: linear-gradient(90deg, var(--primary-deep), var(--pink-deep), var(--primary-light));
+      background-size: 200% 100%;
+      animation: gradientShift 8s ease infinite;
       color: white;
       padding: 18px 20px;
       text-align: center;
-      box-shadow: 0 4px 14px rgba(22, 119, 255, 0.22);
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.25);
       position: sticky;
       top: 0;
       z-index: 99;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     .title {
-      font-size: 24px;
-      font-weight: bold;
-      letter-spacing: 0.5px;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      font-size: clamp(18px, 4.5vw, 28px);
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      animation: titleGlow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes titleGlow {
+      0% {
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2), 0 0 8px rgba(255,255,255,0.4);
+      }
+      100% {
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2), 0 0 12px rgba(255,255,255,0.6), 0 0 20px rgba(236,72,153,0.4);
+      }
     }
 
     nav {
-      margin-top: 12px;
+      margin-top: 14px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     nav a {
       color: white;
       text-decoration: none;
-      margin: 0 14px;
-      font-size: 16px;
-      padding: 6px 10px;
-      border-radius: 8px;
+      margin: 0 6px;
+      font-size: 15px;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      position: relative;
+      overflow: hidden;
     }
 
     nav a:hover {
-      text-decoration: none;
-      background: rgba(255,255,255,0.2);
-      transform: translateY(-2px);
+      background: rgba(255,255,255,0.25);
+      transform: translateY(-4px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
-    /* 内容区域 */
+    /* ========== 主体容器 ========== */
     .container {
-      max-width: 1000px;
-      margin: 40px auto;
+      max-width: 1060px;
+      margin: 48px auto;
       padding: 0 20px;
+      position: relative;
+      z-index: 2;
     }
 
+    /* ========== 3D玻璃卡片 ========== */
     .section {
-      background: white;
-      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: var(--radius-lg);
       padding: 28px;
       margin-bottom: 28px;
-      box-shadow: 0 3px 14px rgba(22, 119, 255, 0.07);
+      box-shadow:
+        0 10px 30px rgba(99, 102, 241, 0.12),
+        0 1px 3px rgba(99, 102, 241, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      perspective: 1000px;
     }
-    .section:hover{
-      transform: translateY(-3px);
-      box-shadow: 0 7px 22px rgba(22, 119, 255, 0.11);
+
+    .section::before {
+      content: "";
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(45deg, var(--primary), var(--pink), var(--primary-light), var(--pink-light), var(--primary));
+      background-size: 400% 400%;
+      border-radius: var(--radius-lg);
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      animation: gradientBorder 4s ease infinite;
+    }
+
+    .section:hover::before {
+      opacity: 1;
+    }
+
+    @keyframes gradientBorder {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .section:hover {
+      transform: translateY(-8px) rotateX(2deg);
+      box-shadow:
+        0 18px 45px rgba(99, 102, 241, 0.18),
+        0 1px 3px rgba(99, 102, 241, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
     }
 
     .section h2 {
-      color: #1677ff;
+      color: var(--primary-text);
       margin-bottom: 18px;
-      font-size: 21px;
-      border-left: 5px solid #1677ff;
-      padding-left: 12px;
-    }
-    body.dark .section h2{
-      color: #7cb8ff;
+      font-size: clamp(20px, 5vw, 24px);
+      border-left: 6px solid var(--pink);
+      padding-left: 14px;
+      font-weight: 700;
+      position: relative;
     }
 
-    /* 文件下载 */
+    .section h2::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -4px;
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--pink));
+      border-radius: 2px;
+    }
+
+    body.dark .section h2 {
+      color: #c7d2fe;
+    }
+
+    /* ========== 文件列表 ========== */
     .file-list {
       list-style: none;
     }
 
     .file-list li {
-      padding: 12px 16px;
-      border-bottom: 1px solid #eee;
-      border-radius: 10px;
-      margin-bottom: 8px;
+      padding: 14px 18px;
+      border-bottom: 1px solid #e0e7ff;
+      border-radius: var(--radius-md);
+      margin-bottom: 10px;
+      transition: all 0.25s;
+    }
+
+    .file-list li:hover {
+      background: rgba(99, 102, 241, 0.08);
     }
 
     .file-list li a {
-      color: #1677ff;
+      color: var(--primary-text);
       text-decoration: none;
-      transition: all 0.3s ease;
       display: block;
+      font-size: 16px;
+      font-weight: 500;
     }
 
     .file-list li a:hover {
       text-decoration: underline;
-      transform: translateY(-3px);
-      box-shadow: 0 6px 15px rgba(22,93,255,0.15);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(99, 102, 241, 0.15);
     }
 
+    /* ========== 页脚 ========== */
     footer {
       text-align: center;
-      padding: 24px;
-      color: #888;
+      padding: 28px 20px;
+      color: var(--text-weak);
       font-size: 14px;
-      margin-top: 20px;
+      margin-top: 30px;
+      letter-spacing: 0.5px;
+      background: linear-gradient(135deg, #e0e7ff, #fce7f3);
     }
 
-    .quote {
-      text-align: center;
-      font-size: 16px;
-      color: #2d7dd2;
-      margin: 15px 0;
-      font-family: "Microsoft YaHei", sans-serif;
-    }
-
+    /* ========== 倒计时卡片 ========== */
     .exam-countdown {
-      max-width: 520px;
-      margin: 35px auto;
-      padding: 30px;
-      background: #f8f9ff;
-      border-radius: 20px;
+      max-width: 560px;
+      margin: 40px auto;
+      padding: 32px 20px;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: var(--radius-lg);
       text-align: center;
-      font-family: "Microsoft YaHei", sans-serif;
-      box-shadow: 0 5px 14px rgba(0,0,0,0.08);
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      perspective: 1000px;
     }
-    body.dark .exam-countdown{
-      background: #2c2c3b;
+
+    .exam-countdown::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, transparent 60%),
+        radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.06) 0%, transparent 60%);
+      animation: floatBg 12s ease-in-out infinite;
     }
+
+    @keyframes floatBg {
+      0% { transform: translate(0, 0); }
+      50% { transform: translate(10px, -10px); }
+      100% { transform: translate(0, 0); }
+    }
+
+    body.dark .exam-countdown {
+      background: var(--dark-card);
+    }
+
     .exam-title {
-      font-size: 23px;
-      color: #2c3e50;
-      margin-bottom: 18px;
+      font-size: 24px;
+      color: #1e293b;
+      margin-bottom: 20px;
+      font-weight: 700;
+      position: relative;
     }
-    body.dark .exam-title{
-      color: #eee;
+
+    body.dark .exam-title {
+      color: #e0e7ff;
     }
+
     .time-box {
       display: flex;
       justify-content: center;
       gap: 14px;
-      margin: 12px 0;
+      margin: 16px 0;
       flex-wrap: wrap;
-    }
-    .time-item {
-      width: 65px;
-      padding: 12px 0;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-    body.dark .time-item{
-      background: #3a3a4c;
-    }
-    .time-num {
-      font-size: 30px;
-      font-weight: bold;
-      color: #e74c3c;
-    }
-    .time-text {
-      font-size: 13px;
-      color: #666;
-      margin-top:4px;
-    }
-    body.dark .time-text{
-      color: #ccc;
-    }
-    .slogan {
-      margin-top: 18px;
-      color: #3498db;
-      font-size: 16px;
-    }
-    .summer-text {
-      font-size: 30px;
-      color: #ff6b35;
-      font-weight: bold;
-      padding: 22px 0;
+      position: relative;
     }
 
-    /* 游戏列表布局 */
+    .time-item {
+      width: 70px;
+      padding: 14px 0;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      perspective: 800px;
+    }
+
+    .time-item::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(236, 72, 153, 0.08));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .time-item:hover::before {
+      opacity: 1;
+    }
+
+    .time-item:hover {
+      transform: translateY(-5px) scale(1.05);
+    }
+
+    body.dark .time-item {
+      background: var(--dark-card-inner);
+    }
+
+    .time-num {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--danger-red);
+      line-height: 1.1;
+      position: relative;
+    }
+
+    .time-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 6px;
+      position: relative;
+    }
+
+    body.dark .time-text {
+      color: var(--dark-text-secondary);
+    }
+
+    .slogan {
+      margin-top: 22px;
+      color: var(--primary-text);
+      font-size: 16px;
+      font-weight: 600;
+      position: relative;
+    }
+
+    .summer-text {
+      font-size: 32px;
+      color: var(--accent-orange);
+      font-weight: bold;
+      padding: 24px 0;
+    }
+
+    /* ========== 名言卡片 ========== */
+    [onclick="showNewQuote()"] {
+      cursor: pointer;
+      max-width: 620px;
+      margin: 36px auto;
+      padding: 32px 20px;
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: var(--shadow-md);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      perspective: 1000px;
+    }
+
+    [onclick="showNewQuote()"]::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(236, 72, 153, 0.06));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    [onclick="showNewQuote()"]:hover::before {
+      opacity: 1;
+    }
+
+    [onclick="showNewQuote()"]:hover {
+      transform: translateY(-6px) rotateX(2deg);
+      box-shadow: var(--shadow-lg);
+    }
+
+    #quote {
+      font-size: clamp(22px, 5vw, 28px);
+      color: var(--primary-text);
+      font-weight: 700;
+      font-family: "Microsoft YaHei", sans-serif;
+      transition: opacity 0.3s ease;
+      line-height: 1.7;
+      position: relative;
+    }
+
+    /* ========== 游戏卡片 ========== */
     .game-list {
       list-style: none;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
-      margin: 24px 0;
+      gap: 16px;
+      margin: 28px 0;
     }
 
-    /* 入场弹窗+粒子特效 */
-    #particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:997;pointer-events:none;opacity:1;transition:opacity 0.8s ease}
-    #particles.fade-out{opacity:0}
-
-    /* 弹窗遮罩 淡入淡出 */
-    .modal-mask{
-      position:fixed;top:0;left:0;width:100%;height:100%;
-      background:rgba(0,0,0,0.45);z-index:998;
-      display:flex;align-items:center;justify-content:center;
-      opacity:0;pointer-events:none;
-      transition:opacity 0.6s ease;
-    }
-    .modal-mask.show{
-      opacity:1;
-      pointer-events:auto;
-    }
-    .modal-mask.hide{
-      opacity:0;
-      pointer-events:none;
+    .game-list li a {
+      display: block;
+      padding: 24px 16px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      color: #fff;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      perspective: 800px;
     }
 
-    /* 弹窗容器 弹出/收起缩放动画 */
-    .modal-box{
-      padding:40px 50px;
-      background:linear-gradient(120deg,#4b3d8f,#2d4b94);
-      border-radius:18px;
-      box-shadow:0 0 30px rgba(130,110,255,0.5),0 0 60px rgba(80,140,255,0.3);
-      border:1px solid rgba(255,255,255,0.2);
-      text-align:center;
-      transform:scale(0.85);
-      transition:transform 0.6s cubic-bezier(0.25,0.8,0.25,1);
-      max-width:92%;
-    }
-    .modal-mask.show .modal-box{
-      transform:scale(1);
-    }
-    .modal-mask.hide .modal-box{
-      transform:scale(0.85);
+    .game-list li a::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255,255,255,0.3);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.4s ease-out, height 0.4s ease-out;
     }
 
-    .modal-text{
-      font-size:26px;color:#fff;letter-spacing:2px;margin-bottom:20px;
-      text-shadow:0 0 10px rgba(200,210,255,0.6);
-      opacity:0;transform:translateY(10px);
-      transition:all 0.7s ease 0.3s;
+    .game-list li a:active::before {
+      width: 300px;
+      height: 300px;
     }
-    .modal-tips{
-      font-size:15px;color:#d0d8ff;line-height:1.7;margin-bottom:30px;
-      opacity:0;transform:translateY(10px);
-      transition:all 0.7s ease 0.5s;
-      text-align:left;
+
+    .game-list li a:hover {
+      transform: translateY(-6px) translateZ(10px);
     }
+
+    .game-list li a:active {
+      transform: translateY(-2px) scale(0.97);
+    }
+
+    .game-list li:nth-child(1) a {
+      background: linear-gradient(135deg, #6366f1, #818cf8);
+    }
+
+    .game-list li:nth-child(1) a:hover {
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      box-shadow: 0 10px 24px rgba(99, 102, 241, 0.35);
+    }
+
+    .game-list li:nth-child(2) a {
+      background: linear-gradient(135deg, #10b981, #34d399);
+    }
+
+    .game-list li:nth-child(2) a:hover {
+      background: linear-gradient(135deg, #059669, #10b981);
+      box-shadow: 0 10px 24px rgba(16, 185, 129, 0.35);
+    }
+
+    .game-list li:nth-child(3) a {
+      background: linear-gradient(135deg, #ef4444, #f87171);
+    }
+
+    .game-list li:nth-child(3) a:hover {
+      background: linear-gradient(135deg, #dc2626, #ef4444);
+      box-shadow: 0 10px 24px rgba(239, 68, 68, 0.35);
+    }
+
+    .game-list li:nth-child(4) a {
+      background: linear-gradient(135deg, #ec4899, #f472b6);
+    }
+
+    .game-list li:nth-child(4) a:hover {
+      background: linear-gradient(135deg, #db2777, #ec4899);
+      box-shadow: 0 10px 24px rgba(236, 72, 153, 0.35);
+    }
+
+    /* ========== 欢迎弹窗 ========== */
+    .modal-mask {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.55);
+      z-index: 998;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    .modal-mask.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-mask.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .modal-box {
+      padding: 44px 32px;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
+        linear-gradient(120deg, #6366f1, #8b5cf6, #ec4899);
+      background-size: 200% 200%;
+      animation: modalGradient 6s ease infinite;
+      border-radius: var(--radius-lg);
+      box-shadow:
+        0 0 40px rgba(99, 102, 241, 0.45),
+        0 0 80px rgba(236, 72, 153, 0.25);
+      border: 1px solid rgba(255,255,255,0.25);
+      text-align: center;
+      transform: scale(0.85);
+      transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+      max-width: 92%;
+    }
+
+    @keyframes modalGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .modal-mask.show .modal-box {
+      transform: scale(1);
+    }
+
+    .modal-mask.hide .modal-box {
+      transform: scale(0.85);
+    }
+
+    .modal-text {
+      font-size: clamp(22px, 5vw, 28px);
+      color: #fff;
+      letter-spacing: 2px;
+      margin-bottom: 22px;
+      text-shadow: 0 0 12px rgba(200,210,255,0.65);
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.7s ease 0.3s;
+    }
+
+    .modal-tips {
+      font-size: 14px;
+      color: #e0e7ff;
+      line-height: 1.8;
+      margin-bottom: 32px;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.7s ease 0.5s;
+      text-align: left;
+    }
+
     .modal-mask.show .modal-text,
-    .modal-mask.show .modal-tips{
-      opacity:1;transform:translateY(0);
+    .modal-mask.show .modal-tips {
+      opacity: 1;
+      transform: translateY(0);
     }
 
-    .confirm-btn{
-      padding:11px 40px;font-size:17px;border:none;border-radius:30px;
-      background:rgba(255,255,255,0.25);color:#fff;cursor:pointer;
-      transition:all 0.3s ease;border:1px solid rgba(255,255,255,0.4);margin:0 auto;
-      opacity:0;transform:translateY(10px);
-      transition:all 0.7s ease 0.7s;
+    .confirm-btn {
+      padding: 12px 44px;
+      font-size: 17px;
+      border: none;
+      border-radius: var(--radius-full);
+      background: rgba(255,255,255,0.28);
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255,255,255,0.45);
+      margin: 0 auto;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.7s ease 0.7s;
     }
-    .modal-mask.show .confirm-btn{
-      opacity:1;transform:translateY(0);
+
+    .modal-mask.show .confirm-btn {
+      opacity: 1;
+      transform: translateY(0);
     }
-    .confirm-btn:hover{background:rgba(255,255,255,0.4);box-shadow:0 0 15px rgba(150,180,255,0.5)}
+
+    .confirm-btn:hover {
+      background: rgba(255,255,255,0.42);
+      box-shadow: 0 0 18px rgba(150,180,255,0.55);
+    }
+
+    .confirm-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* ========== 返回顶部 ========== */
+    #backTopBtn {
+      position: fixed;
+      right: 20px;
+      bottom: 80px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--pink));
+      border: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: 0.3s all ease;
+      z-index: 998;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    #backTopBtn span {
+      width: 0;
+      height: 0;
+      border-left: 11px solid transparent;
+      border-right: 11px solid transparent;
+      border-bottom: 18px solid #fff;
+    }
+
+    #backTopBtn:hover {
+      background: linear-gradient(135deg, var(--primary-deep), var(--pink-deep));
+      transform: scale(1.15);
+    }
+
+    #backTopBtn:active {
+      transform: scale(0.95);
+    }
+
+    .nav-link {
+      display: inline-block;
+      margin: 8px 6px;
+    }
+
+    /* ========== 访问统计 ========== */
+    .visit-box {
+      text-align: center;
+      padding: 20px;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, #e0e7ff, #fce7f3);
+      max-width: 520px;
+      margin: 24px auto;
+      box-shadow: var(--shadow-sm);
+      font-size: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .visit-box::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(236, 72, 153, 0.08));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .visit-box:hover::before {
+      opacity: 1;
+    }
+
+    body.dark .visit-box {
+      background: linear-gradient(135deg, #3b3775, #4a3f6b);
+    }
+
+    .visit-box strong {
+      font-size: 20px;
+      color: var(--primary-text);
+      margin-left: 6px;
+      position: relative;
+    }
+
+    /* ========== 深色模式按钮 ========== */
+    #darkBtn {
+      box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+      background: linear-gradient(135deg, var(--primary), var(--pink));
+    }
+
+    #darkBtn:active {
+      transform: scale(0.95);
+    }
+
+    /* ========== 复制网址按钮 ========== */
+    button[onclick="copySite()"] {
+      border-radius: var(--radius-md) !important;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2) !important;
+      background: linear-gradient(135deg, var(--primary), var(--pink)) !important;
+    }
+
+    button[onclick="copySite()"]:active {
+      transform: scale(0.98);
+    }
+
+    /* ========== 手机端适配 ========== */
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 16px;
+      }
+
+      .section {
+        padding: 24px 20px;
+      }
+
+      .time-box {
+        gap: 12px;
+      }
+
+      .time-item {
+        width: 64px;
+        padding: 12px 0;
+      }
+
+      .time-num {
+        font-size: 28px;
+      }
+
+      .game-list {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .modal-box {
+        padding: 32px 20px;
+      }
+
+      #backTopBtn {
+        right: 16px;
+        bottom: 72px;
+        width: 48px;
+        height: 48px;
+      }
+    }
 
     @media (max-width: 480px) {
-      .modal-box{padding:30px 20px;}
-      .modal-text{font-size:20px;}
-    }
+      header {
+        padding: 16px 14px;
+      }
 
-    /* 返回顶部按钮（滚动显隐） */
-    #backTopBtn {
-      position:fixed;right:24px;bottom:80px;width:50px;height:50px;border-radius:50%;
-      background:#165DFF;border:none;opacity:0;visibility:hidden;
-      transition:0.3s all ease;z-index:998;box-shadow:0 4px 12px rgba(22,93,255,0.3);
-      display:flex;align-items:center;justify-content:center;cursor:pointer;
-    }
-    #backTopBtn span{
-      width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:16px solid #fff;
-    }
-    #backTopBtn:hover{background:#0E4BDB; transform:scale(1.08);}
+      nav a {
+        margin: 0 4px;
+        font-size: 14px;
+        padding: 8px 12px;
+      }
 
-    /* 链接按钮统一美化 */
-    .nav-link{
-      display:inline-block;
-      margin:6px 4px;
-    }
+      .section {
+        padding: 20px 16px;
+      }
 
-    /* 新增：访问量展示模块样式 */
-    .visit-box{
-      text-align:center;
-      padding:16px;
-      border-radius:16px;
-      background:#f0f6ff;
-      max-width:500px;
-      margin:20px auto;
-    }
-    body.dark .visit-box{
-      background:#272b3b;
+      .exam-countdown {
+        padding: 24px 16px;
+      }
+
+      .time-box {
+        gap: 10px;
+      }
+
+      .time-item {
+        width: 56px;
+        padding: 10px 0;
+      }
+
+      .time-num {
+        font-size: 24px;
+      }
+
+      .game-list {
+        grid-template-columns: 1fr;
+      }
+
+      #darkBtn {
+        top: 16px;
+        right: 16px;
+        padding: 10px 14px;
+        font-size: 14px;
+      }
+
+      #backTopBtn {
+        right: 12px;
+        bottom: 64px;
+        width: 44px;
+        height: 44px;
+      }
     }
   </style>
 </head>
 
 <body>
-<!-- 深色模式按钮 -->
-<button onclick="toggleDark()" style="position:fixed;top:20px;right:20px;padding:10px 16px;background:#3498db;color:white;border:none;border-radius:50px;cursor:pointer;font-weight:bold;z-index:999;" id="darkBtn">🌙 深色模式</button>
+  <div id="heartContainer"></div>
+  <div id="starTrailContainer"></div>
 
-<header>
-  <div class="title">福州第三十六中2024级八班班级网站</div>
-  <nav>
-    <a href="#home">首页</a>
-    <a href="#album">班级相册</a>
-    <a href="#files">文件资料</a>
-  </nav>
-</header>
+  <button onclick="toggleDark()" style="position:fixed;top:24px;right:24px;padding:11px 18px;background:linear-gradient(135deg,#6366f1,#ec4899);color:white;border:none;border-radius:var(--radius-full);cursor:pointer;font-weight:bold;z-index:999;" id="darkBtn">🌙 深色模式</button>
 
-<div class="container">
-  <!-- 首页介绍 -->
-  <div class="section" id="home">
-    <h2>班级介绍</h2>
-    <p>欢迎来到福州第三十六中学2024级8班班级网站，这里记录我们的学习、活动与成长瞬间。</p>
-  </div>
+  <header>
+    <div class="title">福州第三十六中2024级八班班级网站</div>
+    <nav>
+      <a href="#home">首页</a>
+      <a href="#album">班级相册</a>
+      <a href="#files">文件资料</a>
+    </nav>
+  </header>
 
-  <!-- 访问统计模块【新增功能】 -->
-  <div class="visit-box">
-    <span>👀 网站访问总次数：<strong id="visitCount">0</strong></span>
-  </div>
-
-  <!-- 开学倒计时 -->
-  <div class="exam-countdown">
-    <div class="exam-title">开学倒计时</div>
-    <div class="summer-text" id="summerTip" style="display:none;">☀️ 暑假快乐！</div>
-    <div class="time-box" id="timeBox">
-      <div class="time-item"><div class="time-num" id="day">0</div><div class="time-text">天</div></div>
-      <div class="time-item"><div class="time-num" id="hour">0</div><div class="time-text">时</div></div>
-      <div class="time-item"><div class="time-num" id="min">0</div><div class="time-text">分</div></div>
-      <div class="time-item"><div class="time-num" id="sec">0</div><div class="time-text">秒</div></div>
+  <div class="container">
+    <div class="section" id="home">
+      <h2>班级介绍</h2>
+      <p style="font-size:16px;">欢迎来到福州第三十六中学2024级8班班级网站，这里记录我们的学习、活动与成长瞬间。</p>
     </div>
-    <div class="slogan">全力以赴，未来可期 ✨</div>
-  </div>
 
-  <!-- 交互版名言卡片 -->
-  <div onclick="showNewQuote()"
-  style="cursor: pointer;
-  max-width: 600px;
-  margin: 30px auto;
-  padding: 30px;
-  border-radius: 20px;
-  background: #f8f9ff;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  text-align: center;">
-    <div id="quote"
-    style="font-size: 26px;
-    color: #2d7dd2;
-    font-weight: 600;
-    font-family: 'Microsoft YaHei', sans-serif;
-    transition: opacity 0.3s ease;
-    line-height: 1.6;">
-      点击这里刷新名言
+    <div class="visit-box">
+      <span>👀 网站访问总次数：<strong id="visitCount">0</strong></span>
     </div>
-    <div style="margin-top: 20px;
-    font-size: 16px;
-    color: #666;
-    font-family: 'Microsoft YaHei', sans-serif;">
-      ✨ 点击换一句
+
+    <div class="exam-countdown">
+      <div class="exam-title">开学倒计时</div>
+      <div class="summer-text" id="summerTip" style="display:none;">☀️ 暑假快乐！</div>
+      <div class="time-box" id="timeBox">
+        <div class="time-item"><div class="time-num" id="day">0</div><div class="time-text">天</div></div>
+        <div class="time-item"><div class="time-num" id="hour">0</div><div class="time-text">时</div></div>
+        <div class="time-item"><div class="time-num" id="min">0</div><div class="time-text">分</div></div>
+        <div class="time-item"><div class="time-num" id="sec">0</div><div class="time-text">秒</div></div>
+      </div>
+      <div class="slogan">全力以赴，未来可期 ✨</div>
     </div>
-  </div>
 
-  <!-- 班级相册（删除功能按钮） -->
-  <div class="section" id="album">
-    <h2>班级相册</h2>
-    <p>存放班级各类活动照片视频，记录大家成长点滴。</p>
-    <br>
-    <a href="album.html" class="nav-link" style="background:#4285F4; color:#fff; padding:10px 22px; border-radius:10px; text-decoration:none; font-weight:bold;" onmouseover="this.style.backgroundColor='#3367D6'" onmouseout="this.style.backgroundColor='#4285F4'">📸 查看照片入口</a>
-    <a href="vedio.html" class="nav-link" style="background:#4285F4; color:#fff; padding:10px 22px; border-radius:10px; text-decoration:none; font-weight:bold;" onmouseover="this.style.backgroundColor='#3367D6'" onmouseout="this.style.backgroundColor='#4285F4'">🎬 查看视频入口</a>
-  </div>
+    <div onclick="showNewQuote()">
+      <div id="quote">点击这里刷新名言</div>
+      <div style="margin-top: 22px; font-size: 16px; color: var(--text-secondary); font-family: 'Microsoft YaHei', sans-serif;">✨ 点击换一句励志语录</div>
+    </div>
 
-  <!-- 一键复制班级网址 -->
-  <button onclick="copySite()"
-  style="width:100%; padding:14px; background:#165DFF; color:white; border:none; border-radius:14px; font-size:16px; cursor:pointer; margin:10px 0;box-shadow:0 3px 10px rgba(22,93,255,0.15);">
-    🔗 一键复制班级网站网址
-  </button>
+    <div class="section" id="album">
+      <h2>班级相册</h2>
+      <p style="font-size:16px;">存放班级各类活动照片视频，记录大家成长点滴。</p>
+      <br>
+      <a href="album.html" class="nav-link" style="background:linear-gradient(135deg,#6366f1,#818cf8); color:#fff; padding:12px 24px; border-radius:var(--radius-md); text-decoration:none; font-weight:bold;" onmouseover="this.style.background='linear-gradient(135deg,#4f46e5,#6366f1)'" onmouseout="this.style.background='linear-gradient(135deg,#6366f1,#818cf8)'">📸 查看照片入口</a>
+      <a href="vedio.html" class="nav-link" style="background:linear-gradient(135deg,#ec4899,#f472b6); color:#fff; padding:12px 24px; border-radius:var(--radius-md); text-decoration:none; font-weight:bold;" onmouseover="this.style.background='linear-gradient(135deg,#db2777,#ec4899)'" onmouseout="this.style.background='linear-gradient(135deg,#ec4899,#f472b6)'">🎬 查看视频入口</a>
+    </div>
 
-  <!-- 游戏列表 -->
-  <ul class="game-list">
-    <li style="margin: 0;">
-      <a href="222.html" target="_blank" style="display: block; padding: 22px 16px; border-radius: 12px;
-      background: linear-gradient(135deg,#165DFF,#468CFF); border: none;
-      text-decoration: none; color: #fff; font-size: 16px; font-weight: bold;
-      transition: all 0.3s ease; box-shadow: 0 5px 12px rgba(22,93,255,0.2); text-align:center;">
-        🎮 五子棋
-      </a>
-    </li>
-    <li style="margin: 0;">
-      <a href="snake.html" target="_blank" style="display: block; padding: 22px 16px; border-radius: 12px;
-      background: linear-gradient(135deg,#00C853,#69F0AE); border: none;
-      text-decoration: none; color: #fff; font-size: 16px; font-weight: bold;
-      transition: all 0.3s ease; box-shadow: 0 5px 12px rgba(0,200,83,0.2); text-align:center;">
-        🐍 贪吃蛇
-      </a>
-    </li>
-    <li style="margin: 0;">
-      <a href="saolei.html" target="_blank" style="display: block; padding: 22px 16px; border-radius: 12px;
-      background: linear-gradient(135deg,#FF5722,#FFAB73); border: none;
-      text-decoration: none; color: #fff; font-size: 16px; font-weight: bold;
-      transition: all 0.3s ease; box-shadow: 0 5px 12px rgba(255,87,34,0.2); text-align:center;">
-        💣 扫雷
-      </a>
-    </li>
-    <li style="margin: 0;">
-      <a href="fangkuai.html" target="_blank" style="display: block; padding: 22px 16px; border-radius: 12px;
-      background: linear-gradient(135deg,#7B1FA2,#CE93D8); border: none;
-      text-decoration: none; color: #fff; font-size: 16px; font-weight: bold;
-      transition: all 0.3s ease; box-shadow: 0 5px 12px rgba(123,31,162,0.2); text-align:center;">
-        🧩 俄罗斯方块
-      </a>
-    </li>
-  </ul>
+    <button onclick="copySite()">🔗 一键复制班级网站网址</button>
 
-  <!-- 文件资料 -->
-  <div class="section" id="files" style="margin: 30px 0;">
-    <h2 style="font-size: 22px; font-weight: bold; color: #165DFF; margin-bottom: 16px;">📁 文件资料</h2>
-    <ul class="file-list" style="list-style: none; padding: 0; margin: 0; display: grid; gap: 12px;">
+    <ul class="game-list">
       <li style="margin: 0;">
-        <a href="notice.html" target="_blank" style="display: block; padding: 16px 20px; border-radius: 14px;
-        background: rgba(255,255,255,0.85); border: 1px solid rgba(22,93,255,0.2);
-        text-decoration: none; color: #1E293B; font-size: 16px; font-weight: 500;
-        transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(22,93,255,0.1);">
-          📢 班级通知
-        </a>
+        <a href="222.html" target="_blank">🎮 五子棋</a>
       </li>
       <li style="margin: 0;">
-        <a href="kcb.jpg" target="_blank" style="display: block; padding: 16px 20px; border-radius: 14px;
-        background: rgba(255,255,255,0.85); border: 1px solid rgba(22,93,255,0.2);
-        text-decoration: none; color: #1E293B; font-size: 16px; font-weight: 500;
-        transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(22,93,255,0.1);">
-          📅 课程表图片
-        </a>
+        <a href="snake.html" target="_blank">🐍 贪吃蛇</a>
       </li>
       <li style="margin: 0;">
-        <a href="https://docs.qq.com/sheet/DQmVta2ZoVHNoQ0V3" target="_blank" style="display: block; padding: 16px 20px; border-radius: 14px;
-        background: rgba(22,93,255,0.9); border: 1px solid #165DFF;
-        text-decoration: none; color: #ffffff; font-size: 16px; font-weight: bold;
-        transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(22,93,255,0.2);">
-          📊 德育分表格
-        </a>
+        <a href="saolei.html" target="_blank">💣 扫雷</a>
+      </li>
+      <li style="margin: 0;">
+        <a href="fangkuai.html" target="_blank">🧩 俄罗斯方块</a>
       </li>
     </ul>
+
+    <div class="section" id="files" style="margin: 36px 0;">
+      <h2>📁 文件资料</h2>
+      <ul class="file-list">
+        <li style="margin: 0;">
+          <a href="notice.html" target="_blank">📢 班级通知</a>
+        </li>
+        <li style="margin: 0;">
+          <a href="kcb.jpg" target="_blank">📅 课程表图片</a>
+        </li>
+        <li style="margin: 0;">
+          <a href="https://docs.qq.com/sheet/DQmVta2ZoVHNoQ0V3" target="_blank">📊 德育分表格</a>
+        </li>
+      </ul>
+    </div>
   </div>
-</div>
 
-<!-- 返回顶部按钮 -->
-<button id="backTopBtn">
-  <span></span>
-</button>
+  <button id="backTopBtn">
+    <span></span>
+  </button>
 
-<footer>
-  福州第三十六中学2024级8班 © 2026
-</footer>
+  <footer>
+    福州第三十六中学2024级8班 © 2026
+  </footer>
 
-<!-- 入场弹窗+粒子特效 -->
-<canvas id="particles"></canvas>
-<div class="modal-mask" id="welcomeModal">
-  <div class="modal-box">
-    <p class="modal-text">欢迎进入 2024级8班班级网站</p>
-    <p class="modal-tips">💡 使用小提示：
+  <canvas id="particles"></canvas>
+
+  <div class="modal-mask" id="welcomeModal">
+    <div class="modal-box">
+      <p class="modal-text">欢迎进入 2024级8班班级网站</p>
+      <p class="modal-tips">💡 使用小提示：
 <br>1. 相册页面功能一览：双指缩放、涂鸦标注、自由裁剪、图片本地保存、原图直接保存，支持深色模式同步
 <br>2. 相册、视频页面图片素材较多，打开需要加载几秒，请耐心等待
 <br>3. 首次进入网站会加载全部资源，可能轻微卡顿，第二次浏览会流畅很多
 <br>4. 右上角可切换深色/浅色模式，夜间浏览更护眼
 <br>5. 中间名言卡片点击可以随机切换励志语录</p>
-    <button class="confirm-btn" id="closeBtn">开始浏览</button>
+      <button class="confirm-btn" id="closeBtn">开始浏览</button>
+    </div>
   </div>
-</div>
 
-<script>
-// 页面加载自动同步深浅色记忆
-(function(){
-  const saveTheme = localStorage.getItem("siteTheme");
-  const darkBtn = document.getElementById("darkBtn");
-  if(saveTheme === "dark"){
-    document.body.classList.add("dark");
-    darkBtn.innerText = "浅色模式";
-  }
-})();
+  <script>
+    (function(){
+      const saveTheme = localStorage.getItem("siteTheme");
+      const darkBtn = document.getElementById("darkBtn");
+      if(saveTheme === "dark"){
+        document.body.classList.add("dark");
+        darkBtn.innerText = "浅色模式";
+      }
+    })();
 
-// ============ 新增：本地存储访问计数 ============
-function setVisitCounter(){
-  let count = Number(localStorage.getItem("visitTotal")) || 0;
-  count++;
-  localStorage.setItem("visitTotal",count);
-  document.getElementById("visitCount").innerText = count;
-}
-setVisitCounter();
-
-// 入场弹窗&粒子
-const modalMask=document.getElementById('welcomeModal'),
-      closeBtn=document.getElementById('closeBtn'),
-      canvas=document.getElementById('particles');
-let animationId=null;
-
-window.addEventListener('load',()=>{
-  setTimeout(()=>modalMask.classList.add('show'),100);
-})
-
-function closeModal(){
-  modalMask.classList.remove('show');
-  modalMask.classList.add('hide');
-  canvas.classList.add('fade-out');
-  setTimeout(()=>{
-    if(animationId)cancelAnimationFrame(animationId);
-    const ctx=canvas.getContext('2d');
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    canvas.style.display='none';
-  },800);
-}
-closeBtn.addEventListener('click',closeModal);
-modalMask.addEventListener('click',e=>{if(e.target===modalMask)closeModal()});
-setTimeout(closeModal,35000);
-
-// 粒子动画
-const ctx=canvas.getContext('2d');
-let w,h,centerX,centerY,particles=[];
-const particleNum=60;
-function resizeCanvas(){
-  w=canvas.width=window.innerWidth;
-  h=canvas.height=window.innerHeight;
-  centerX=w/2;
-  centerY=h/2;
-}
-resizeCanvas();
-window.addEventListener('resize',resizeCanvas);
-class Particle{
-  constructor(){
-    this.x=centerX;
-    this.y=centerY;
-    this.r=Math.random()*2+1;
-    this.color=`rgba(${120+Math.random()*80},${150+Math.random()*60},255,${Math.random()*0.5+0.2})`;
-    let angle=Math.random()*Math.PI*2,speed=Math.random()*1.6+0.4;
-    this.speedX=Math.cos(angle)*speed;
-    this.speedY=Math.sin(angle)*speed;
-  }
-  draw(){
-    ctx.beginPath();
-    ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
-    ctx.fillStyle=this.color;
-    ctx.fill()
-  }
-  move(){
-    this.x+=this.speedX;
-    this.y+=this.speedY;
-    if(this.x<0||this.x>w||this.y<0||this.y>h){
-      this.x=centerX;
-      this.y=centerY
+    function setVisitCounter(){
+      let count = Number(localStorage.getItem("visitTotal")) || 0;
+      count++;
+      localStorage.setItem("visitTotal", count);
+      document.getElementById("visitCount").innerText = count;
     }
-    this.draw()
-  }
-}
-function initParticles(){
-  particles=[];
-  for(let i=0;i<particleNum;i++)particles.push(new Particle())
-}
-initParticles();
-function animate(){
-  ctx.clearRect(0,0,w,h);
-  particles.forEach(item=>item.move());
-  animationId=requestAnimationFrame(animate)
-}
-animate();
+    setVisitCounter();
 
-// 回到顶部按钮
-const backTopBtn = document.getElementById("backTopBtn");
-backTopBtn.onmouseover = ()=> backTopBtn.style.background="#0E4BDB";
-backTopBtn.onmouseout = ()=> backTopBtn.style.background="#165DFF";
-window.addEventListener("scroll",()=>{
-  if(window.scrollY > 300){
-    backTopBtn.style.opacity = "1";
-    backTopBtn.style.visibility = "visible";
-  }else{
-    backTopBtn.style.opacity = "0";
-    backTopBtn.style.visibility = "hidden";
-  }
-})
-backTopBtn.onclick = ()=> window.scrollTo({top:0,behavior:"smooth"});
+    const modalMask = document.getElementById('welcomeModal'),
+          closeBtn = document.getElementById('closeBtn'),
+          canvas = document.getElementById('particles');
+    let animationId = null;
 
-// 开学倒计时
-const startSummerEnd = new Date("2026/07/03 23:59:59").getTime();
-const schoolDay = new Date("2026/09/01 00:00:00").getTime();
-const summerTipDom = document.getElementById("summerTip");
-const timeBoxDom = document.getElementById("timeBox");
+    window.addEventListener('load', () => {
+      setTimeout(() => modalMask.classList.add('show'), 100);
+    });
 
-function updateCountdown(){
-  const now = new Date().getTime();
-  if(now <= startSummerEnd){
-    summerTipDom.style.display = "block";
-    timeBoxDom.style.display = "none";
-    return;
-  }else{
-    summerTipDom.style.display = "none";
-    timeBoxDom.style.display = "flex";
-  }
-  const diff = schoolDay - now;
-  const d = Math.floor(diff / (1000*60*60*24));
-  const h = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
-  const m = Math.floor((diff % (1000*60*60)) / (1000*60));
-  const s = Math.floor((diff % (1000*60)) / 1000);
+    function closeModal(){
+      modalMask.classList.remove('show');
+      modalMask.classList.add('hide');
+      canvas.classList.add('fade-out');
+      setTimeout(() => {
+        if(animationId) cancelAnimationFrame(animationId);
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        canvas.style.display = 'none';
+      }, 800);
+    }
 
-  document.getElementById("day").innerText = d < 0 ? 0 : d;
-  document.getElementById("hour").innerText = h < 0 ? 0 : h;
-  document.getElementById("min").innerText = m < 0 ? 0 : m;
-  document.getElementById("sec").innerText = s < 0 ? 0 : s;
-}
-updateCountdown();
-setInterval(updateCountdown, 1000);
+    closeBtn.addEventListener('click', closeModal);
+    modalMask.addEventListener('click', e => { if(e.target === modalMask) closeModal(); });
+    setTimeout(closeModal, 35000);
 
-// 名言轮换
-const quotes = [
-"以梦为马，不负韶华",
-"乾坤未定，你我皆是黑马",
-"星光不问赶路人，时光不负有心人",
-"愿你笔锋所至，梦想开花",
-"少年应有鸿鹄志，敢乘长风破万里浪",
-"努力的意义，就是以后全是喜欢的人和事",
-"今朝秣马坚如铁，他日功成朝天阙",
-"我是帅哥",
-"聚是一团火，散是满天星",
-"我们在一起，就很了不起",
-"始于初秋，终于盛夏，一路同行",
-"同乘一班，共赴山海",
-"时光不老，我们不散",
-"最好的我们，最好的班级",
-"三人行，必有我师焉",
-"锲而不舍，金石可镂",
-"黑发不知勤学早，白首方悔读书迟",
-"欲穷千里目，更上一层楼",
-"物理老师好帅"
-];
-function showNewQuote() {
-    const quoteText = document.getElementById("quote");
-    quoteText.style.opacity = "0";
-    setTimeout(() => {
+    const ctx = canvas.getContext('2d');
+    let w, h, centerX, centerY, particles = [];
+    const particleNum = 80;
+
+    function resizeCanvas(){
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+      centerX = w / 2;
+      centerY = h / 2;
+    }
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    class Particle {
+      constructor(){
+        this.x = centerX;
+        this.y = centerY;
+        this.r = Math.random() * 2.5 + 1;
+        this.color = `rgba(${99 + Math.random() * 60}, ${102 + Math.random() * 80}, 241, ${Math.random() * 0.5 + 0.2})`;
+        let angle = Math.random() * Math.PI * 2, speed = Math.random() * 1.8 + 0.5;
+        this.speedX = Math.cos(angle) * speed;
+        this.speedY = Math.sin(angle) * speed;
+      }
+
+      draw(){
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      }
+
+      move(){
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if(this.x < 0 || this.x > w || this.y < 0 || this.y > h){
+          this.x = centerX;
+          this.y = centerY;
+        }
+        this.draw();
+      }
+    }
+
+    function initParticles(){
+      particles = [];
+      for(let i = 0; i < particleNum; i++) particles.push(new Particle());
+    }
+
+    initParticles();
+
+    function animate(){
+      ctx.clearRect(0, 0, w, h);
+      particles.forEach(item => item.move());
+      animationId = requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    const backTopBtn = document.getElementById("backTopBtn");
+    backTopBtn.onmouseover = () => backTopBtn.style.background = "linear-gradient(135deg, #4f46e5, #db2777)";
+    backTopBtn.onmouseout = () => backTopBtn.style.background = "linear-gradient(135deg, #6366f1, #ec4899)";
+
+    window.addEventListener("scroll", () => {
+      if(window.scrollY > 300){
+        backTopBtn.style.opacity = "1";
+        backTopBtn.style.visibility = "visible";
+      }else{
+        backTopBtn.style.opacity = "0";
+        backTopBtn.style.visibility = "hidden";
+      }
+    });
+
+    backTopBtn.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
+    const startSummerEnd = new Date("2026/07/03 23:59:59").getTime();
+    const schoolDay = new Date("2026/09/01 00:00:00").getTime();
+    const summerTipDom = document.getElementById("summerTip");
+    const timeBoxDom = document.getElementById("timeBox");
+
+    function updateCountdown(){
+      const now = new Date().getTime();
+      if(now <= startSummerEnd){
+        summerTipDom.style.display = "block";
+        timeBoxDom.style.display = "none";
+        return;
+      }else{
+        summerTipDom.style.display = "none";
+        timeBoxDom.style.display = "flex";
+      }
+
+      const diff = schoolDay - now;
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+      document.getElementById("day").innerText = d < 0 ? 0 : d;
+      document.getElementById("hour").innerText = h < 0 ? 0 : h;
+      document.getElementById("min").innerText = m < 0 ? 0 : m;
+      document.getElementById("sec").innerText = s < 0 ? 0 : s;
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    const quotes = [
+      "以梦为马，不负韶华",
+      "乾坤未定，你我皆是黑马",
+      "星光不问赶路人，时光不负有心人",
+      "愿你笔锋所至，梦想开花",
+      "少年应有鸿鹄志，敢乘长风破万里浪",
+      "努力的意义，就是以后全是喜欢人和事",
+      "今朝秣马坚如铁，他日功成朝天阙",
+      "我是帅哥",
+      "聚是一团火，散是满天星",
+      "我们在一起，就很了不起",
+      "始于初秋，终于盛夏，一路同行",
+      "同乘一班，共输入山海",
+      "时光不老，我们不散",
+      "最好的我们，最好的班级",
+      "三人行，必有我师焉",
+      "锲而不舍，金石可镂",
+      "黑发不知勤学早，白首方悔读书迟",
+      "欲穷千里目，更上一层楼",
+      "物理老师好帅"
+    ];
+
+    function showNewQuote() {
+      const quoteText = document.getElementById("quote");
+      quoteText.style.opacity = "0";
+      setTimeout(() => {
         const randomIndex = Math.floor(Math.random() * quotes.length);
         quoteText.innerText = quotes[randomIndex];
         quoteText.style.opacity = "1";
-    }, 200);
-}
-window.onload = showNewQuote;
+      }, 200);
+    }
 
-// 深色模式【本地存储】
-function toggleDark() {
-  const body = document.body;
-  const btn = document.getElementById("darkBtn");
-  body.classList.toggle("dark");
-  let nowTheme;
-  if (body.classList.contains("dark")) {
-    btn.innerText = "浅色模式";
-    nowTheme = "dark";
-  } else {
-    btn.innerText = "深色模式";
-    nowTheme = "light";
-  }
-  localStorage.setItem("siteTheme", nowTheme);
-}
+    window.onload = showNewQuote;
 
-// 复制网址
-function copySite(){
-  const url = window.location.href;
-  if(navigator.clipboard && window.isSecureContext){
-    navigator.clipboard.writeText(url).then(()=>{
+    function toggleDark() {
+      const body = document.body;
+      const btn = document.getElementById("darkBtn");
+      body.classList.toggle("dark");
+      let nowTheme;
+
+      if(body.classList.contains("dark")){
+        btn.innerText = "浅色模式";
+        nowTheme = "dark";
+      }else{
+        btn.innerText = "深色模式";
+        nowTheme = "light";
+      }
+
+      localStorage.setItem("siteTheme", nowTheme);
+    }
+
+    function copySite(){
+      const url = window.location.href;
+      if(navigator.clipboard && window.isSecureContext){
+        navigator.clipboard.writeText(url).then(() => {
+          alert("复制成功！");
+        }).catch(() => {
+          fallbackCopy(url);
+        });
+      }else{
+        fallbackCopy(url);
+      }
+    }
+
+    function fallbackCopy(text){
+      const input = document.createElement('input');
+      input.value = text;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
       alert("复制成功！");
-    }).catch(()=>{
-      fallbackCopy(url);
-    })
-  }else{
-    fallbackCopy(url);
-  }
-}
-function fallbackCopy(text){
-  const input = document.createElement('input');
-  input.value = text;
-  document.body.appendChild(input);
-  input.select();
-  document.execCommand('copy');
-  document.body.removeChild(input);
-  alert("复制成功！");
-}
-</script>
+    }
+
+    const heartContainer = document.getElementById("heartContainer");
+
+    function createHeart(){
+      const heart = document.createElement("div");
+      heart.className = "heart";
+      heart.innerText = ["💖", "💕", "💗", "💜", "💙", "🤍"][Math.floor(Math.random() * 6)];
+      heart.style.left = Math.random() * 100 + "vw";
+      heart.style.animationDuration = (Math.random() * 5 + 6) + "s";
+      heart.style.fontSize = (Math.random() * 10 + 16) + "px";
+      heartContainer.appendChild(heart);
+
+      setTimeout(() => heart.remove(), 12000);
+    }
+
+    setInterval(createHeart, 800);
+
+    const starTrailContainer = document.getElementById("starTrailContainer");
+    let lastStarTime = 0;
+
+    window.addEventListener("mousemove", e => {
+      const now = Date.now();
+      if(now - lastStarTime < 30) return;
+      lastStarTime = now;
+
+      const star = document.createElement("div");
+      star.className = "star-trail";
+      star.style.left = e.clientX + "px";
+      star.style.top = e.clientY + "px";
+      starTrailContainer.appendChild(star);
+
+      setTimeout(() => star.remove(), 800);
+    });
+  </script>
 </body>
 </html>
