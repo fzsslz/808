@@ -6,40 +6,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>班级专属视频页</title>
     <style>
+        :root {
+            --primary: #6366f1;
+            --primary-deep: #4f46e5;
+            --pink: #ec4899;
+            --pink-deep: #db2777;
+            --glass-light: rgba(255,255,255,0.85);
+            --glass-border: rgba(255,255,255,0.6);
+            --shadow-soft: 0 8px 24px rgba(99, 102, 241, 0.12);
+            --shadow-hover: 0 16px 36px rgba(99, 102, 241, 0.18);
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --transition-normal: 0.35s ease;
+        }
         *{
             margin:0;
             padding:0;
             box-sizing:border-box;
-            transition: background 0.3s, color 0.3s;
+            transition: background var(--transition-normal), color var(--transition-normal), transform 0.25s ease, box-shadow var(--transition-normal);
         }
         body {
-            padding: 15px;
+            padding: 20px 15px;
             font-family: "Microsoft YaHei", sans-serif;
-            background-color: #f5f5f5;
+            background:
+                radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 90% 20%, rgba(236, 72, 153, 0.08) 0%, transparent 50%),
+                linear-gradient(135deg, #fdf4ff 0%, #e0e7ff 100%);
+            min-height: 100vh;
         }
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 840px;
             margin: 0 auto;
-            background: white;
-            padding: 20px 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: var(--glass-light);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            padding: 32px 24px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-soft);
+            transform-style: preserve-3d;
+            perspective: 1000px;
         }
         h1 {
             text-align: center;
-            color: #333;
-            margin-bottom: 25px;
-            font-size: 22px;
+            color: var(--primary);
+            margin-bottom: 36px;
+            font-size: clamp(22px,5vw,28px);
+            font-weight: 700;
+            letter-spacing: 1px;
+            position: relative;
         }
-        .video-container {
+        h1::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: -10px;
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg,var(--primary),var(--pink));
+            border-radius: 3px;
+        }
+        .video-card {
             width: 100%;
             height: auto;
             aspect-ratio: 16 / 9;
-            margin-bottom: 25px;
-            border-radius: 8px;
+            margin-bottom: 28px;
+            border-radius: var(--radius-md);
             overflow: hidden;
             background: #000;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid var(--glass-border);
+            transform: translateY(0);
+        }
+        .video-card:hover {
+            transform: translateY(-6px) rotateX(1.5deg);
+            box-shadow: var(--shadow-hover);
         }
         iframe{
             width: 100%;
@@ -48,114 +91,141 @@
         }
         .back-button {
             display: block;
-            width: 120px;
-            margin: 0 auto;
-            padding: 10px 20px;
-            background-color: #409eff;
+            width: 160px;
+            margin: 20px auto 0;
+            padding: 12px 20px;
+            background: linear-gradient(135deg,var(--primary),var(--pink));
             color: white;
             text-align: center;
             text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.25);
         }
         .back-button:hover {
-            background-color: #66b1ff;
+            background: linear-gradient(135deg,var(--primary-deep),var(--pink-deep));
+            transform: translateY(-4px);
+            box-shadow: 0 10px 24px rgba(99, 102, 241, 0.35);
+        }
+        .back-button:active {
+            transform: translateY(-2px) scale(0.97);
         }
 
-        /* 深色模式全局适配 */
+        /* 深色模式全局适配（和首页完全统一） */
         body.dark {
-            background-color: #1a1a1a;
+            background:
+                radial-gradient(circle at 10% 10%, rgba(129, 140, 248, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 90% 20%, rgba(244, 114, 182, 0.12) 0%, transparent 50%),
+                linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
         }
         body.dark .container {
-            background: #2c2c2c;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            background: rgba(68, 64, 132, 0.75);
+            border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.35);
         }
         body.dark h1 {
-            color: #eeeeee;
+            color: #c7d2fe;
+        }
+        body.dark .video-card {
+            border-color: rgba(255,255,255,0.12);
         }
         body.dark .back-button {
-            background-color: #165DFF;
+            background: linear-gradient(135deg,#4f46e5,#db2777);
         }
         body.dark .back-button:hover {
-            background-color: #0E4BDB;
+            background: linear-gradient(135deg,#3b36a1,#b91c5c);
+        }
+
+        /* 移动端极致适配 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 24px 16px;
+            }
+            .video-card {
+                margin-bottom: 20px;
+            }
+            .back-button {
+                width: 140px;
+                padding: 10px 16px;
+            }
         }
     </style>
 </head>
 <body>
-<!-- 统一深色切换按钮 -->
-<button onclick="toggleDark()" style="position:fixed;top:20px;right:20px;padding:10px 16px;background:#3498db;color:white;border:none;border-radius:50px;cursor:pointer;font-weight:bold;z-index:999;" id="darkBtn">🌙 深色模式</button>
+<!-- 统一深色切换按钮（样式和首页一致） -->
+<button onclick="toggleDark()" style="position:fixed;top:20px;right:20px;padding:11px 18px;background:linear-gradient(135deg,var(--primary),var(--pink));color:white;border:none;border-radius:999px;cursor:pointer;font-weight:bold;z-index:999;box-shadow:0 4px 14px rgba(99,102,241,0.3);" id="darkBtn">🌙 深色模式</button>
 
     <div class="container">
-        <h1>班级视频</h1>
+        <h1>班级活动视频合集</h1>
 
         <!-- 第一个视频 -->
-        <div class="video-container">
+        <div class="video-card">
             <iframe src="https://player.bilibili.com/player.html?isOutside=true&aid=116578884524157&bvid=BV1t65i6QEAG&cid=38358551607&p=1" scrolling="no" frameborder="no" allowfullscreen="true"></iframe>
         </div>
 
         <!-- 第二个视频 -->
-        <div class="video-container">
+        <div class="video-card">
             <iframe src="https://player.bilibili.com/player.html?isOutside=true&aid=116578968411494&bvid=BV1HQ5i65Em2&cid=26013341921&p=1" scrolling="no" frameborder="no" allowfullscreen="true"></iframe>
         </div>
 
          <!-- 第3个视频 -->
-        <div class="video-container">
+        <div class="video-card">
         <iframe src="//player.bilibili.com/player.html?isOutside=true&aid=116583833866641&bvid=BV1zNLV63EbQ&cid=38378342415&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
         </div>
 
          <!-- 第4个视频 -->
-        <div class="video-container">
+        <div class="video-card">
           <iframe src="//player.bilibili.com/player.html?isOutside=true&aid=116583833869810&bvid=BV1BNLV63EeJ&cid=38378406279&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
         </div>
 
          <!-- 第5个视频 -->
-        <div class="video-container">
+        <div class="video-card">
            <iframe src="//player.bilibili.com/player.html?isOutside=true&aid=116583867358546&bvid=BV1pdLG67Esf&cid=38378537247&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
         </div>
 
          <!-- 第6个视频 -->
-        <div class="video-container">
+        <div class="video-card">
            <iframe src="//player.bilibili.com/player.html?isOutside=true&aid=116583934529754&bvid=BV1fsLG6BEPV&cid=38378670233&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
         </div>
 
          <!-- 第7个视频 -->
-        <div class="video-container">
+        <div class="video-card">
           <iframe src="//player.bilibili.com/player.html?isOutside=true&aid=116583884132624&bvid=BV1s9LG6UEPy&cid=38378540180&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
         </div>
 
          <!-- 第8个视频 -->
-        <div class="video-container">
+        <div class="video-card">
            <iframe src="//player.bilibili.com/player.html?isOutside=true&aid=116583968020061&bvid=BV1qtLG6iEw4&cid=38378999664&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
         </div>
 
          <!-- 第9个视频 -->
-        <div class="video-container">
+        <div class="video-card">
           <iframe src="//player.bilibili.com/player.html?isOutside=true&aid=116589655496831&bvid=BV1dALn6REj9&cid=38403115537&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
         </div>
 
      <!-- 第10个视频 -->        
-<div class="video-container">           
+<div class="video-card">           
 <iframe src="//player.bilibili.com/player.html?bvid=BV14eEi6hEQG&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>       
 </div> 
         <!-- 第11个视频 -->        
-<div class="video-container">           
+<div class="video-card">           
 <iframe src="//player.bilibili.com/player.html?bvid=BV1TeEi6hECD&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>     
 </div>
          <!-- 第12个视频 -->
-        <div class="video-container">
+        <div class="video-card">
           <iframe src="//player.bilibili.com/player.html?bvid=BV1TeEi6hEXr&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
   </div>
 
-   <a href="index.html" class="back-button">返回主页</a>
+   <a href="index.html" class="back-button">返回班级主页</a>
     </div>
 
-<!-- 返回顶部按钮 -->
-<button id="backTopBtn" style="position:fixed;right:24px;bottom:80px;width:50px;height:50px;border-radius:50%;background:#165DFF;border:none;opacity:0;visibility:hidden;transition:0.3s all ease;z-index:998;box-shadow:0 4px 12px rgba(22,93,255,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;">
-  <span style="width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:16px solid #fff;"></span>
+<!-- 返回顶部按钮（渐变配色和主题统一） -->
+<button id="backTopBtn" style="position:fixed;right:24px;bottom:80px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--pink));border:none;opacity:0;visibility:hidden;transition:0.3s all ease;z-index:998;box-shadow:0 4px 14px rgba(99,102,241,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+  <span style="width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-bottom:18px solid #fff;"></span>
 </button>
 
 <script>
-// 页面加载自动同步深浅色记忆
+// 页面加载自动同步深浅色记忆（和首页localStorage互通）
 (function(){
   const saveTheme = localStorage.getItem("siteTheme");
   const darkBtn = document.getElementById("darkBtn");
@@ -167,8 +237,8 @@
 
 // 返回顶部逻辑
 const backBtn = document.getElementById("backTopBtn");
-backBtn.onmouseover = ()=> backBtn.style.background="#0E4BDB";
-backBtn.onmouseout = ()=> backBtn.style.background="#165DFF";
+backBtn.onmouseover = ()=> backBtn.style.background="linear-gradient(135deg,var(--primary-deep),var(--pink-deep))";
+backBtn.onmouseout = ()=> backBtn.style.background="linear-gradient(135deg,var(--primary),var(--pink))";
 window.addEventListener("scroll",()=>{
   if(window.scrollY > 300){
     backBtn.style.opacity = "1";
@@ -180,7 +250,7 @@ window.addEventListener("scroll",()=>{
 })
 backBtn.onclick = ()=> window.scrollTo({top:0,behavior:"smooth"});
 
-// 深色模式切换函数（带本地存储，全站同步）
+// 深色模式切换函数（全站完全同步存储）
 function toggleDark() {
   const body = document.body;
   const btn = document.getElementById("darkBtn");
