@@ -5,72 +5,124 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>班级相册</title>
     <style>
+        :root {
+            --primary: #6366f1;
+            --primary-deep: #4f46e5;
+            --pink: #ec4899;
+            --pink-deep: #db2777;
+            --glass-light: rgba(255,255,255,0.85);
+            --glass-border: rgba(255,255,255,0.6);
+            --shadow-soft: 0 8px 24px rgba(99, 102, 241, 0.12);
+            --shadow-hover: 0 16px 36px rgba(99, 102, 241, 0.18);
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --transition-normal: 0.35s ease;
+        }
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            transition: background 0.3s, color 0.3s;
+            transition: background var(--transition-normal), color var(--transition-normal), transform 0.25s ease, box-shadow var(--transition-normal);
         }
         body {
-            padding: 20px;
-            background: #f5f7fa;
+            padding: 24px 16px;
             font-family: "Microsoft YaHei", sans-serif;
+            background:
+                radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 90% 20%, rgba(236, 72, 153, 0.08) 0%, transparent 50%),
+                linear-gradient(135deg, #fdf4ff 0%, #e0e7ff 100%);
+            min-height: 100vh;
         }
         body.dark {
-            background: #1a1a1a;
+            background:
+                radial-gradient(circle at 10% 10%, rgba(129, 140, 248, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 90% 20%, rgba(244, 114, 182, 0.12) 0%, transparent 50%),
+                linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
         }
         body.dark h1 {
-            color: #fff;
+            color: #c7d2fe;
         }
         body.dark .back-btn {
-            background: #0E4BDB;
+            background: linear-gradient(135deg,var(--primary-deep),var(--pink-deep));
+        }
+        body.dark .back-btn:hover {
+            background: linear-gradient(135deg,#3b36a1,#b91c5c);
         }
         body.dark .album img {
-            box-shadow: 0 2px 8px rgba(255,255,255,0.1);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+            border: 1px solid rgba(255,255,255,0.12);
         }
         header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 28px;
         }
         h1 {
-            font-size: 32px;
-            color: #333;
+            font-size: clamp(26px,6vw,36px);
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: 1px;
+            position: relative;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        h1::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: -10px;
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg,var(--primary),var(--pink));
+            border-radius: 4px;
         }
         .back-btn {
             display: inline-block;
-            margin: 0 auto 20px;
-            padding: 10px 20px;
-            background: #1677ff;
+            margin: 0 auto 24px;
+            padding: 12px 26px;
+            background: linear-gradient(135deg,var(--primary),var(--pink));
             color: #fff;
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             text-decoration: none;
             font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.25);
+        }
+        .back-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 24px rgba(99, 102, 241, 0.35);
+        }
+        .back-btn:active {
+            transform: translateY(-2px) scale(0.97);
         }
         .album {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 15px;
-            max-width: 1200px;
+            gap: 18px;
+            max-width: 1240px;
             margin: 0 auto;
         }
         @media (max-width: 400px) {
             .album {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 14px;
             }
         }
         .album img {
             width: 100%;
             height: 160px;
             object-fit: cover;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-soft);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             cursor: pointer;
+            border: 1px solid var(--glass-border);
+            background: #000;
         }
         .album img:hover {
-            transform: scale(1.05);
+            transform: translateY(-6px) scale(1.05);
+            box-shadow: var(--shadow-hover);
         }
-
         .modal {
             display: none;
             position: fixed;
@@ -99,7 +151,7 @@
         #bigImg {
             max-width: 92vw;
             max-height: 92vh;
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             box-shadow: 0 0 30px rgba(255,255,255,0.2);
             cursor: grab;
             touch-action: none;
@@ -120,8 +172,8 @@
             position: fixed;
             top: 20px;
             right: 30px;
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             background: rgba(255,255,255,0.2);
             color: #fff;
@@ -129,26 +181,30 @@
             font-size: 24px;
             cursor: pointer;
             z-index: 10000;
+            backdrop-filter: blur(8px);
         }
         .close-modal-btn:hover {
             background: rgba(255,255,255,0.4);
+            transform: scale(1.1);
         }
         .switch-btn {
             position: fixed;
             top: 50%;
             transform: translateY(-50%);
-            width: 48px;
-            height: 48px;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
             background: rgba(255,255,255,0.2);
             color: #fff;
             border: none;
-            font-size: 22px;
+            font-size: 24px;
             cursor: pointer;
             z-index: 10000;
+            backdrop-filter: blur(8px);
         }
         .switch-btn:hover {
             background: rgba(255,255,255,0.4);
+            transform: translateY(-50%) scale(1.1);
         }
         .prev-btn { left: 20px; }
         .next-btn { right: 20px; }
@@ -160,55 +216,63 @@
             width: 100%;
             background: rgba(0,0,0,0.7);
             display: none;
-            padding: 12px 16px;
+            padding: 14px 16px;
             z-index: 10001;
+            backdrop-filter: blur(12px);
         }
         .modal.active .edit-bar {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
         }
         .edit-bar button {
-            padding: 8px 12px;
+            padding: 9px 14px;
             border: none;
-            border-radius: 6px;
+            border-radius: var(--radius-md);
             background: #fff;
             color: #222;
             font-size: 14px;
             cursor: pointer;
+            font-weight: 500;
         }
         .edit-bar button.active {
-            background: #1677ff;
+            background: linear-gradient(135deg,var(--primary),var(--pink));
             color: white;
         }
+        .edit-bar button:disabled {
+            background:#cccccc;
+            color:#888888;
+            cursor:not-allowed;
+        }
         .color-box {
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             border: 2px solid #fff;
             cursor: pointer;
         }
         .color-box.active {
-            box-shadow: 0 0 0 2px #1677ff;
+            box-shadow: 0 0 0 3px var(--primary);
+            transform: scale(1.15);
         }
         /* 画笔滑块样式 */
         .slider-wrap{
             display:flex;
             align-items:center;
-            gap:8px;
-            background:#ffffff22;
-            padding:4px 10px;
-            border-radius:6px;
+            gap:10px;
+            background:rgba(255,255,255,0.15);
+            padding:6px 12px;
+            border-radius: var(--radius-md);
         }
         #lineSlider{
-            width:120px;
+            width:130px;
         }
         .size-label{
             color:#fff;
             font-size:13px;
-            min-width:32px;
+            min-width:36px;
         }
         /* 修复画布层级，精准贴合大图，跟随缩放拖拽 */
         #drawCanvas {
@@ -233,6 +297,7 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            backdrop-filter: blur(6px);
         }
         .crop-box.active {
             display: flex;
@@ -244,6 +309,7 @@
             max-width: 90vw;
             max-height: 70vh;
             border: 2px solid white;
+            border-radius: var(--radius-md);
             touch-action: none;
         }
         /* 裁剪选区框 */
@@ -252,18 +318,24 @@
             border:2px dashed #fff;
             box-shadow: 0 0 0 9999px rgba(0,0,0,0.45);
             pointer-events:none;
+            border-radius:4px;
         }
         .crop-actions {
-            margin-top: 15px;
+            margin-top: 18px;
             display: flex;
-            gap: 12px;
+            gap: 16px;
         }
         .crop-actions button {
-            padding: 9px 20px;
+            padding: 10px 24px;
             border: none;
-            border-radius: 6px;
+            border-radius: var(--radius-md);
             font-size: 15px;
             cursor: pointer;
+            font-weight: 500;
+        }
+        .crop-actions button:first-child {
+            background: linear-gradient(135deg,var(--primary),var(--pink));
+            color:#fff;
         }
         .save-preview {
             display: none;
@@ -275,31 +347,36 @@
             justify-content: center;
             flex-direction: column;
             padding: 20px;
+            backdrop-filter: blur(8px);
         }
         .save-preview.active {
             display: flex;
         }
         .save-tip {
             color: white;
-            margin-top: 12px;
+            margin-top: 14px;
             font-size: 15px;
         }
         #saveImg {
             max-width: 90vw;
             max-height: 75vh;
+            border-radius: var(--radius-md);
         }
         #closeSave {
-            margin-top: 15px;
-            padding: 8px 22px;
+            margin-top: 16px;
+            padding: 10px 26px;
             border: none;
-            border-radius: 6px;
+            border-radius: var(--radius-md);
             cursor: pointer;
+            background: linear-gradient(135deg,var(--primary),var(--pink));
+            color:#fff;
+            font-weight:500;
         }
     </style>
 </head>
 <body>
     <header>
-        <button onclick="toggleDark()" style="position:fixed;top:20px;right:20px;padding:10px 16px;background:#3498db;color:white;border:none;border-radius:50px;cursor:pointer;font-weight:bold;z-index:999;" id="darkBtn">🌙 深色模式</button>
+        <button onclick="toggleDark()" style="position:fixed;top:20px;right:20px;padding:11px 18px;background:linear-gradient(135deg,var(--primary),var(--pink));color:white;border:none;border-radius:999px;cursor:pointer;font-weight:bold;z-index:999;box-shadow:0 4px 14px rgba(99,102,241,0.3);backdrop-filter: blur(8px);" id="darkBtn">🌙 深色模式</button>
         <h1>班级相册</h1>
     </header>
     <div style="text-align: center;">
@@ -415,32 +492,6 @@
          <img src="ee.jpg" alt="广告位">
          <img src="ff.jpg" alt="广告位">
          <img src="gg.jpg" alt="广告位">
-         <img src="hh.jpg" alt="广告位">
-         <img src="ii.jpg" alt="广告位">
-         <img src="jj.jpg" alt="广告位">
-         <img src="kk.jpg" alt="广告位">
-         <img src="ll.jpg" alt="广告位">
-         <img src="mm.jpg" alt="广告位">
-         <img src="nn.jpg" alt="广告位">
-         <img src="oo.jpg" alt="广告位">
-         <img src="pp.jpg" alt="广告位">
-         <img src="qq.jpg" alt="广告位">
-         <img src="rr.jpg" alt="广告位">
-         <img src="ss.jpg" alt="广告位">
-         <img src="tt.jpg" alt="广告位">
-         <img src="uu.jpg" alt="广告位">
-         <img src="vv.jpg" alt="广告位">
-         <img src="ww.jpg" alt="广告位">
-         <img src="xx.jpg" alt="广告位">
-         <img src="yy.jpg" alt="广告位">
-         <img src="zz.jpg" alt="广告位">
-         <img src="aaa.jpg" alt="广告位">
-         <img src="bbb.jpg" alt="广告位">
-         <img src="ccc.jpg" alt="广告位">
-         <img src="ddd.jpg" alt="广告位">
-         <img src="eee.jpg" alt="广告位">
-         <img src="fff.jpg" alt="广告位">
-         <img src="ggg.jpg" alt="广告位">
          <img src="hhh.jpg" alt="广告位">
          <img src="iii.jpg" alt="广告位">
          <img src="jjj.jpg" alt="广告位">
@@ -504,8 +555,8 @@
         <button id="closeSave">关闭</button>
     </div>
 
-    <button id="backTopBtn" style="position:fixed;right:24px;bottom:130px;width:50px;height:50px;border-radius:50%;background:#165DFF;border:none;opacity:0;visibility:hidden;transition:0.3s all ease;z-index:998;box-shadow:0 4px 12px rgba(22,93,255,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;">
-        <span style="width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:16px solid #fff;"></span>
+    <button id="backTopBtn" style="position:fixed;right:24px;bottom:130px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--pink));border:none;opacity:0;visibility:hidden;transition:0.3s all ease;z-index:998;box-shadow:0 4px 14px rgba(99,102,241,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter: blur(8px);">
+        <span style="width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-bottom:18px solid #fff;"></span>
     </button>
 
 <script>
@@ -545,6 +596,7 @@ const cropCtx = cropCanvas.getContext("2d");
 const cropSelector = document.getElementById("cropSelector");
 const saveModal = document.getElementById("saveModal");
 const saveImg = document.getElementById("saveImg");
+const saveEditBtn = document.getElementById("saveEdit");
 
 let currentIndex = 0;
 let scale = 1;
@@ -564,6 +616,7 @@ let isEraser = false;
 const dpr = window.devicePixelRatio || 1;
 let lastDrawX = 0, lastDrawY = 0;
 let editFinalImg = null;
+let cropOpen = false;
 
 //裁剪全局变量
 let cropActive = false;
@@ -624,6 +677,8 @@ function openPreview(index) {
   document.querySelectorAll(".edit-bar button").forEach(b => b.classList.remove("active"));
   document.querySelectorAll(".color-box").forEach(c => c.classList.remove("active"));
   document.querySelector(`.color-box[data-color="${drawColor}"]`)?.classList.add("active");
+  cropOpen = false;
+  saveEditBtn.disabled = false;
 
   currentIndex = index;
   const targetImg = allImgs[currentIndex];
@@ -819,22 +874,36 @@ drawCanvas.addEventListener("mousemove", e => {
 drawCanvas.addEventListener("mouseup", drawEnd);
 drawCanvas.addEventListener("mouseleave", drawEnd);
 
-// 工具栏逻辑
+// 工具栏逻辑：画笔点击切换开启/关闭
 const drawTool = document.getElementById("drawTool");
 const eraserTool = document.getElementById("eraserTool");
 drawTool.onclick = () => {
-  drawMode = true;
-  drawCanvas.classList.add("draw-mode");
-  isEraser = false;
-  drawTool.classList.add("active");
-  eraserTool.classList.remove("active");
+  if(drawMode && !isEraser){
+      //再次点击关闭画笔
+      drawMode = false;
+      drawCanvas.classList.remove("draw-mode");
+      drawTool.classList.remove("active");
+  }else{
+      drawMode = true;
+      drawCanvas.classList.add("draw-mode");
+      isEraser = false;
+      drawTool.classList.add("active");
+      eraserTool.classList.remove("active");
+  }
 };
 eraserTool.onclick = () => {
-  drawMode = true;
-  drawCanvas.classList.add("draw-mode");
-  isEraser = true;
-  eraserTool.classList.add("active");
-  drawTool.classList.remove("active");
+  if(drawMode && isEraser){
+      //再次点击关闭橡皮
+      drawMode = false;
+      drawCanvas.classList.remove("draw-mode");
+      eraserTool.classList.remove("active");
+  }else{
+      drawMode = true;
+      drawCanvas.classList.add("draw-mode");
+      isEraser = true;
+      eraserTool.classList.add("active");
+      drawTool.classList.remove("active");
+  }
 };
 // 颜色选择
 document.querySelectorAll(".color-box").forEach(box => {
@@ -853,20 +922,25 @@ document.getElementById("undoDraw").onclick = () => {
   if (drawHistory.length > 0) drawCtx.putImageData(drawHistory[drawHistory.length - 1], 0, 0);
 };
 
-// ======================== 【重写全新裁剪模块】 ========================
+// ======================== 【修复版裁剪模块】 ========================
 document.getElementById("cropTool").onclick = function(){
     cropModal.classList.add("active");
+    cropOpen = true;
+    saveEditBtn.disabled = true;
     const img = new Image();
     img.src = bigImg.src;
     img.onload = function(){
         cropCanvas.width = img.width;
         cropCanvas.height = img.height;
         cropCtx.drawImage(img,0,0);
-        // 默认选区居中
-        cropSelector.style.left = "15%";
-        cropSelector.style.top = "15%";
-        cropSelector.style.width = "70%";
-        cropSelector.style.height = "70%";
+        // 默认选区使用像素而非百分比，避免布局错乱
+        const cw = cropCanvas.offsetWidth;
+        const ch = cropCanvas.offsetHeight;
+        const pad = Math.min(cw,ch)*0.15;
+        cropSelector.style.left = pad + "px";
+        cropSelector.style.top = pad + "px";
+        cropSelector.style.width = (cw - pad*2) + "px";
+        cropSelector.style.height = (ch - pad*2) + "px";
     }
 }
 
@@ -899,7 +973,7 @@ function renderCropBox(start, now){
     cropSelector.style.height = (y2 - y1) + "px";
 }
 
-//鼠标
+//鼠标拖拽选区
 cropCanvas.onmousedown = function(e){
     cropActive = true;
     cropStart = getCropPoint(e);
@@ -911,7 +985,7 @@ cropCanvas.onmousemove = function(e){
 cropCanvas.onmouseup = ()=> cropActive = false;
 cropCanvas.onmouseleave = ()=> cropActive = false;
 
-//触屏
+//触屏拖拽选区
 cropCanvas.addEventListener("touchstart",e=>{
     e.preventDefault();
     cropActive = true;
@@ -925,55 +999,93 @@ cropCanvas.addEventListener("touchmove",e=>{
 cropCanvas.addEventListener("touchend",()=>cropActive=false);
 cropCanvas.addEventListener("touchcancel",()=>cropActive=false);
 
+//取消裁剪
 document.getElementById("cancelCrop").onclick = function(){
     cropModal.classList.remove("active");
+    cropOpen = false;
+    saveEditBtn.disabled = false;
 }
 
+//【核心修复：确认裁剪按钮逻辑】
 document.getElementById("confirmCrop").onclick = function(){
-    const selRect = cropSelector.getBoundingClientRect();
-    const canvasDisplayRect = cropCanvas.getBoundingClientRect();
-    // 屏幕尺寸 -> 原图真实像素换算
-    const scaleX = cropCanvas.width / canvasDisplayRect.width;
-    const scaleY = cropCanvas.height / canvasDisplayRect.height;
+    //1. 获取裁剪框相对于cropCanvas可视区域的位置
+    const canvasDisplay = cropCanvas.getBoundingClientRect();
+    const boxDisplay = cropSelector.getBoundingClientRect();
 
-    const sx = (selRect.left - canvasDisplayRect.left) * scaleX;
-    const sy = (selRect.top - canvasDisplayRect.top) * scaleY;
-    const sw = selRect.width * scaleX;
-    const sh = selRect.height * scaleY;
+    // 裁剪框在画布内的相对坐标
+    const cropX = boxDisplay.left - canvasDisplay.left;
+    const cropY = boxDisplay.top - canvasDisplay.top;
+    const cropW = boxDisplay.width;
+    const cropH = boxDisplay.height;
 
+    // 最小选区保护，防止框太小裁剪失败
+    if(cropW < 20 || cropH < 20){
+        alert("裁剪区域过小，请拉大选区");
+        return;
+    }
+
+    // 可视画布尺寸 → 原图真实像素比例
+    const scaleX = cropCanvas.width / canvasDisplay.width;
+    const scaleY = cropCanvas.height / canvasDisplay.height;
+
+    // 映射到原图像素坐标
+    const realX = cropX * scaleX;
+    const realY = cropY * scaleY;
+    const realW = cropW * scaleX;
+    const realH = cropH * scaleY;
+
+    // 创建裁剪画布
     const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = sw;
-    tempCanvas.height = sh;
+    tempCanvas.width = realW;
+    tempCanvas.height = realH;
     const tempCtx = tempCanvas.getContext("2d");
-    tempCtx.drawImage(cropCanvas, sx, sy, sw, sh, 0, 0, sw, sh);
 
+    // 裁剪绘制
+    tempCtx.drawImage(
+        cropCanvas,
+        realX, realY, realW, realH,
+        0, 0, realW, realH
+    );
+
+    // 输出图片
     editFinalImg = tempCanvas.toDataURL("image/png");
+    // 关闭裁剪弹窗
     cropModal.classList.remove("active");
+    cropOpen = false;
+    saveEditBtn.disabled = false;
+    // 打开保存预览
     openSavePreview();
 }
 // ======================== 裁剪模块结束 ========================
-
 // ============【图片保存】============
 document.getElementById("saveEdit").onclick = function() {
   openSavePreview();
 };
 function openSavePreview() {
-  const merge = document.createElement("canvas");
-  const mctx = merge.getContext("2d");
-  const img = new Image();
-  img.src = bigImg.src;
-  img.crossOrigin = "anonymous";
-  img.onload = () => {
-    merge.width = img.width;
-    merge.height = img.height;
-    mctx.drawImage(img, 0, 0);
-    mctx.drawImage(drawCanvas, 0,0,img.width,img.height);
-    editFinalImg = merge.toDataURL("image/png");
-    saveImg.src = editFinalImg;
-    saveModal.classList.add("active");
-  };
+  if(!editFinalImg){
+      const merge = document.createElement("canvas");
+      const mctx = merge.getContext("2d");
+      const img = new Image();
+      img.src = bigImg.src;
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        merge.width = img.width;
+        merge.height = img.height;
+        mctx.drawImage(img, 0, 0);
+        mctx.drawImage(drawCanvas, 0,0,img.width,img.height);
+        editFinalImg = merge.toDataURL("image/png");
+        saveImg.src = editFinalImg;
+        saveModal.classList.add("active");
+      };
+  }else{
+      saveImg.src = editFinalImg;
+      saveModal.classList.add("active");
+  }
 }
-document.getElementById("closeSave").onclick = () => saveModal.classList.remove("active");
+document.getElementById("closeSave").onclick = () => {
+    saveModal.classList.remove("active");
+    editFinalImg = null;
+};
 
 allImgs.forEach((img, idx) => {
   if (!img.src || img.src.endsWith('/')) {
@@ -986,6 +1098,8 @@ allImgs.forEach((img, idx) => {
 
 // 返回顶部按钮
 const backTopBtn = document.getElementById("backTopBtn");
+backTopBtn.onmouseover = ()=> backTopBtn.style.background="linear-gradient(135deg,var(--primary-deep),var(--pink-deep))";
+backTopBtn.onmouseout = ()=> backTopBtn.style.background="linear-gradient(135deg,var(--primary),var(--pink))";
 window.addEventListener("scroll", () => {
   backTopBtn.style.opacity = window.scrollY > 300 ? "1" : "0";
   backTopBtn.style.visibility = window.scrollY > 300 ? "visible" : "hidden";
