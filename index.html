@@ -907,8 +907,15 @@
       }
     }
   </style>
-  <!-- Vercount 统计脚本 -->
-  <script defer src="https://vercount.one/js"></script>
+  <!-- 【已替换：不蒜子busuanzi 国内稳定统计，自带5秒超时兜底，删除原来vercount】 -->
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<script>
+// 超时兜底：5秒加载失败，文字显示 ---,不会永久卡在加载中
+setTimeout(()=>{
+  const pvEl = document.getElementById("busuanzi_value_site_pv");
+  if(pvEl && pvEl.innerText === "") pvEl.innerText = "---";
+},5000);
+</script>
 </head>
 
 <body>
@@ -933,8 +940,8 @@
     </div>
 
     <div class="visit-box">
-      <!-- 【唯一修改位置】ID更新为vercount官方标准ID -->
-      <span>👀 网站访问总次数：<strong id="vercount_value_site_pv">加载中</strong></span>
+      <!-- 修改为不蒜子标准ID -->
+      <span>👀 网站访问总次数：<strong id="busuanzi_value_site_pv">加载中</strong></span>
     </div>
 
     <div class="exam-countdown">
@@ -1028,8 +1035,6 @@
         darkBtn.innerText = "浅色模式";
       }
     })();
-
-    // =========重要修改：删除原来本地单机访问统计代码！！========
 
     const modalMask = document.getElementById('welcomeModal'),
           closeBtn = document.getElementById('closeBtn'),
