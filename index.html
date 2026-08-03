@@ -301,7 +301,6 @@
       border-bottom: 1px solid #e0e7ff;
       border-radius: var(--radius-md);
       margin-bottom: 10px;
-      transition: all 0.25s;
     }
 
     .file-list li:hover {
@@ -908,6 +907,8 @@
       }
     }
   </style>
+  <!-- Vercount 统计脚本 -->
+  <script defer src="https://vercount.one/js"></script>
 </head>
 
 <body>
@@ -932,7 +933,8 @@
     </div>
 
     <div class="visit-box">
-      <span>👀 网站访问总次数：<strong id="visitCount">0</strong></span>
+      <!-- 【唯一修改位置】ID更新为vercount官方标准ID -->
+      <span>👀 网站访问总次数：<strong id="vercount_value_site_pv">加载中</strong></span>
     </div>
 
     <div class="exam-countdown">
@@ -1007,11 +1009,12 @@
     <div class="modal-box">
       <p class="modal-text">欢迎进入 2024级8班班级网站</p>
       <p class="modal-tips">💡 使用小提示：
-<br>1. 相册页面功能一览：双指缩放、涂鸦标注、自由裁剪、图片本地保存、原图直接保存，支持深色模式同步
-<br>2. 相册、视频页面图片素材较多，打开需要加载几秒，请耐心等待
-<br>3. 首次进入网站会加载全部资源，可能轻微卡顿，第二次浏览会流畅很多
-<br>4. 右上角可切换深色/浅色模式，夜间浏览更护眼
-<br>5. 中间名言卡片点击可以随机切换励志语录</p>
+<br>1. 页面设有访问总量统计，记录网站浏览热度
+<br>2. 相册页面功能一览：双指缩放、涂鸦标注、自由裁剪、图片本地保存、原图直接保存，支持深色模式同步
+<br>3. 相册、视频页面图片素材较多，打开需要加载几秒，请耐心等待
+<br>4. 首次进入网站会加载全部资源，可能轻微卡顿，第二次浏览会流畅很多
+<br>5. 右上角可切换深色/浅色模式，夜间浏览更护眼
+<br>6. 中间名言卡片点击可以随机切换励志语录</p>
       <button class="confirm-btn" id="closeBtn">开始浏览</button>
     </div>
   </div>
@@ -1026,13 +1029,7 @@
       }
     })();
 
-    function setVisitCounter(){
-      let count = Number(localStorage.getItem("visitTotal")) || 0;
-      count++;
-      localStorage.setItem("visitTotal", count);
-      document.getElementById("visitCount").innerText = count;
-    }
-    setVisitCounter();
+    // =========重要修改：删除原来本地单机访问统计代码！！========
 
     const modalMask = document.getElementById('welcomeModal'),
           closeBtn = document.getElementById('closeBtn'),
