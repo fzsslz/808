@@ -5,15 +5,119 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>俄罗斯方块</title>
 <style>
-*{box-sizing:border-box;font-family:system-ui}
-body{background:#f0f2f5;display:flex;flex-direction:column;align-items:center;padding:10px;margin:0}
-h2{color:#673AB7;margin:10px 0}
-#info{display:flex;gap:20px;margin:5px;font-weight:bold}
+:root {
+    /* ========== 主题0：经典紫粉（默认） ========== */
+    --primary-rgb:99, 102, 241;
+    --primary:#6366f1;
+    --primary-deep:#4f46e5;
+    --accent-rgb:236, 72, 153;
+    --pink:#ec4899;
+    --pink-deep:#db2777;
+    --primary-text:#4f46e5;
+    --text-main:#334155;
+    --light-bg:#fdf4ff;
+    --light-bg-2:#e0e7ff;
+    --dark-bg-1:#1e1b4b;
+    --dark-bg-2:#312e81;
+    --dark-text:#ffffff;
+    --dark-text-secondary:#c7d2fe;
+    --glass-light:rgba(255,255,255,0.85);
+    --glass-border:rgba(255,255,255,0.6);
+    --radius-md:12px;
+    --radius-lg:20px;
+}
+/* ========== 主题1：科技蓝 ========== */
+body.theme-blue {
+    --primary-rgb:14, 165, 233;
+    --primary:#0ea5e9;
+    --primary-deep:#0284c7;
+    --accent-rgb:6, 182, 212;
+    --pink:#06b6d4;
+    --pink-deep:#0891b2;
+    --primary-text:#0369a1;
+    --text-main:#0c4a6e;
+    --light-bg:#f0f9ff;
+    --light-bg-2:#e0f2fe;
+    --dark-bg-1:#0c1929;
+    --dark-bg-2:#112240;
+    --dark-text:#e0f2fe;
+    --dark-text-secondary:#7dd3fc;
+}
+/* ========== 主题2：暖阳金黄 ========== */
+body.theme-gold {
+    --primary-rgb:245, 158, 11;
+    --primary:#f59e0b;
+    --primary-deep:#d97706;
+    --accent-rgb:249, 115, 22;
+    --pink:#f97316;
+    --pink-deep:#ea580c;
+    --primary-text:#92400e;
+    --text-main:#78350f;
+    --light-bg:#fffbeb;
+    --light-bg-2:#fef3c7;
+    --dark-bg-1:#422006;
+    --dark-bg-2:#78350f;
+    --dark-text:#fffbeb;
+    --dark-text-secondary:#fcd34d;
+}
+/* ========== 主题3：森系青绿 ========== */
+body.theme-green {
+    --primary-rgb:16, 185, 129;
+    --primary:#10b981;
+    --primary-deep:#059669;
+    --accent-rgb:20, 184, 166;
+    --pink:#14b8a6;
+    --pink-deep:#0d9488;
+    --primary-text:#065f46;
+    --text-main:#064e3b;
+    --light-bg:#f0fdf4;
+    --light-bg-2:#dcfce7;
+    --dark-bg-1:#022c22;
+    --dark-bg-2:#064e3b;
+    --dark-text:#ecfdf5;
+    --dark-text-secondary:#6ee7b7;
+}
+*{box-sizing:border-box;font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;}
+body{
+    background:
+        radial-gradient(circle at 10% 10%, rgba(var(--primary-rgb), 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 90% 20%, rgba(var(--accent-rgb), 0.08) 0%, transparent 50%),
+        linear-gradient(135deg, var(--light-bg) 0%, var(--light-bg-2) 100%);
+    display:flex;flex-direction:column;align-items:center;padding:10px;margin:0;
+    min-height:100vh;color:var(--text-main);
+    transition:background 0.35s ease,color 0.35s ease;
+}
+body.dark{
+    background:
+        radial-gradient(circle at 10% 10%, rgba(var(--primary-rgb), 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 90% 20%, rgba(var(--accent-rgb), 0.15) 0%, transparent 50%),
+        linear-gradient(135deg, var(--dark-bg-1) 0%, var(--dark-bg-2) 100%);
+    color:var(--dark-text);
+}
+h2{color:var(--primary);margin:10px 0;font-size:clamp(20px,5vw,28px);}
+body.dark h2{color:var(--dark-text-secondary);}
+#info{display:flex;gap:20px;margin:5px;font-weight:bold;font-size:clamp(14px,3vw,17px);}
 .ctrl{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap;justify-content:center}
-button{padding:8px 10px;background:#673AB7;color:white;border:none;border-radius:6px;font-size:16px}
-canvas{border:8px solid #673AB7;background:#fff;border-radius:8px;max-width:100%}
+button{
+    padding:8px 14px;
+    background:linear-gradient(135deg,var(--primary),var(--pink));
+    color:white;border:none;border-radius:var(--radius-md);
+    font-size:clamp(13px,2.5vw,16px);font-weight:600;cursor:pointer;
+    box-shadow:0 4px 12px rgba(var(--primary-rgb),0.25);
+    transition:transform 0.2s ease,box-shadow 0.2s ease;
+}
+button:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(var(--primary-rgb),0.35);}
+button:active{transform:scale(0.96);}
+canvas{
+    border:6px solid var(--primary);
+    background:#fff;
+    border-radius:var(--radius-md);
+    max-width:100%;
+    box-shadow:0 8px 24px rgba(var(--primary-rgb),0.2);
+}
+body.dark canvas{background:#1a1a2e;border-color:var(--primary);}
 #virtual{display:none;grid-template-columns:repeat(3,70px);gap:10px;margin-top:15px;justify-content:center}
-#virtual button{padding:16px;font-size:20px;background:#673AB7;color:white;border:none;border-radius:12px;box-shadow:0 2px 6px #ccc}
+#virtual button{padding:16px;font-size:20px;background:linear-gradient(135deg,var(--primary),var(--pink));color:white;border:none;border-radius:12px;box-shadow:0 2px 8px rgba(var(--primary-rgb),0.3)}
 @media(max-width:480px){#virtual{display:grid}}
 </style>
 </head>
@@ -30,8 +134,15 @@ canvas{border:8px solid #673AB7;background:#fff;border-radius:8px;max-width:100%
 <button></button><button onclick="rot()">↑ 旋转</button><button></button>
 <button onclick="lf()">←</button><button onclick="dn()">↓</button><button onclick="rt()">→</button>
 </div>
-
 <script>
+// ========== 自动读取主页/相册/视频页存的主题与深色设置 ==========
+(function(){
+  const saveTheme = localStorage.getItem("siteTheme");
+  const saveStyle = localStorage.getItem("siteStyle");
+  if(saveTheme === "dark") document.body.classList.add("dark");
+  if(saveStyle) document.body.classList.add(saveStyle);
+})();
+
 const canvas=document.getElementById('g');
 const ctx=canvas.getContext('2d');
 const row=20,col=10,size=25;
@@ -46,31 +157,36 @@ const shapes=[
   [[1,1,0],[0,1,1]]
 ];
 let cur,px,py,sc=0,lv=1,sp=500;
-
+// 读取当前主题主色，用于方块绘制
+function getThemeColor(){
+  return getComputedStyle(document.body).getPropertyValue('--primary').trim() || '#6366f1';
+}
+function getThemeDeep(){
+  return getComputedStyle(document.body).getPropertyValue('--primary-deep').trim() || '#4f46e5';
+}
 function newPiece(){
   cur=shapes[Math.floor(Math.random()*shapes.length)];
   px=Math.floor((col - cur[0].length)/2);
   py=0;
   if(collide(0,0)) over();
 }
-
 function draw(){
-  ctx.fillStyle='#fff';
+  const isDark = document.body.classList.contains('dark');
+  ctx.fillStyle = isDark ? '#1a1a2e' : '#fff';
   ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle='#673AB7';
+  ctx.fillStyle=getThemeColor();
   for(let y=0;y<row;y++){
     for(let x=0;x<col;x++){
       if(board[y][x]) ctx.fillRect(x*size,y*size,size-1,size-1);
     }
   }
-  ctx.fillStyle='#3F51B5';
+  ctx.fillStyle=getThemeDeep();
   for(let y=0;y<cur.length;y++){
     for(let x=0;x<cur[y].length;x++){
       if(cur[y][x]) ctx.fillRect((px+x)*size,(py+y)*size,size-1,size-1);
     }
   }
 }
-
 function collide(dx,dy){
   for(let y=0;y<cur.length;y++){
     for(let x=0;x<cur[y].length;x++){
@@ -83,7 +199,6 @@ function collide(dx,dy){
   }
   return false;
 }
-
 function rot(){
   let r=cur[0].map((_,i)=>cur.map(row=>row[i]).reverse());
   let o=cur;
@@ -91,11 +206,9 @@ function rot(){
   if(collide(0,0)) cur=o;
   draw();
 }
-
 function lf(){if(!collide(-1,0)){px--;draw()}}
 function rt(){if(!collide(1,0)){px++;draw()}}
 function dn(){if(!collide(0,1)){py++;draw()}}
-
 function drop(){
   if(!collide(0,1)) py++;
   else{
@@ -105,7 +218,6 @@ function drop(){
   }
   draw();
 }
-
 function merge(){
   for(let y=0;y<cur.length;y++){
     for(let x=0;x<cur[y].length;x++){
@@ -113,7 +225,6 @@ function merge(){
     }
   }
 }
-
 function clear(){
   let lines=0;
   for(let y=row-1;y>=0;y--){
@@ -133,7 +244,6 @@ function clear(){
   upd();
   setSp(500-lv*40);
 }
-
 function over(){
   alert('游戏结束！得分：'+sc);
   sc=lv=0;
@@ -141,25 +251,21 @@ function over(){
   newPiece();
   upd();
 }
-
 function upd(){
   document.getElementById('sc').innerText=sc;
   document.getElementById('lv').innerText=lv;
 }
-
 function setSp(s){
   sp=s;
   clearInterval(t);
   t=setInterval(drop,sp);
 }
-
 document.addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft')lf();
   if(e.key==='ArrowRight')rt();
   if(e.key==='ArrowDown')dn();
   if(e.key==='ArrowUp')rot();
 });
-
 let t;
 newPiece();
 draw();
