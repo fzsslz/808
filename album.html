@@ -6,51 +6,151 @@
     <title>班级相册</title>
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-deep: #4f46e5;
-            --pink: #ec4899;
-            --pink-deep: #db2777;
-            --glass-light: rgba(255,255,255,0.85);
-            --glass-border: rgba(255,255,255,0.6);
-            --shadow-soft: 0 8px 24px rgba(99, 102, 241, 0.12);
-            --shadow-hover: 0 16px 36px rgba(99, 102, 241, 0.18);
-            --radius-md: 16px;
-            --radius-lg: 24px;
-            --transition-normal: 0.35s ease;
+            /* ========== 主题0：经典紫粉（默认） ========== */
+            --theme-name:"经典紫粉";
+            --primary-rgb:99, 102, 241;
+            --primary:#6366f1;
+            --primary-light:#818cf8;
+            --primary-deep:#4f46e5;
+            --accent-rgb:236, 72, 153;
+            --pink:#ec4899;
+            --pink-light:#f472b6;
+            --pink-deep:#db2777;
+            --primary-text:#4f46e5;
+            --text-main:#334155;
+            --text-secondary:#64748b;
+            --text-weak:#94a3b8;
+            --light-bg:#fdf4ff;
+            --light-bg-2:#e0e7ff;
+            --dark-bg-1:#1e1b4b;
+            --dark-bg-2:#312e81;
+            --dark-card:#444084;
+            --dark-card-inner:#5b579a;
+            --dark-text:#ffffff;
+            --dark-text-secondary:#c7d2fe;
+            --glass-light:rgba(255,255,255,0.85);
+            --glass-border:rgba(255,255,255,0.6);
+            --shadow-soft:0 8px 24px rgba(var(--primary-rgb),0.12);
+            --shadow-hover:0 16px 36px rgba(var(--primary-rgb),0.18);
+            --radius-md:16px;
+            --radius-lg:24px;
+            --radius-full:999px;
+            --transition-normal:0.35s ease;
+        }
+        /* ========== 主题1：科技蓝 ========== */
+        body.theme-blue {
+            --theme-name:"科技蓝调";
+            --primary-rgb:14, 165, 233;
+            --primary:#0ea5e9;
+            --primary-light:#38bdf8;
+            --primary-deep:#0284c7;
+            --accent-rgb:6, 182, 212;
+            --pink:#06b6d4;
+            --pink-light:#22d3ee;
+            --pink-deep:#0891b2;
+            --primary-text:#0369a1;
+            --text-main:#0c4a6e;
+            --text-secondary:#0369a1;
+            --text-weak:#7dd3fc;
+            --light-bg:#f0f9ff;
+            --light-bg-2:#e0f2fe;
+            --dark-bg-1:#0c1929;
+            --dark-bg-2:#112240;
+            --dark-card:#1e3a5f;
+            --dark-card-inner:#2563eb;
+            --dark-text:#e0f2fe;
+            --dark-text-secondary:#7dd3fc;
+        }
+        /* ========== 主题2：暖阳金黄 ========== */
+        body.theme-gold {
+            --theme-name:"暖阳金黄";
+            --primary-rgb:245, 158, 11;
+            --primary:#f59e0b;
+            --primary-light:#fbbf24;
+            --primary-deep:#d97706;
+            --accent-rgb:249, 115, 22;
+            --pink:#f97316;
+            --pink-light:#fb923c;
+            --pink-deep:#ea580c;
+            --primary-text:#92400e;
+            --text-main:#78350f;
+            --text-secondary:#92400e;
+            --text-weak:#fcd34d;
+            --light-bg:#fffbeb;
+            --light-bg-2:#fef3c7;
+            --dark-bg-1:#422006;
+            --dark-bg-2:#78350f;
+            --dark-card:#92400e;
+            --dark-card-inner:#b45309;
+            --dark-text:#fffbeb;
+            --dark-text-secondary:#fcd34d;
+        }
+        /* ========== 主题3：森系青绿 ========== */
+        body.theme-green {
+            --theme-name:"森系青绿";
+            --primary-rgb:16, 185, 129;
+            --primary:#10b981;
+            --primary-light:#34d399;
+            --primary-deep:#059669;
+            --accent-rgb:20, 184, 166;
+            --pink:#14b8a6;
+            --pink-light:#2dd4bf;
+            --pink-deep:#0d9488;
+            --primary-text:#065f46;
+            --text-main:#064e3b;
+            --text-secondary:#065f46;
+            --text-weak:#6ee7b7;
+            --light-bg:#f0fdf4;
+            --light-bg-2:#dcfce7;
+            --dark-bg-1:#022c22;
+            --dark-bg-2:#064e3b;
+            --dark-card:#065f46;
+            --dark-card-inner:#047857;
+            --dark-text:#ecfdf5;
+            --dark-text-secondary:#6ee7b7;
         }
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC","Hiragino Sans GB",sans-serif;
             transition: background var(--transition-normal), color var(--transition-normal), transform 0.25s ease, box-shadow var(--transition-normal);
         }
         body {
             padding: 24px 16px;
-            font-family: "Microsoft YaHei", sans-serif;
             background:
-                radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 90% 20%, rgba(236, 72, 153, 0.08) 0%, transparent 50%),
-                linear-gradient(135deg, #fdf4ff 0%, #e0e7ff 100%);
+                radial-gradient(circle at 10% 10%, rgba(var(--primary-rgb), 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 90% 20%, rgba(var(--accent-rgb), 0.08) 0%, transparent 50%),
+                linear-gradient(135deg, var(--light-bg) 0%, var(--light-bg-2) 100%);
             min-height: 100vh;
+            color: var(--text-main);
         }
         body.dark {
             background:
-                radial-gradient(circle at 10% 10%, rgba(129, 140, 248, 0.12) 0%, transparent 50%),
-                radial-gradient(circle at 90% 20%, rgba(244, 114, 182, 0.12) 0%, transparent 50%),
-                linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+                radial-gradient(circle at 10% 10%, rgba(var(--primary-rgb), 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 90% 20%, rgba(var(--accent-rgb), 0.15) 0%, transparent 50%),
+                linear-gradient(135deg, var(--dark-bg-1) 0%, var(--dark-bg-2) 100%);
+            color: var(--dark-text);
         }
         body.dark h1 {
-            color: #c7d2fe;
+            color: var(--dark-text-secondary);
         }
         body.dark .back-btn {
             background: linear-gradient(135deg,var(--primary-deep),var(--pink-deep));
         }
         body.dark .back-btn:hover {
-            background: linear-gradient(135deg,#3b36a1,#b91c5c);
+            background: linear-gradient(135deg,var(--primary),var(--pink));
         }
         body.dark .album img {
             box-shadow: 0 4px 16px rgba(0,0,0,0.35);
             border: 1px solid rgba(255,255,255,0.12);
+        }
+        body.dark .settings-card {
+            background: var(--dark-card);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+        }
+        body.dark .settings-card h3 {
+            color: var(--dark-text-secondary);
         }
         header {
             text-align: center;
@@ -76,6 +176,64 @@
             background: linear-gradient(90deg,var(--primary),var(--pink));
             border-radius: 4px;
         }
+        /* ========== 外观设置卡片（页面内，不悬浮遮挡） ========== */
+        .settings-card {
+            max-width: 1240px;
+            margin: 0 auto 24px;
+            padding: 16px 22px;
+            background: var(--glass-light);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-soft);
+            position: relative;
+            overflow: hidden;
+        }
+        .settings-card h3 {
+            font-size: clamp(14px,3vw,17px);
+            color: var(--primary-text);
+            margin-bottom: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .theme-btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .theme-btn-group button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: var(--radius-full);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.25s ease;
+            font-size: clamp(12px,2vw,14px);
+            letter-spacing: 0.5px;
+        }
+        .theme-btn-group button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+        }
+        .theme-btn-group button:active {
+            transform: scale(0.96);
+        }
+        .theme-btn-group button.active {
+            outline: 2px solid rgba(255,255,255,0.6);
+            outline-offset: 2px;
+        }
+        .btn-pink {background:linear-gradient(135deg,#6366f1,#ec4899);}
+        .btn-blue {background:linear-gradient(135deg,#0ea5e9,#06b6d4);}
+        .btn-gold {background:linear-gradient(135deg,#f59e0b,#f97316);}
+        .btn-green {background:linear-gradient(135deg,#10b981,#14b8a6);}
+        .btn-darkmode {background:linear-gradient(135deg,#475569,#1e293b);}
+
         .back-btn {
             display: inline-block;
             margin: 0 auto 24px;
@@ -84,13 +242,13 @@
             color: #fff;
             border-radius: var(--radius-md);
             text-decoration: none;
-            font-size: 16px;
+            font-size: clamp(14px,2.5vw,16px);
             font-weight: 600;
-            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.25);
+            box-shadow: 0 6px 16px rgba(var(--primary-rgb), 0.25);
         }
         .back-btn:hover {
             transform: translateY(-4px);
-            box-shadow: 0 10px 24px rgba(99, 102, 241, 0.35);
+            box-shadow: 0 10px 24px rgba(var(--primary-rgb), 0.35);
         }
         .back-btn:active {
             transform: translateY(-2px) scale(0.97);
@@ -371,13 +529,29 @@
             color:#fff;
             font-weight:500;
         }
+        @media (max-width:768px) {
+            .settings-card {margin:0 16px 20px;padding:14px 16px;}
+            .theme-btn-group {justify-content:center;}
+        }
     </style>
 </head>
 <body>
     <header>
-        <button onclick="toggleDark()" style="position:fixed;top:20px;right:20px;padding:11px 18px;background:linear-gradient(135deg,var(--primary),var(--pink));color:white;border:none;border-radius:999px;cursor:pointer;font-weight:bold;z-index:999;box-shadow:0 4px 14px rgba(99,102,241,0.3);backdrop-filter: blur(8px);" id="darkBtn">🌙 深色模式</button>
         <h1>班级相册</h1>
     </header>
+
+    <!-- 外观设置卡片：与主页一致，集中放置不悬浮遮挡 -->
+    <div class="settings-card">
+        <h3>🎨 网站外观设置</h3>
+        <div class="theme-btn-group">
+            <button class="btn-pink theme-btn active" data-theme="" onclick="setTheme(this,'')">经典紫粉</button>
+            <button class="btn-blue theme-btn" data-theme="theme-blue" onclick="setTheme(this,'theme-blue')">科技蓝调</button>
+            <button class="btn-gold theme-btn" data-theme="theme-gold" onclick="setTheme(this,'theme-gold')">暖阳金黄</button>
+            <button class="btn-green theme-btn" data-theme="theme-green" onclick="setTheme(this,'theme-green')">森系青绿</button>
+            <button class="btn-darkmode" onclick="toggleDark()">🌙 深色 / 浅色</button>
+        </div>
+    </div>
+
     <div style="text-align: center;">
         <a href="index.html" class="back-btn">← 返回首页</a>
     </div>
@@ -555,28 +729,41 @@
         <div class="save-tip">长按下方图片保存到手机相册</div>
         <button id="closeSave">关闭</button>
     </div>
-    <button id="backTopBtn" style="position:fixed;right:24px;bottom:130px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--pink));border:none;opacity:0;visibility:hidden;transition:0.3s all ease;z-index:998;box-shadow:0 4px 14px rgba(99,102,241,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter: blur(8px);">
+    <button id="backTopBtn" style="position:fixed;right:24px;bottom:30px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--pink));border:none;opacity:0;visibility:hidden;transition:0.3s all ease;z-index:998;box-shadow:0 4px 14px rgba(var(--primary-rgb),0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter: blur(8px);">
         <span style="width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-bottom:18px solid #fff;"></span>
     </button>
 <script>
 function isWeChatBrowser() {
     return /MicroMessenger/i.test(navigator.userAgent);
 }
+// ========== 主题初始化：读取主页存的设置 ==========
 (function(){
   const saveTheme = localStorage.getItem("siteTheme");
-  const darkBtn = document.getElementById("darkBtn");
+  const saveStyle = localStorage.getItem("siteStyle");
   if(saveTheme === "dark"){
     document.body.classList.add("dark");
-    darkBtn.innerText = "浅色模式";
   }
+  if(saveStyle){
+    document.body.classList.add(saveStyle);
+  }
+  // 高亮当前主题按钮
+  document.querySelectorAll(".theme-btn").forEach(btn=>{
+    if(btn.dataset.theme === (saveStyle||"")) btn.classList.add("active");
+    else btn.classList.remove("active");
+  });
 })();
+// ========== 设置主题（与主页同步存 localStorage） ==========
+function setTheme(btn, className){
+  document.body.classList.remove("theme-blue","theme-gold","theme-green");
+  if(className) document.body.classList.add(className);
+  localStorage.setItem("siteStyle", className || "");
+  document.querySelectorAll(".theme-btn").forEach(b=>b.classList.remove("active"));
+  if(btn) btn.classList.add("active");
+}
 function toggleDark(){
   const body = document.body;
-  const btn = document.getElementById("darkBtn");
   body.classList.toggle("dark");
-  const isDark = body.classList.contains("dark");
-  btn.innerText = isDark ? "浅色模式" : "🌙 深色模式";
-  localStorage.setItem("siteTheme", isDark ? "dark" : "light");
+  localStorage.setItem("siteTheme", body.classList.contains("dark") ? "dark" : "light");
 }
 const imgWrap = document.getElementById("imgList");
 const allImgs = Array.from(imgWrap.querySelectorAll(".album img"));
