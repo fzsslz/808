@@ -5,30 +5,110 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover">
 <title>五子棋</title>
 <style>
+:root {
+    --primary-rgb:99, 102, 241;
+    --primary:#6366f1;
+    --primary-deep:#4f46e5;
+    --accent-rgb:236, 72, 153;
+    --pink:#ec4899;
+    --pink-deep:#db2777;
+    --primary-text:#4f46e5;
+    --text-main:#334155;
+    --light-bg:#fdf4ff;
+    --light-bg-2:#e0e7ff;
+    --dark-bg-1:#1e1b4b;
+    --dark-bg-2:#312e81;
+    --dark-text:#ffffff;
+    --dark-text-secondary:#c7d2fe;
+    --radius-md:10px;
+}
+body.theme-blue {
+    --primary-rgb:14, 165, 233;
+    --primary:#0ea5e9;
+    --primary-deep:#0284c7;
+    --accent-rgb:6, 182, 212;
+    --pink:#06b6d4;
+    --pink-deep:#0891b2;
+    --primary-text:#0369a1;
+    --text-main:#0c4a6e;
+    --light-bg:#f0f9ff;
+    --light-bg-2:#e0f2fe;
+    --dark-bg-1:#0c1929;
+    --dark-bg-2:#112240;
+    --dark-text:#e0f2fe;
+    --dark-text-secondary:#7dd3fc;
+}
+body.theme-gold {
+    --primary-rgb:245, 158, 11;
+    --primary:#f59e0b;
+    --primary-deep:#d97706;
+    --accent-rgb:249, 115, 22;
+    --pink:#f97316;
+    --pink-deep:#ea580c;
+    --primary-text:#92400e;
+    --text-main:#78350f;
+    --light-bg:#fffbeb;
+    --light-bg-2:#fef3c7;
+    --dark-bg-1:#422006;
+    --dark-bg-2:#78350f;
+    --dark-text:#fffbeb;
+    --dark-text-secondary:#fcd34d;
+}
+body.theme-green {
+    --primary-rgb:16, 185, 129;
+    --primary:#10b981;
+    --primary-deep:#059669;
+    --accent-rgb:20, 184, 166;
+    --pink:#14b8a6;
+    --pink-deep:#0d9488;
+    --primary-text:#065f46;
+    --text-main:#064e3b;
+    --light-bg:#f0fdf4;
+    --light-bg-2:#dcfce7;
+    --dark-bg-1:#022c22;
+    --dark-bg-2:#064e3b;
+    --dark-text:#ecfdf5;
+    --dark-text-secondary:#6ee7b7;
+}
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: system-ui, sans-serif;
+  font-family: system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
 }
 body {
-  background: #f0f2f5;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(var(--primary-rgb), 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 90% 20%, rgba(var(--accent-rgb), 0.08) 0%, transparent 50%),
+    linear-gradient(135deg, var(--light-bg) 0%, var(--light-bg-2) 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 10px 0;
   min-height: 100vh;
+  color: var(--text-main);
+  transition: background 0.35s ease, color 0.35s ease;
+}
+body.dark {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(var(--primary-rgb), 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 90% 20%, rgba(var(--accent-rgb), 0.15) 0%, transparent 50%),
+    linear-gradient(135deg, var(--dark-bg-1) 0%, var(--dark-bg-2) 100%);
+  color: var(--dark-text);
 }
 h2 {
-  color: #333;
+  color: var(--primary);
   margin: 10px 0;
+  font-size: clamp(20px,5vw,28px);
 }
+body.dark h2 { color: var(--dark-text-secondary); }
 canvas {
   border: 8px solid #cd7f32;
   background: #e7b877;
   border-radius: 8px;
   touch-action: none;
   max-width: 92vw;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 .ctrl {
   margin: 10px 0;
@@ -38,19 +118,24 @@ canvas {
   justify-content: center;
 }
 button {
-  padding: 8px 14px;
-  background: #165DFF;
+  padding: 8px 16px;
+  background: linear-gradient(135deg,var(--primary),var(--pink));
   color: #fff;
   border: none;
-  border-radius: 6px;
-  font-size: 16px;
+  border-radius: var(--radius-md);
+  font-size: clamp(13px,2.5vw,16px);
+  font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb),0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+button:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(var(--primary-rgb),0.35); }
+button:active { transform: scale(0.96); }
 #modeSelect button {
-  background: #4CAF50;
+  background: linear-gradient(135deg,#94a3b8,#64748b);
 }
 #modeSelect button.active {
-  background: #165DFF;
+  background: linear-gradient(135deg,var(--primary),var(--pink));
 }
 /* 手机虚拟按键布局 */
 #virtual {
@@ -66,10 +151,10 @@ button {
 .pad button {
   font-size: 24px;
   border-radius: 10px;
-  box-shadow: 0 2px 4px #ccc;
+  box-shadow: 0 2px 8px rgba(var(--primary-rgb),0.3);
 }
 .pad .ok {
-  background: #28a745;
+  background: linear-gradient(135deg,#10b981,#059669);
 }
 @media (max-width: 480px) {
   #virtual {
@@ -84,13 +169,10 @@ button {
 <button onclick="setMode('pvp')" class="active">双人对战</button>
 <button onclick="setMode('pve')">人机对战</button>
 </div>
-
 <canvas id="board" width="420" height="420"></canvas>
-
 <div class="ctrl">
 <button onclick="restart()">重新开始</button>
 </div>
-
 <div id="virtual">
 <div class="pad">
 <button></button>
@@ -104,8 +186,15 @@ button {
 <button></button>
 </div>
 </div>
-
 <script>
+// 自动读取其他页面存的主题与深色设置
+(function(){
+  const saveTheme = localStorage.getItem("siteTheme");
+  const saveStyle = localStorage.getItem("siteStyle");
+  if(saveTheme === "dark") document.body.classList.add("dark");
+  if(saveStyle) document.body.classList.add(saveStyle);
+})();
+
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 const grid = 30;
@@ -113,7 +202,6 @@ let board = Array(15).fill().map(() => Array(15).fill(0));
 let cur = 1;
 let cursorX = 7, cursorY = 7;
 let gameMode = 'pvp';
-
 // 模式切换
 function setMode(mode) {
   gameMode = mode;
@@ -121,12 +209,10 @@ function setMode(mode) {
   event.target.classList.add('active');
   restart();
 }
-
 // 绘制棋盘棋子
 function draw() {
   ctx.fillStyle = '#e7b877';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-
   ctx.strokeStyle = '#333';
   ctx.lineWidth = 1;
   for (let i = 0; i <= 14; i++) {
@@ -139,7 +225,6 @@ function draw() {
     ctx.lineTo(canvas.width, i * grid);
     ctx.stroke();
   }
-
   // 画棋子
   for (let i = 0; i < 15; i++) {
     for (let j = 0; j < 15; j++) {
@@ -153,7 +238,6 @@ function draw() {
       }
     }
   }
-
   // 红色光标
   ctx.beginPath();
   ctx.arc(cursorY * grid, cursorX * grid, 10, 0, Math.PI * 2);
@@ -161,7 +245,6 @@ function draw() {
   ctx.lineWidth = 2;
   ctx.stroke();
 }
-
 // 精准胜负判断
 function checkWin(x, y, chess) {
   const dir = [[1,0],[0,1],[1,1],[1,-1]];
@@ -175,40 +258,33 @@ function checkWin(x, y, chess) {
   }
   return false;
 }
-
 // 落子逻辑
 function place(x, y) {
   if (x < 0 || x >= 15 || y < 0 || y >= 15 || board[x][y]) return;
-
   board[x][y] = cur;
   draw();
-
   // 玩家胜利判定
   if (checkWin(x, y, cur)) {
     alert(cur === 1 ? '黑棋（你）胜利！' : '白棋胜利！');
     restart();
     return;
   }
-
   cur = 3 - cur;
   if (gameMode === 'pve' && cur === 2) {
     setTimeout(aiMove, 250);
   }
 }
-
 // 终极高难度AI
 function aiMove() {
   let bestX = 7, bestY = 7;
   let maxScore = -999999;
   const dirs = [[1,0],[0,1],[1,1],[1,-1]];
-
   for (let i = 0; i < 15; i++) {
     for (let j = 0; j < 15; j++) {
       if (board[i][j] !== 0) continue;
       let score = 0;
       let midDis = Math.abs(i - 7) + Math.abs(j - 7);
       score += (14 - midDis) * 35;
-
       for (let [dx, dy] of dirs) {
         let self = 0, enemy = 0;
         // 己方连子
@@ -226,7 +302,6 @@ function aiMove() {
         if (self === 2) score += 80;
         if (self === 3) score += 220;
         if (self === 4) score += 850;
-
         // 防守玩家连子
         for (let k = 1; k <= 4; k++) {
           let nx = i + dx * k, ny = j + dy * k;
@@ -243,7 +318,6 @@ function aiMove() {
         if (enemy === 3) score += 300;
         if (enemy === 4) score += 950;
       }
-
       if (score > maxScore) {
         maxScore = score;
         bestX = i;
@@ -251,10 +325,8 @@ function aiMove() {
       }
     }
   }
-
   board[bestX][bestY] = 2;
   draw();
-
   // 电脑胜利判定
   if (checkWin(bestX, bestY, 2)) {
     alert('白棋（电脑）胜利！好菜啊');
@@ -263,7 +335,6 @@ function aiMove() {
   }
   cur = 1;
 }
-
 // 手机精准点击适配（彻底解决错位）
 canvas.addEventListener('click', function(e) {
   const rect = canvas.getBoundingClientRect();
@@ -275,7 +346,6 @@ canvas.addEventListener('click', function(e) {
   let y = Math.round(py / grid);
   place(x, y);
 });
-
 // 键盘控制
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowUp') moveUp();
@@ -284,14 +354,12 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight') moveRight();
   if (e.key === 'Enter' || e.key === ' ') placeCursor();
 });
-
 // 光标移动
 function moveUp() { if (cursorX > 0) cursorX--; draw(); }
 function moveDown() { if (cursorX < 14) cursorX++; draw(); }
 function moveLeft() { if (cursorY > 0) cursorY--; draw(); }
 function moveRight() { if (cursorY < 14) cursorY++; draw(); }
 function placeCursor() { place(cursorX, cursorY); }
-
 // 重置棋局
 function restart() {
   board = Array(15).fill().map(() => Array(15).fill(0));
@@ -299,7 +367,6 @@ function restart() {
   cursorX = 7; cursorY = 7;
   draw();
 }
-
 draw();
 </script>
 </body>
