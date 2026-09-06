@@ -838,8 +838,8 @@ setTimeout(()=>{
 <span>👀 网站访问总次数：<strong id="busuanzi_value_site_pv">加载中</strong></span>
 </div>
 <div class="exam-countdown">
-<div class="exam-title">开学倒计时</div>
-<div class="summer-text" id="summerTip" style="display:none;">☀️ 暑假快乐！</div>
+<div class="exam-title">国庆倒计时</div>
+<div class="summer-text" id="summerTip" style="display:none;">☀️ 国庆快乐！</div>
 <div class="time-box" id="timeBox">
 <div class="time-item"><div class="time-num" id="day">0</div><div class="time-text">天</div></div>
 <div class="time-item"><div class="time-num" id="hour">0</div><div class="time-text">时</div></div>
@@ -1029,8 +1029,8 @@ window.addEventListener("scroll", () => {
 });
 backTopBtn.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
 // ========== 倒计时 ==========
-const startSummerEnd = new Date("2026/07/03 23:59:59").getTime();
-const schoolDay = new Date("2026/09/01 00:00:00").getTime();
+const startSummerEnd = new Date("2026/09/05 23:59:59").getTime();
+const schoolDay = new Date("2026/10/01 00:00:00").getTime();
 const summerTipDom = document.getElementById("summerTip");
 const timeBoxDom = document.getElementById("timeBox");
 function updateCountdown(){
