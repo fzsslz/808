@@ -45,7 +45,6 @@
   --transition-fast:0.25s cubic-bezier(0.4,0,0.2,1);
   --transition-normal:0.35s cubic-bezier(0.4,0,0.2,1);
 }
-
 /* ========== 主题1：科技蓝 ========== */
 body.theme-blue {
   --theme-name:"科技蓝调";
@@ -75,7 +74,6 @@ body.theme-blue {
   --dark-text-secondary:#7dd3fc;
   --star-color:rgba(var(--primary-rgb),0.8);
 }
-
 /* ========== 主题2：暖阳金黄 ========== */
 body.theme-gold {
   --theme-name:"暖阳金黄";
@@ -105,7 +103,6 @@ body.theme-gold {
   --dark-text-secondary:#fcd34d;
   --star-color:rgba(var(--primary-rgb),0.8);
 }
-
 /* ========== 主题3：森系青绿 ========== */
 body.theme-green {
   --theme-name:"森系青绿";
@@ -135,7 +132,6 @@ body.theme-green {
   --dark-text-secondary:#6ee7b7;
   --star-color:rgba(var(--primary-rgb),0.8);
 }
-
 * {
   margin:0;
   padding:0;
@@ -189,7 +185,6 @@ body.dark .settings-card {
   background:var(--dark-card);
   box-shadow:var(--shadow-dark);
 }
-
 /* ========== 鼠标跟随星光 ========== */
 .star-trail {
   position:fixed;
@@ -206,7 +201,6 @@ body.dark .settings-card {
   0% {transform:scale(1);opacity:1;}
   100% {transform:scale(0.2) translateY(-20px);opacity:0;}
 }
-
 /* ========== 爱心飘落 ========== */
 .heart {
   position:fixed;
@@ -223,7 +217,6 @@ body.dark .settings-card {
   50% {transform:translateY(50vh) rotate(180deg) scale(1.1);}
   100% {transform:translateY(100vh) rotate(360deg) scale(0.9);}
 }
-
 /* ========== 导航栏 ========== */
 header {
   background:linear-gradient(90deg,var(--primary-deep),var(--accent-deep),var(--primary-light));
@@ -279,7 +272,6 @@ nav a:hover {
   transform:translateY(-4px);
   box-shadow:0 4px 12px rgba(0,0,0,0.15);
 }
-
 /* ========== 主体容器 ========== */
 .container {
   max-width:1060px;
@@ -288,7 +280,6 @@ nav a:hover {
   position:relative;
   z-index:2;
 }
-
 /* ========== 外观设置卡片（页面内，不悬浮遮挡） ========== */
 .settings-card {
   max-width:1060px;
@@ -349,7 +340,6 @@ body.dark .settings-card h3 {
 .btn-gold {background:linear-gradient(135deg,#f59e0b,#f97316);}
 .btn-green {background:linear-gradient(135deg,#10b981,#14b8a6);}
 .btn-darkmode {background:linear-gradient(135deg,#475569,#1e293b);}
-
 /* ========== 3D玻璃卡片 ========== */
 .section {
   background:rgba(255,255,255,0.75);
@@ -408,7 +398,6 @@ body.dark .settings-card h3 {
   border-radius:2px;
 }
 body.dark .section h2 {color:var(--dark-text-secondary);}
-
 /* ========== 文件列表 ========== */
 .file-list {list-style:none;}
 .file-list li {
@@ -430,7 +419,6 @@ body.dark .section h2 {color:var(--dark-text-secondary);}
   font-weight:500;
 }
 .file-list li a:hover {text-decoration:underline;}
-
 /* ========== 页脚 ========== */
 footer {
   text-align:center;
@@ -441,7 +429,6 @@ footer {
   letter-spacing:0.5px;
   background:linear-gradient(135deg,var(--light-bg-2),var(--light-bg));
 }
-
 /* ========== 倒计时卡片 ========== */
 .exam-countdown {
   max-width:560px;
@@ -540,7 +527,6 @@ body.dark .time-text {color:var(--dark-text-secondary);}
   font-weight:bold;
   padding:24px 0;
 }
-
 /* ========== 名言卡片 ========== */
 .quote-card {
   cursor:pointer;
@@ -587,7 +573,6 @@ body.dark .time-text {color:var(--dark-text-secondary);}
   color:var(--text-secondary);
   position:relative;
 }
-
 /* ========== 游戏卡片 ========== */
 .game-list {
   list-style:none;
@@ -633,7 +618,6 @@ body.dark .time-text {color:var(--dark-text-secondary);}
 .game-list li:nth-child(3) a:hover {background:linear-gradient(135deg,#dc2626,#ef4444);box-shadow:0 10px 24px rgba(239,68,68,0.35);}
 .game-list li:nth-child(4) a {background:linear-gradient(135deg,var(--accent),var(--accent-light));}
 .game-list li:nth-child(4) a:hover {background:linear-gradient(135deg,var(--accent-deep),var(--accent));box-shadow:0 10px 24px rgba(var(--accent-rgb),0.35);}
-
 /* ========== 相册入口按钮 ========== */
 .album-btn {
   display:inline-block;
@@ -650,7 +634,6 @@ body.dark .time-text {color:var(--dark-text-secondary);}
 .album-btn.photo:hover {background:linear-gradient(135deg,var(--primary-deep),var(--primary));transform:translateY(-3px);box-shadow:0 8px 20px rgba(var(--primary-rgb),0.3);}
 .album-btn.video {background:linear-gradient(135deg,var(--accent),var(--accent-light));}
 .album-btn.video:hover {background:linear-gradient(135deg,var(--accent-deep),var(--accent));transform:translateY(-3px);box-shadow:0 8px 20px rgba(var(--accent-rgb),0.3);}
-
 /* ========== 复制按钮 ========== */
 .copy-btn {
   display:block;
@@ -668,7 +651,6 @@ body.dark .time-text {color:var(--dark-text-secondary);}
 }
 .copy-btn:hover {transform:translateY(-2px);box-shadow:0 6px 16px rgba(var(--primary-rgb),0.28);}
 .copy-btn:active {transform:scale(0.98);}
-
 /* ========== 欢迎弹窗 ========== */
 .modal-mask {
   position:fixed;
@@ -741,7 +723,6 @@ body.dark .time-text {color:var(--dark-text-secondary);}
 .modal-mask.show .confirm-btn {opacity:1;transform:translateY(0);}
 .confirm-btn:hover {background:rgba(255,255,255,0.42);box-shadow:0 0 18px rgba(150,180,255,0.55);}
 .confirm-btn:active {transform:scale(0.96);}
-
 /* ========== 返回顶部 ========== */
 #backTopBtn {
   position:fixed;
@@ -768,7 +749,6 @@ body.dark .time-text {color:var(--dark-text-secondary);}
 }
 #backTopBtn:hover {background:linear-gradient(135deg,var(--primary-deep),var(--accent-deep));transform:scale(1.15);}
 #backTopBtn:active {transform:scale(0.95);}
-
 /* ========== 访问统计 ========== */
 .visit-box {
   text-align:center;
@@ -798,7 +778,6 @@ body.dark .time-text {color:var(--dark-text-secondary);}
   position:relative;
   font-variant-numeric:tabular-nums;
 }
-
 /* ========== 手机端适配 ========== */
 @media (max-width:768px) {
   .container {padding:0 16px;}
@@ -831,7 +810,6 @@ setTimeout(()=>{
 <body>
 <div id="heartContainer"></div>
 <div id="starTrailContainer"></div>
-
 <header>
 <div class="title">福州第三十六中2024级八班班级网站</div>
 <nav>
@@ -840,7 +818,6 @@ setTimeout(()=>{
 <a href="#files">文件资料</a>
 </nav>
 </header>
-
 <!-- 外观设置卡片：集中放置主题与深色切换，不再悬浮遮挡内容 -->
 <div class="settings-card">
   <h3>🎨 网站外观设置</h3>
@@ -852,17 +829,14 @@ setTimeout(()=>{
     <button class="btn-darkmode" onclick="toggleDark()">🌙 深色 / 浅色</button>
   </div>
 </div>
-
 <div class="container">
 <div class="section" id="home">
 <h2>班级介绍</h2>
 <p style="font-size:16px;">欢迎来到福州第三十六中学2024级8班班级网站，这里记录我们的学习、活动与成长瞬间。</p>
 </div>
-
 <div class="visit-box">
 <span>👀 网站访问总次数：<strong id="busuanzi_value_site_pv">加载中</strong></span>
 </div>
-
 <div class="exam-countdown">
 <div class="exam-title">开学倒计时</div>
 <div class="summer-text" id="summerTip" style="display:none;">☀️ 暑假快乐！</div>
@@ -874,22 +848,19 @@ setTimeout(()=>{
 </div>
 <div class="slogan">全力以赴，未来可期 ✨</div>
 </div>
-
 <div class="quote-card" onclick="showNewQuote()">
 <div id="quote">点击这里刷新名言</div>
 <div class="quote-tip">✨ 点击换一句励志语录</div>
 </div>
-
 <div class="section" id="album">
 <h2>班级相册</h2>
 <p style="font-size:16px;">存放班级各类活动照片视频，记录大家成长点滴。</p>
 <br>
 <a href="album.html" class="album-btn photo">📸 查看照片入口</a>
 <a href="vedio.html" class="album-btn video">🎬 查看视频入口</a>
+<a href="simi.html" class="album-btn video">🔒 私密入口</a>
 </div>
-
 <button onclick="copySite()" class="copy-btn">🔗 一键复制班级网站网址</button>
-
 <ul class="game-list">
 <li style="margin: 0;">
 <a href="222.html" target="_blank">🎮 五子棋</a>
@@ -904,7 +875,6 @@ setTimeout(()=>{
 <a href="fangkuai.html" target="_blank">🧩 俄罗斯方块</a>
 </li>
 </ul>
-
 <div class="section" id="files" style="margin: 36px 0;">
 <h2>📁 文件资料</h2>
 <ul class="file-list">
@@ -920,14 +890,11 @@ setTimeout(()=>{
 </ul>
 </div>
 </div>
-
 <button id="backTopBtn">
 <span></span>
 </button>
-
 <footer> 福州第三十六中学2024级8班 © 2026 </footer>
 <canvas id="particles"></canvas>
-
 <div class="modal-mask" id="welcomeModal">
 <div class="modal-box">
 <p class="modal-text">欢迎进入 2024级8班班级网站</p>
@@ -935,7 +902,6 @@ setTimeout(()=>{
 <button class="confirm-btn" id="closeBtn">开始浏览</button>
 </div>
 </div>
-
 <script>
 // ========== 主题初始化 ==========
 (function(){
@@ -953,7 +919,6 @@ setTimeout(()=>{
     else btn.classList.remove("active");
   });
 })();
-
 // ========== 设置主题 ==========
 function setTheme(btn, className){
   document.body.classList.remove("theme-blue","theme-gold","theme-green");
@@ -964,7 +929,6 @@ function setTheme(btn, className){
   if(btn) btn.classList.add("active");
   initParticles();
 }
-
 // ========== 欢迎弹窗 ==========
 const modalMask = document.getElementById('welcomeModal'), closeBtn = document.getElementById('closeBtn'), canvas = document.getElementById('particles');
 let animationId = null;
@@ -987,7 +951,6 @@ modalMask.addEventListener('click', e => {
   if(e.target === modalMask) closeModal();
 });
 setTimeout(closeModal, 35000);
-
 // ========== 粒子效果 ==========
 const ctx = canvas.getContext('2d');
 let w, h, centerX, centerY, particles = [];
@@ -1048,7 +1011,6 @@ function animate(){
   animationId = requestAnimationFrame(animate);
 }
 animate();
-
 // ========== 返回顶部 ==========
 const backTopBtn = document.getElementById("backTopBtn");
 let scrollTimer;
@@ -1066,7 +1028,6 @@ window.addEventListener("scroll", () => {
   }, 50);
 });
 backTopBtn.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
-
 // ========== 倒计时 ==========
 const startSummerEnd = new Date("2026/07/03 23:59:59").getTime();
 const schoolDay = new Date("2026/09/01 00:00:00").getTime();
@@ -1094,7 +1055,6 @@ function updateCountdown(){
 }
 updateCountdown();
 setInterval(updateCountdown, 1000);
-
 // ========== 名言 ==========
 const quotes = [
 "以梦为马，不负韶华",
@@ -1131,14 +1091,12 @@ function showNewQuote(){
   }, 200);
 }
 window.onload = showNewQuote;
-
 // ========== 深色模式切换 ==========
 function toggleDark(){
   const body = document.body;
   body.classList.toggle("dark");
   localStorage.setItem("siteTheme", body.classList.contains("dark") ? "dark" : "light");
 }
-
 // ========== 复制网址 ==========
 function copySite(){
   const url = window.location.href;
@@ -1161,7 +1119,6 @@ function fallbackCopy(text){
   document.body.removeChild(input);
   alert("复制成功！");
 }
-
 // ========== 爱心飘落 ==========
 const heartContainer = document.getElementById("heartContainer");
 function createHeart(){
@@ -1175,7 +1132,6 @@ function createHeart(){
   setTimeout(() => heart.remove(), 12000);
 }
 setInterval(createHeart, 800);
-
 // ========== 鼠标星光 ==========
 const starTrailContainer = document.getElementById("starTrailContainer");
 let lastStarTime = 0;
