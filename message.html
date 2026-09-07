@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>班级留言板</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
+body{max-width:640px;margin:20px auto;padding:0 12px}
+.box{border:1px solid #ddd;border-radius:10px;padding:16px;margin:12px 0}
+input,textarea{width:100%;padding:10px;margin:8px 0;border:1px solid #ccc;border-radius:6px;font-size:16px}
+button{padding:10px 14px;margin:4px;border:none;border-radius:6px;background:#2563eb;color:white;font-size:15px;cursor:pointer}
+.msg-item{padding:10px;border-bottom:1px solid #eee}
+</style>
+</head>
+<body>
+<h2>班级留言板</h2>
+
+<div id="auth-area" class="box">
+  <h4>注册 / 登录</h4>
+  <input type="email" id="email" placeholder="邮箱">
+  <input type="password" id="pwd" placeholder="密码">
+  <input type="text" id="nick" placeholder="你的昵称">
+  <button onclick="doSignUp()">注册</button>
+  <button onclick="doSignIn()">登录</button>
+  <button onclick="doSignOut()">退出</button>
+</div>
+
+<div id="post-area" class="box" style="display:none">
+  <h4>发表留言</h4>
+  <textarea id="msgContent" rows="4" placeholder="写留言"></textarea>
+  <button onclick="sendMsg()">提交留言</button>
+</div>
+
+<div class="box">
+  <h4>留言列表</h4>
+  <div id="list"></div>
+</div>
+
+<script>
+// 填入你的Supabase信息
+const SUPABASE_URL = "填你的supabase url";
+const SUPABASE_ANON_KEY = "填你的anon key";
+
+const { createClient } = window.supabase;
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+//注册
+async function doSignUp(){
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('pwd').value.trim();
+  const username = document.getElementById('nick').value.trim();
+  const {error} = await supabase.auth.signUp({email,password,options:{data:{username}}});
+  if(error) alert(error.message);
+  else alert("注册成功，请登录");
+}
+
+//登录
+async function doSignIn(){
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('pwd').value.trim();
+  const {error} = await supabase.auth.signInWithPassword({email,password});
+  if(error) alert(error.message);
+  else {
+    alert("登录成功");
+    checkUser();
+  }
+}
+
+//退出
+async function doSignOut(){
+  await supabase.auth.signOut();
+  alert("已退出");
+  checkUser();
+}
+
+//检测登录状态
+async function checkUser(){
+  const {data:{user}} = await supabase.auth.getUser();
+  if(user){
+    document.getElementById('post-area').style.display="block";
+  }else{
+    document.getElementById('post-area').style.display="none";
+  }
+  loadMsgs();
+}
+
+//提交留言
+async function sendMsg(){
+  const content = document.getElementById('msgContent').value.trim();
+  if(!content)return;
+  const {error}=await supabase.from('messages').insert({content});
+  if(error) alert(error.message);
+  else{
+    document.getElementById('msgContent').value="";
+    loadMsgs();
+  }
+}
+
+//加载留言
+async function loadMsgs(){
+  const {data,error}=await supabase.from('messages').select(`*,profiles(username)`).order('created_at',{asc:false});
+  if(error)return;
+  const dom=document.getElementById('list');
+  dom.innerHTML="";
+  data.forEach(item=>{
+    dom.innerHTML+=`<div class="msg-item"><div>${item.profiles?.username||"匿名"}：</div><div>${item.content}</div></div>`;
+  })
+}
+
+checkUser();
+</script>
+</body>
+</html>
