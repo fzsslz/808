@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>班级登录</title>
+<style>
+.box{max-width:360px;margin:100px auto;padding:24px;border:1px solid #ccc;border-radius:8px;}
+input{width:100%;box-sizing:border-box;padding:10px;margin:8px 0;}
+button{padding:10px 16px;background:#2563eb;color:white;border:none;border-radius:4px;width:100%;cursor:pointer;}
+.msg{color:red;margin-top:10px;}
+</style>
+</head>
+<body>
+<div class="box">
+<h2>请登录（输入你的座号）</h2>
+<input type="text" id="username" placeholder="座号，例如 1">
+<input type="password" id="pwd" placeholder="初始密码就是座号">
+<button onclick="doLogin()">登录</button>
+<div class="msg" id="msg"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://grwawlhjdalnioetwhjs.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_g5q1KeSc2fLoWDlgguD_Yw_ELd3Aao3";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function doLogin(){
+  const name = document.getElementById("username").value.trim();
+  const pw = document.getElementById("pwd").value.trim();
+  const msgDom = document.getElementById("msg");
+  if(!name||!pw){
+    msgDom.innerText="请输入座号和密码";
+    return;
+  }
+  const email = name + "@class.local";
+  const {data,error}=await supabase.auth.signInWithPassword({email:email,password:pw});
+  if(error){
+    msgDom.innerText="登录失败："+error.message;
+  }else{
+    window.location.href="index.html";
+  }
+}
+</script>
+</body>
+</html>
