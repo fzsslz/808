@@ -2,43 +2,371 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>班级登录</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>个人中心 - 2024级8班班级网站</title>
 <style>
-.box{max-width:360px;margin:100px auto;padding:24px;border:1px solid #ccc;border-radius:8px;}
-input{width:100%;box-sizing:border-box;padding:10px;margin:8px 0;}
-button{padding:10px 16px;background:#2563eb;color:white;border:none;border-radius:4px;width:100%;cursor:pointer;}
-.msg{color:red;margin-top:10px;}
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,"Microsoft YaHei",sans-serif;}
+body{
+  min-height:100vh;
+  background:linear-gradient(135deg,#6366f1 0%,#ec4899 100%);
+  padding:20px;
+  color:#334155;
+}
+.wrap{max-width:520px;margin:0 auto;}
+.back-link{
+  display:inline-block;color:#fff;text-decoration:none;font-size:14px;
+  margin-bottom:16px;opacity:0.9;
+}
+.back-link:hover{opacity:1;text-decoration:underline;}
+
+/* ===== 登录框 ===== */
+.login-box{
+  background:#fff;border-radius:20px;padding:36px 28px;
+  box-shadow:0 20px 50px rgba(0,0,0,0.2);
+}
+.login-box h2{color:#4f46e5;text-align:center;margin-bottom:24px;font-size:22px;}
+.login-box input{
+  width:100%;padding:13px 14px;margin-bottom:14px;
+  border:1px solid #e2e8f0;border-radius:10px;font-size:16px;outline:none;
+  transition:border 0.2s;
+}
+.login-box input:focus{border-color:#6366f1;}
+.btn-primary{
+  width:100%;padding:13px;background:linear-gradient(135deg,#6366f1,#ec4899);
+  color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:bold;
+  cursor:pointer;transition:opacity 0.2s;
+}
+.btn-primary:hover{opacity:0.92;}
+.btn-primary:disabled{opacity:0.6;cursor:not-allowed;}
+.msg{margin-top:14px;font-size:14px;line-height:1.6;min-height:20px;text-align:center;}
+.msg.error{color:#ef4444;}
+.msg.success{color:#10b981;}
+.login-tip{margin-top:18px;text-align:center;font-size:13px;color:#94a3b8;line-height:1.8;}
+
+/* ===== 个人中心 ===== */
+.profile-card{
+  background:#fff;border-radius:20px;padding:28px 24px;
+  box-shadow:0 20px 50px rgba(0,0,0,0.2);margin-bottom:18px;
+}
+.profile-header{
+  display:flex;align-items:center;gap:18px;margin-bottom:22px;
+  padding-bottom:20px;border-bottom:1px solid #f1f5f9;
+}
+.avatar{
+  width:72px;height:72px;border-radius:50%;
+  background:linear-gradient(135deg,#6366f1,#ec4899);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:bold;flex-shrink:0;
+  box-shadow:0 6px 16px rgba(99,102,241,0.35);
+}
+.avatar.female{background:linear-gradient(135deg,#ec4899,#f472b6);}
+.avatar.secret{background:linear-gradient(135deg,#64748b,#94a3b8);}
+.profile-info h3{font-size:20px;color:#1e293b;margin-bottom:4px;}
+.profile-info .gender-tag{
+  display:inline-block;padding:2px 10px;border-radius:999px;
+  font-size:12px;background:#eef2ff;color:#4f46e5;margin-bottom:6px;
+}
+.profile-info .gender-tag.female{background:#fdf2f8;color:#db2777;}
+.profile-info .gender-tag.secret{background:#f1f5f9;color:#64748b;}
+.profile-info .sig{font-size:14px;color:#64748b;line-height:1.6;}
+
+.section-title{
+  font-size:16px;font-weight:bold;color:#4f46e5;margin-bottom:14px;
+  display:flex;align-items:center;gap:6px;
+}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:13px;color:#64748b;margin-bottom:6px;font-weight:500;}
+.form-group input,.form-group select,.form-group textarea{
+  width:100%;padding:11px 12px;border:1px solid #e2e8f0;border-radius:10px;
+  font-size:15px;outline:none;transition:border 0.2s;font-family:inherit;
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#6366f1;}
+.form-group textarea{resize:vertical;min-height:60px;}
+.btn-save{
+  padding:11px 24px;background:linear-gradient(135deg,#6366f1,#818cf8);
+  color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:bold;
+  cursor:pointer;transition:opacity 0.2s;
+}
+.btn-save:hover{opacity:0.9;}
+.btn-save:disabled{opacity:0.6;}
+
+.divider{height:1px;background:#f1f5f9;margin:22px 0;}
+
+.action-row{
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;
+}
+.btn-outline{
+  flex:1;min-width:120px;padding:12px;background:#fff;
+  border:2px solid #e2e8f0;color:#475569;border-radius:10px;
+  font-size:14px;font-weight:bold;cursor:pointer;transition:all 0.2s;
+  text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.btn-outline:hover{border-color:#6366f1;color:#4f46e5;}
+.btn-logout{
+  flex:1;min-width:120px;padding:12px;background:#fff;
+  border:2px solid #fecaca;color:#ef4444;border-radius:10px;
+  font-size:14px;font-weight:bold;cursor:pointer;transition:all 0.2s;
+}
+.btn-logout:hover{background:#fef2f2;border-color:#ef4444;}
+
+.loading{text-align:center;padding:40px;color:#fff;font-size:15px;}
+
+@media(max-width:480px){
+  .profile-header{flex-direction:column;text-align:center;}
+  .action-row{flex-direction:column;}
+}
 </style>
 </head>
 <body>
-<div class="box">
-<h2>请登录（输入你的座号）</h2>
-<input type="text" id="username" placeholder="座号，例如 1">
-<input type="password" id="pwd" placeholder="初始密码就是座号">
-<button onclick="doLogin()">登录</button>
-<div class="msg" id="msg"></div>
+<div class="wrap">
+  <a href="index.html" class="back-link">← 返回班级首页</a>
+
+  <!-- 加载中 -->
+  <div id="loadingView" class="loading">正在加载...</div>
+
+  <!-- 未登录：登录框 -->
+  <div id="loginView" style="display:none;">
+    <div class="login-box">
+      <h2>🎓 班级网站登录</h2>
+      <input type="text" id="loginUser" placeholder="输入你的座号，例如 1" autocomplete="username">
+      <input type="password" id="loginPwd" placeholder="输入密码（初始是座号）" autocomplete="current-password">
+      <button class="btn-primary" id="loginBtn" onclick="doLogin()">登 录</button>
+      <div class="msg" id="loginMsg"></div>
+      <div class="login-tip">
+        初始账号密码都是你的座号<br>
+        登录后可在此页面修改密码和个人资料
+      </div>
+    </div>
+  </div>
+
+  <!-- 已登录：个人中心 -->
+  <div id="profileView" style="display:none;">
+    <!-- 个人信息卡 -->
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="avatar" id="avatar">?</div>
+        <div class="profile-info">
+          <h3 id="showName">座号</h3>
+          <span class="gender-tag" id="showGenderTag">保密</span>
+          <div class="sig" id="showSig">这个人很懒，什么都没留下</div>
+        </div>
+      </div>
+
+      <!-- 编辑资料 -->
+      <div class="section-title">✏️ 编辑个人资料</div>
+      <div class="form-group">
+        <label>性别</label>
+        <select id="editGender">
+          <option value="男">男</option>
+          <option value="女">女</option>
+          <option value="保密">保密</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>个性签名（最多50字）</label>
+        <textarea id="editSig" maxlength="50" placeholder="写一句个性签名吧"></textarea>
+      </div>
+      <button class="btn-save" id="saveProfileBtn" onclick="saveProfile()">保存资料</button>
+      <div class="msg" id="profileMsg"></div>
+
+      <div class="divider"></div>
+
+      <!-- 修改密码 -->
+      <div class="section-title">🔑 修改密码</div>
+      <div class="form-group">
+        <label>旧密码（初始是座号）</label>
+        <input type="password" id="oldPwd" placeholder="输入当前密码">
+      </div>
+      <div class="form-group">
+        <label>新密码（至少6位）</label>
+        <input type="password" id="newPwd1" placeholder="设置新密码">
+      </div>
+      <div class="form-group">
+        <label>确认新密码</label>
+        <input type="password" id="newPwd2" placeholder="再次输入新密码">
+      </div>
+      <button class="btn-save" id="savePwdBtn" onclick="changePassword()">修改密码</button>
+      <div class="msg" id="pwdMsg"></div>
+    </div>
+
+    <!-- 底部操作 -->
+    <div class="action-row">
+      <a href="users.html" class="btn-outline">👥 班级成员空间</a>
+      <button class="btn-logout" onclick="doLogout()">🚪 退出登录</button>
+    </div>
+  </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = "https://grwawlhjdalnioetwhjs.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_g5q1KeSc2fLoWDlgguD_Yw_ELd3Aao3";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SB_URL = "https://grwawlhjdalnioetwhjs.supabase.co";
+const SB_KEY = "sb_publishable_g5q1KeSc2fLoWDlgguD_Yw_ELd3Aao3";
+let sbClient = null;
+let currentUser = null;
 
-async function doLogin(){
-  const name = document.getElementById("username").value.trim();
-  const pw = document.getElementById("pwd").value.trim();
-  const msgDom = document.getElementById("msg");
-  if(!name||!pw){
-    msgDom.innerText="请输入座号和密码";
+// 多CDN加载SDK
+function loadSupabase(cb){
+  const cdns = [
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+    "https://unpkg.com/@supabase/supabase-js@2"
+  ];
+  let i = 0;
+  function tryLoad(){
+    if(i >= cdns.length){ cb(null); return; }
+    const s = document.createElement("script");
+    s.src = cdns[i];
+    s.onload = () => {
+      if(window.supabase && window.supabase.createClient) cb(window.supabase);
+      else { i++; tryLoad(); }
+    };
+    s.onerror = () => { i++; tryLoad(); };
+    document.head.appendChild(s);
+  }
+  tryLoad();
+}
+
+function showMsg(id, text, type){
+  const el = document.getElementById(id);
+  el.innerText = text;
+  el.className = "msg " + (type || "");
+}
+
+function setBtn(id, text, disabled){
+  const b = document.getElementById(id);
+  b.innerText = text;
+  b.disabled = disabled;
+}
+
+// 初始化
+loadSupabase(function(sb){
+  if(!sb){
+    document.getElementById("loadingView").innerText = "⚠️ 登录组件加载失败，请刷新页面重试";
     return;
   }
-  const email = name + "@class.local";
-  const {data,error}=await supabase.auth.signInWithPassword({email:email,password:pw});
-  if(error){
-    msgDom.innerText="登录失败："+error.message;
+  sbClient = sb.createClient(SB_URL, SB_KEY);
+  checkAuth();
+});
+
+async function checkAuth(){
+  const {data:{session}} = await sbClient.auth.getSession();
+  document.getElementById("loadingView").style.display = "none";
+  if(session && session.user){
+    currentUser = session.user;
+    document.getElementById("profileView").style.display = "block";
+    loadProfile();
   }else{
-    window.location.href="index.html";
+    document.getElementById("loginView").style.display = "block";
+  }
+}
+
+// ===== 登录 =====
+async function doLogin(){
+  const name = document.getElementById("loginUser").value.trim();
+  const pw = document.getElementById("loginPwd").value.trim();
+  if(!name || !pw){ showMsg("loginMsg","请输入座号和密码","error"); return; }
+  setBtn("loginBtn","登录中...",true);
+  showMsg("loginMsg","","");
+  const email = name + "@class.local";
+  try{
+    const {error} = await sbClient.auth.signInWithPassword({email, password:pw});
+    if(error){
+      showMsg("loginMsg","登录失败：" + error.message,"error");
+      setBtn("loginBtn","登 录",false);
+    }else{
+      showMsg("loginMsg","登录成功！","success");
+      setTimeout(()=>location.reload(), 500);
+    }
+  }catch(e){
+    showMsg("loginMsg","网络错误：" + e.message,"error");
+    setBtn("loginBtn","登 录",false);
+  }
+}
+document.getElementById("loginPwd").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
+
+// ===== 读取个人资料 =====
+async function loadProfile(){
+  const uid = currentUser.id;
+  const username = (currentUser.user_metadata && currentUser.user_metadata.username) || "?";
+  document.getElementById("showName").innerText = username + " 号同学";
+  document.getElementById("avatar").innerText = username;
+
+  const {data, error} = await sbClient
+    .from("profiles")
+    .select("gender, signature")
+    .eq("id", uid)
+    .single();
+  if(data){
+    document.getElementById("showGenderTag").innerText = data.gender || "保密";
+    document.getElementById("showSig").innerText = data.signature || "这个人很懒，什么都没留下";
+    document.getElementById("editGender").value = data.gender || "保密";
+    document.getElementById("editSig").value = data.signature || "";
+    // 头像颜色
+    const av = document.getElementById("avatar");
+    av.className = "avatar";
+    if(data.gender === "女") av.classList.add("female");
+    else if(data.gender === "保密") av.classList.add("secret");
+    // 性别标签颜色
+    const gt = document.getElementById("showGenderTag");
+    gt.className = "gender-tag";
+    if(data.gender === "女") gt.classList.add("female");
+    else if(data.gender === "保密") gt.classList.add("secret");
+  }
+}
+
+// ===== 保存资料 =====
+async function saveProfile(){
+  const gender = document.getElementById("editGender").value;
+  const signature = document.getElementById("editSig").value.trim() || "这个人很懒，什么都没留下";
+  setBtn("saveProfileBtn","保存中...",true);
+  showMsg("profileMsg","","");
+  const {error} = await sbClient
+    .from("profiles")
+    .update({gender, signature})
+    .eq("id", currentUser.id);
+  if(error){
+    showMsg("profileMsg","保存失败：" + error.message,"error");
+  }else{
+    showMsg("profileMsg","✅ 资料保存成功！","success");
+    loadProfile();
+  }
+  setBtn("saveProfileBtn","保存资料",false);
+}
+
+// ===== 修改密码 =====
+async function changePassword(){
+  const oldP = document.getElementById("oldPwd").value.trim();
+  const p1 = document.getElementById("newPwd1").value.trim();
+  const p2 = document.getElementById("newPwd2").value.trim();
+  if(!oldP || !p1 || !p2){ showMsg("pwdMsg","请填写全部密码框","error"); return; }
+  if(p1 !== p2){ showMsg("pwdMsg","两次新密码不一致","error"); return; }
+  if(p1.length < 6){ showMsg("pwdMsg","新密码至少6位","error"); return; }
+  setBtn("savePwdBtn","修改中...",true);
+  showMsg("pwdMsg","","");
+  // 验证旧密码
+  const email = currentUser.email;
+  const {error:errOld} = await sbClient.auth.signInWithPassword({email, password:oldP});
+  if(errOld){
+    showMsg("pwdMsg","旧密码错误","error");
+    setBtn("savePwdBtn","修改密码",false);
+    return;
+  }
+  const {error} = await sbClient.auth.updateUser({password:p1});
+  if(error){
+    showMsg("pwdMsg","修改失败：" + error.message,"error");
+  }else{
+    showMsg("pwdMsg","✅ 密码修改成功！请重新登录","success");
+    setTimeout(async ()=>{
+      await sbClient.auth.signOut();
+      location.reload();
+    }, 1500);
+  }
+  setBtn("savePwdBtn","修改密码",false);
+}
+
+// ===== 退出登录 =====
+async function doLogout(){
+  if(confirm("确定要退出登录吗？")){
+    await sbClient.auth.signOut();
+    location.reload();
   }
 }
 </script>
