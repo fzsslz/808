@@ -778,6 +778,71 @@ body.dark .time-text {color:var(--dark-text-secondary);}
   position:relative;
   font-variant-numeric:tabular-nums;
 }
+
+/* ========== 新增：右上角登录挂件 ========== */
+#userBadge {
+  position:fixed;
+  top:100px;
+  right:16px;
+  z-index:98;
+  background:rgba(255,255,255,0.92);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  padding:8px 16px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--primary-text);
+  box-shadow:var(--shadow-sm);
+  cursor:pointer;
+  border:1px solid rgba(255,255,255,0.7);
+  transition:all var(--transition-fast);
+  max-width:42vw;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  user-select:none;
+}
+#userBadge:hover {
+  transform:translateY(-2px);
+  box-shadow:var(--shadow-md);
+}
+body.dark #userBadge {
+  background:var(--dark-card);
+  color:var(--dark-text-secondary);
+  border-color:rgba(255,255,255,0.15);
+}
+
+/* ========== 新增：底部登录提醒弹窗 ========== */
+#loginToast {
+  position:fixed;
+  bottom:30px;
+  left:50%;
+  transform:translateX(-50%) translateY(120px);
+  z-index:997;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:#fff;
+  padding:14px 28px;
+  border-radius:var(--radius-md);
+  box-shadow:var(--shadow-lg);
+  font-size:14px;
+  font-weight:500;
+  cursor:pointer;
+  opacity:0;
+  transition:all 0.4s cubic-bezier(0.25,0.8,0.25,1);
+  max-width:88vw;
+  text-align:center;
+  line-height:1.6;
+  user-select:none;
+}
+#loginToast.show {
+  transform:translateX(-50%) translateY(0);
+  opacity:1;
+}
+#loginToast:hover {
+  box-shadow:0 14px 32px rgba(var(--primary-rgb),0.35);
+}
+
 /* ========== 手机端适配 ========== */
 @media (max-width:768px) {
   .container {padding:0 16px;}
@@ -788,6 +853,7 @@ body.dark .time-text {color:var(--dark-text-secondary);}
   .modal-box {padding:32px 20px;}
   #backTopBtn {right:16px;bottom:72px;width:48px;height:48px;}
   .theme-btn-group {justify-content:center;}
+  #userBadge {top:90px;right:10px;padding:6px 12px;font-size:12px;max-width:38vw;}
 }
 @media (max-width:480px) {
   header {padding:16px 14px;}
@@ -797,6 +863,8 @@ body.dark .time-text {color:var(--dark-text-secondary);}
   #backTopBtn {right:12px;bottom:64px;width:44px;height:44px;}
 }
 </style>
+<!-- Supabase 登录 SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- 不蒜子访问统计 -->
 <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 <script>
@@ -808,6 +876,10 @@ setTimeout(()=>{
 </script>
 </head>
 <body>
+<!-- 右上角登录挂件 -->
+<div id="userBadge">🔑 点击登录</div>
+<!-- 底部登录提醒弹窗 -->
+<div id="loginToast">👋 还没登录？点我登录班级账号，解锁个人中心</div>
 <div id="heartContainer"></div>
 <div id="starTrailContainer"></div>
 <header>
@@ -833,9 +905,6 @@ setTimeout(()=>{
 <div class="section" id="home">
 <h2>班级介绍</h2>
 <p style="font-size:16px;">欢迎来到福州第三十六中学2024级8班班级网站，这里记录我们的学习、活动与成长瞬间。</p>
-</div>
-  <div>
-  <a href="message.html">登录和留言</a>
 </div>
 <div class="visit-box">
 <span>👀 网站访问总次数：<strong id="busuanzi_value_site_pv">加载中</strong></span>
@@ -1148,6 +1217,75 @@ window.addEventListener("mousemove", e => {
   star.style.top = e.clientY + "px";
   starTrailContainer.appendChild(star);
   setTimeout(() => star.remove(), 800);
+});
+
+// ========== 新增：登录状态检测 & 定时提醒 ==========
+const SB_URL = "https://grwawlhjdalnioetwhjs.supabase.co";
+const SB_KEY = "sb_publishable_g5q1KeSc2fLoWDlgguD_Yw_ELd3Aao3";
+const sbClient = window.supabase.createClient(SB_URL, SB_KEY);
+
+const userBadgeEl = document.getElementById("userBadge");
+const loginToastEl = document.getElementById("loginToast");
+let userLoggedIn = false;
+let toastIntervalId = null;
+
+function goLoginPage(){
+  window.location.href = "login.html";
+}
+
+async function doLogout(){
+  if(confirm("确定要退出登录吗？")){
+    await sbClient.auth.signOut();
+    location.reload();
+  }
+}
+
+async function refreshLoginState(){
+  const {data:{session}} = await sbClient.auth.getSession();
+  if(session && session.user){
+    userLoggedIn = true;
+    const uname = (session.user.user_metadata && session.user.user_metadata.username) || "同学";
+    userBadgeEl.innerHTML = "👤 " + uname + "号  退出";
+    userBadgeEl.onclick = doLogout;
+    loginToastEl.style.display = "none";
+    if(toastIntervalId){ clearInterval(toastIntervalId); toastIntervalId = null; }
+  }else{
+    userLoggedIn = false;
+    userBadgeEl.innerHTML = "🔑 点击登录";
+    userBadgeEl.onclick = goLoginPage;
+    loginToastEl.style.display = "";
+    startLoginReminder();
+  }
+}
+
+function showLoginToastOnce(){
+  if(userLoggedIn) return;
+  loginToastEl.classList.add("show");
+  setTimeout(()=>{
+    loginToastEl.classList.remove("show");
+  }, 6000);
+}
+
+function startLoginReminder(){
+  // 页面打开10秒后第一次提醒
+  setTimeout(showLoginToastOnce, 10000);
+  // 之后每90秒提醒一次
+  if(!toastIntervalId){
+    toastIntervalId = setInterval(showLoginToastOnce, 90000);
+  }
+}
+
+// 点击底部提醒弹窗 → 跳登录页
+loginToastEl.onclick = goLoginPage;
+
+// 页面加载后检测登录状态
+refreshLoginState();
+
+// 监听登录/退出事件，自动刷新挂件
+sbClient.auth.onAuthStateChange((event)=>{
+  if(event === "SIGNED_IN" || event === "SIGNED_OUT"){
+    refreshLoginState();
+  }
 });
 </script>
 </body>
