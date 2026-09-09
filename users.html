@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>班级成员空间 - 2024级8班</title>
+<title>个人中心 - 2024级8班</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,"Microsoft YaHei",sans-serif;}
 body{
@@ -12,155 +12,148 @@ body{
   padding:20px;
   color:#334155;
 }
-.wrap{max-width:900px;margin:0 auto;}
-.top-bar{
-  display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:20px;flex-wrap:wrap;gap:10px;
+.wrap{max-width:500px;margin:0 auto;}
+.card{
+  background:#fff;border-radius:16px;padding:28px 24px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.12);
+  margin-bottom:16px;
 }
-.top-bar a{color:#fff;text-decoration:none;font-size:14px;opacity:0.9;}
-.top-bar a:hover{opacity:1;text-decoration:underline;}
-.top-bar h2{color:#fff;font-size:22px;}
-.search-box{
-  width:100%;padding:13px 16px;border:none;border-radius:12px;
-  font-size:15px;outline:none;margin-bottom:20px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.1);
+.card h3{
+  font-size:17px;color:#1e293b;margin-bottom:16px;
+  padding-bottom:10px;border-bottom:1px solid #e2e8f0;
 }
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-  gap:14px;
+.form-group{margin-bottom:14px;}
+.form-group label{
+  display:block;font-size:13px;color:#64748b;margin-bottom:6px;
 }
-.member-card{
-  background:#fff;border-radius:16px;padding:20px 16px;
-  text-align:center;box-shadow:0 8px 20px rgba(0,0,0,0.12);
-  transition:transform 0.2s, box-shadow 0.2s;
-  cursor:default;
+.form-group input{
+  width:100%;padding:11px 14px;border:1px solid #cbd5e1;
+  border-radius:10px;font-size:15px;outline:none;
+  transition:border-color 0.2s;
 }
-.member-card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 14px 28px rgba(0,0,0,0.18);
+.form-group input:focus{border-color:#6366f1;}
+.btn{
+  width:100%;padding:12px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:#fff;font-size:15px;cursor:pointer;
+  transition:opacity 0.2s;
 }
-.m-avatar{
-  width:56px;height:56px;border-radius:50%;
-  background:linear-gradient(135deg,#6366f1,#ec4899);
-  color:#fff;display:flex;align-items:center;justify-content:center;
-  font-size:22px;font-weight:bold;margin:0 auto 10px;
+.btn:hover{opacity:0.9;}
+.btn-red{
+  background:linear-gradient(135deg,#ef4444,#f87171);
 }
-.m-avatar.female{background:linear-gradient(135deg,#ec4899,#f472b6);}
-.m-avatar.secret{background:linear-gradient(135deg,#64748b,#94a3b8);}
-.m-name{font-size:16px;font-weight:bold;color:#1e293b;margin-bottom:4px;}
-.m-gender{
-  display:inline-block;padding:2px 10px;border-radius:999px;
-  font-size:11px;background:#eef2ff;color:#4f46e5;margin-bottom:8px;
+.links{
+  display:flex;justify-content:space-between;margin-top:10px;
+  flex-wrap:wrap;gap:8px;
 }
-.m-gender.female{background:#fdf2f8;color:#db2777;}
-.m-gender.secret{background:#f1f5f9;color:#64748b;}
-.m-sig{
-  font-size:12px;color:#64748b;line-height:1.5;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
-  overflow:hidden;min-height:36px;
+.links a{
+  color:#fff;text-decoration:none;font-size:14px;opacity:0.9;
 }
-.loading,.empty{text-align:center;padding:40px;color:#fff;font-size:15px;}
-.count{color:#fff;font-size:13px;opacity:0.85;margin-bottom:14px;text-align:center;}
+.links a:hover{opacity:1;text-decoration:underline;}
+.tip{font-size:12px;color:#94a3b8;margin-top:8px;line-height:1.5;}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top-bar">
-    <a href="index.html">← 返回首页</a>
-    <h2>👥 班级成员空间</h2>
-    <a href="login.html">个人中心 →</a>
+  <div class="card">
+    <h3>✏️ 修改昵称</h3>
+    <div class="form-group">
+      <label>当前昵称</label>
+      <input type="text" id="nickInput" placeholder="输入你的昵称">
+    </div>
+    <button class="btn" id="saveNick">保存昵称</button>
+    <p class="tip">昵称保存在数据库，换电脑/换浏览器都在，同学在成员空间能看到。</p>
   </div>
-  <input type="text" class="search-box" id="searchInput" placeholder="🔍 按座号搜索同学...">
-  <div class="count" id="countText"></div>
-  <div id="grid" class="grid"></div>
-  <div id="loading" class="loading">正在加载班级成员...</div>
+
+  <div class="card">
+    <h3>🔒 修改密码</h3>
+    <div class="form-group">
+      <label>新密码</label>
+      <input type="password" id="newPwd" placeholder="输入新密码">
+    </div>
+    <button class="btn" id="updatePwdBtn">更新密码</button>
+  </div>
+
+  <div class="links">
+    <a href="index.html">← 返回首页</a>
+    <a href="member.html">成员空间 →</a>
+    <a href="message.html">互动空间 →</a>
+  </div>
+  <br>
+  <button class="btn btn-red" id="logout">退出登录</button>
 </div>
 
-<script>
-const SB_URL = "https://joqqxqzhdhqhcmnbdnex.supabase.co";
-const SB_KEY = "sb_publishable_Vj7vzrM66ieR8Yx11CgfsQ_45Y1o35O";
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-let sbClient = null;
-let allMembers = [];
+const supabaseUrl = "https://joqqxqzhdhqhcmnbdnex.supabase.co"
+const supabaseAnonKey = "sb_publishable_Vj7vzrM66ieR8Yx11CgfsQ_45Y1o35O"
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-function loadSupabase(cb){
-  const cdns = [
-    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
-    "https://unpkg.com/@supabase/supabase-js@2"
-  ];
-  let i = 0;
-  function tryLoad(){
-    if(i >= cdns.length){ cb(null); return; }
-    const s = document.createElement("script");
-    s.src = cdns[i];
-    s.onload = () => {
-      if(window.supabase && window.supabase.createClient) cb(window.supabase);
-      else { i++; tryLoad(); }
-    };
-    s.onerror = () => { i++; tryLoad(); };
-    document.head.appendChild(s);
+let user = null;
+
+async function init(){
+  const {data:{user:u}, error} = await supabase.auth.getUser()
+  if(!u){
+    window.location.href = "login.html"
+    return
   }
-  tryLoad();
+  user = u
+
+  // 读取当前昵称
+  const {data} = await supabase
+    .from('user_profile')
+    .select('nickname')
+    .eq('id', user.id)
+    .single()
+
+  if(data){
+    document.getElementById('nickInput').value = data.nickname || ''
+  }
 }
 
-loadSupabase(async function(sb){
-  if(!sb){
-    document.getElementById("loading").innerText = "⚠️ 组件加载失败，请刷新";
-    return;
+// 保存昵称
+document.getElementById('saveNick').onclick = async ()=>{
+  const newNick = document.getElementById('nickInput').value.trim()
+  if(!newNick){
+    alert("昵称不能为空！")
+    return
   }
-  sbClient = sb.createClient(SB_URL, SB_KEY);
-  // 未登录跳登录
-  const {data:{session}} = await sbClient.auth.getSession();
-  if(!session){
-    window.location.href = "login.html";
-    return;
-  }
-  loadMembers();
-});
+  const {error} = await supabase
+    .from('user_profile')
+    .update({nickname: newNick})
+    .eq('id', user.id)
 
-async function loadMembers(){
-  const {data, error} = await sbClient
-    .from("profiles")
-    .select("username, gender, signature")
-    .order("username", {ascending:true});
-  document.getElementById("loading").style.display = "none";
   if(error){
-    document.getElementById("grid").innerHTML = '<div class="empty">加载失败：' + error.message + '</div>';
-    return;
+    alert("保存失败：" + error.message)
+  }else{
+    alert("昵称修改成功！")
   }
-  allMembers = data || [];
-  renderMembers(allMembers);
 }
 
-function renderMembers(list){
-  const grid = document.getElementById("grid");
-  document.getElementById("countText").innerText = "共 " + list.length + " 位同学";
-  if(list.length === 0){
-    grid.innerHTML = '<div class="empty">没有找到匹配的同学</div>';
-    return;
+// 修改密码
+document.getElementById('updatePwdBtn').onclick = async ()=>{
+  const newPwd = document.getElementById('newPwd').value.trim()
+  if(newPwd.length < 6){
+    alert("密码至少6位！")
+    return
   }
-  grid.innerHTML = list.map(m => {
-    const g = m.gender || "保密";
-    const cls = g === "女" ? "female" : (g === "保密" ? "secret" : "");
-    return '<div class="member-card">' +
-      '<div class="m-avatar ' + cls + '">' + (m.username || "?") + '</div>' +
-      '<div class="m-name">' + (m.username || "?") + ' 号</div>' +
-      '<span class="m-gender ' + cls + '">' + g + '</span>' +
-      '<div class="m-sig">' + (m.signature || "这个人很懒，什么都没留下") + '</div>' +
-    '</div>';
-  }).join("");
+  const {error} = await supabase.auth.updateUser({password: newPwd})
+  if(error){
+    alert("密码修改失败：" + error.message)
+  }else{
+    alert("密码修改成功！")
+    document.getElementById('newPwd').value = ""
+  }
 }
 
-// 搜索
-document.getElementById("searchInput").addEventListener("input", function(){
-  const q = this.value.trim();
-  if(!q){ renderMembers(allMembers); return; }
-  const filtered = allMembers.filter(m =>
-    (m.username || "").toString().includes(q)
-  );
-  renderMembers(filtered);
-});
+// 退出登录
+document.getElementById('logout').onclick = async ()=>{
+  await supabase.auth.signOut()
+  window.location.href = "login.html"
+}
+
+init()
 </script>
 </body>
 </html>
