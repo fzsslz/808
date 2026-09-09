@@ -18,7 +18,6 @@ body{
   margin-bottom:16px;opacity:0.9;
 }
 .back-link:hover{opacity:1;text-decoration:underline;}
-
 /* ===== 登录框 ===== */
 .login-box{
   background:#fff;border-radius:20px;padding:36px 28px;
@@ -42,7 +41,6 @@ body{
 .msg.error{color:#ef4444;}
 .msg.success{color:#10b981;}
 .login-tip{margin-top:18px;text-align:center;font-size:13px;color:#94a3b8;line-height:1.8;}
-
 /* ===== 个人中心 ===== */
 .profile-card{
   background:#fff;border-radius:20px;padding:28px 24px;
@@ -69,7 +67,6 @@ body{
 .profile-info .gender-tag.female{background:#fdf2f8;color:#db2777;}
 .profile-info .gender-tag.secret{background:#f1f5f9;color:#64748b;}
 .profile-info .sig{font-size:14px;color:#64748b;line-height:1.6;}
-
 .section-title{
   font-size:16px;font-weight:bold;color:#4f46e5;margin-bottom:14px;
   display:flex;align-items:center;gap:6px;
@@ -89,9 +86,7 @@ body{
 }
 .btn-save:hover{opacity:0.9;}
 .btn-save:disabled{opacity:0.6;}
-
 .divider{height:1px;background:#f1f5f9;margin:22px 0;}
-
 .action-row{
   display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;
 }
@@ -108,9 +103,7 @@ body{
   font-size:14px;font-weight:bold;cursor:pointer;transition:all 0.2s;
 }
 .btn-logout:hover{background:#fef2f2;border-color:#ef4444;}
-
 .loading{text-align:center;padding:40px;color:#fff;font-size:15px;}
-
 @media(max-width:480px){
   .profile-header{flex-direction:column;text-align:center;}
   .action-row{flex-direction:column;}
@@ -120,10 +113,8 @@ body{
 <body>
 <div class="wrap">
   <a href="index.html" class="back-link">← 返回班级首页</a>
-
   <!-- 加载中 -->
   <div id="loadingView" class="loading">正在加载...</div>
-
   <!-- 未登录：登录框 -->
   <div id="loginView" style="display:none;">
     <div class="login-box">
@@ -138,7 +129,6 @@ body{
       </div>
     </div>
   </div>
-
   <!-- 已登录：个人中心 -->
   <div id="profileView" style="display:none;">
     <!-- 个人信息卡 -->
@@ -151,9 +141,12 @@ body{
           <div class="sig" id="showSig">这个人很懒，什么都没留下</div>
         </div>
       </div>
-
       <!-- 编辑资料 -->
       <div class="section-title">✏️ 编辑个人资料</div>
+      <div class="form-group">
+        <label>昵称（互动空间显示这个名字）</label>
+        <input type="text" id="editNick" maxlength="20" placeholder="输入你的昵称，最多20字">
+      </div>
       <div class="form-group">
         <label>性别</label>
         <select id="editGender">
@@ -168,9 +161,7 @@ body{
       </div>
       <button class="btn-save" id="saveProfileBtn" onclick="saveProfile()">保存资料</button>
       <div class="msg" id="profileMsg"></div>
-
       <div class="divider"></div>
-
       <!-- 修改密码 -->
       <div class="section-title">🔑 修改密码</div>
       <div class="form-group">
@@ -188,22 +179,19 @@ body{
       <button class="btn-save" id="savePwdBtn" onclick="changePassword()">修改密码</button>
       <div class="msg" id="pwdMsg"></div>
     </div>
-
     <!-- 底部操作 -->
     <div class="action-row">
       <a href="users.html" class="btn-outline">👥 班级成员空间</a>
+      <a href="message.html" class="btn-outline">💬 互动空间</a>
       <button class="btn-logout" onclick="doLogout()">🚪 退出登录</button>
     </div>
   </div>
 </div>
-
 <script>
 const SB_URL = "https://joqqxqzhdhqhcmnbdnex.supabase.co";
 const SB_KEY = "sb_publishable_Vj7vzrM66ieR8Yx11CgfsQ_45Y1o35O";
-
 let sbClient = null;
 let currentUser = null;
-
 // 多CDN加载SDK
 function loadSupabase(cb){
   const cdns = [
@@ -224,19 +212,16 @@ function loadSupabase(cb){
   }
   tryLoad();
 }
-
 function showMsg(id, text, type){
   const el = document.getElementById(id);
   el.innerText = text;
   el.className = "msg " + (type || "");
 }
-
 function setBtn(id, text, disabled){
   const b = document.getElementById(id);
   b.innerText = text;
   b.disabled = disabled;
 }
-
 // 初始化
 loadSupabase(function(sb){
   if(!sb){
@@ -246,7 +231,6 @@ loadSupabase(function(sb){
   sbClient = sb.createClient(SB_URL, SB_KEY);
   checkAuth();
 });
-
 async function checkAuth(){
   const {data:{session}} = await sbClient.auth.getSession();
   document.getElementById("loadingView").style.display = "none";
@@ -258,7 +242,6 @@ async function checkAuth(){
     document.getElementById("loginView").style.display = "block";
   }
 }
-
 // ===== 登录 =====
 async function doLogin(){
   const name = document.getElementById("loginUser").value.trim();
@@ -282,22 +265,21 @@ async function doLogin(){
   }
 }
 document.getElementById("loginPwd").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
-
 // ===== 读取个人资料 =====
 async function loadProfile(){
   const uid = currentUser.id;
   const username = (currentUser.user_metadata && currentUser.user_metadata.username) || "?";
   document.getElementById("showName").innerText = username + " 号同学";
   document.getElementById("avatar").innerText = username;
-
   const {data, error} = await sbClient
     .from("profiles")
-    .select("gender, signature")
+    .select("nickname, gender, signature")
     .eq("id", uid)
     .single();
   if(data){
     document.getElementById("showGenderTag").innerText = data.gender || "保密";
     document.getElementById("showSig").innerText = data.signature || "这个人很懒，什么都没留下";
+    document.getElementById("editNick").value = data.nickname || "";
     document.getElementById("editGender").value = data.gender || "保密";
     document.getElementById("editSig").value = data.signature || "";
     // 头像颜色
@@ -312,16 +294,16 @@ async function loadProfile(){
     else if(data.gender === "保密") gt.classList.add("secret");
   }
 }
-
 // ===== 保存资料 =====
 async function saveProfile(){
+  const nickname = document.getElementById("editNick").value.trim();
   const gender = document.getElementById("editGender").value;
   const signature = document.getElementById("editSig").value.trim() || "这个人很懒，什么都没留下";
   setBtn("saveProfileBtn","保存中...",true);
   showMsg("profileMsg","","");
   const {error} = await sbClient
     .from("profiles")
-    .update({gender, signature})
+    .update({nickname, gender, signature})
     .eq("id", currentUser.id);
   if(error){
     showMsg("profileMsg","保存失败：" + error.message,"error");
@@ -331,7 +313,6 @@ async function saveProfile(){
   }
   setBtn("saveProfileBtn","保存资料",false);
 }
-
 // ===== 修改密码 =====
 async function changePassword(){
   const oldP = document.getElementById("oldPwd").value.trim();
@@ -362,7 +343,6 @@ async function changePassword(){
   }
   setBtn("savePwdBtn","修改密码",false);
 }
-
 // ===== 退出登录 =====
 async function doLogout(){
   if(confirm("确定要退出登录吗？")){
