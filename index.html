@@ -405,7 +405,6 @@ body.dark .time-text {color:var(--dark-text-secondary);}
 }
 .visit-box:hover::before {opacity:1;}
 .visit-box strong {font-size:clamp(17px,3.5vw,20px);color:var(--primary-text);margin-left:6px;position:relative;font-variant-numeric:tabular-nums;}
-
 /* ========== 右上角登录挂件（醒目版） ========== */
 #userBadge {
   position:fixed;top:96px;right:16px;z-index:98;
@@ -430,7 +429,6 @@ body.dark #userBadge {
   background:linear-gradient(135deg,var(--dark-card),var(--dark-card-inner));
   color:var(--dark-text-secondary);border-color:rgba(255,255,255,0.2);
 }
-
 /* ========== 底部登录提醒弹窗 ========== */
 #loginToast {
   position:fixed;bottom:30px;left:50%;
@@ -443,7 +441,49 @@ body.dark #userBadge {
 }
 #loginToast.show {transform:translateX(-50%) translateY(0);opacity:1;}
 #loginToast:hover {box-shadow:0 14px 32px rgba(var(--primary-rgb),0.35);}
-
+/* ========== 互动空间大入口卡片 ========== */
+.space-entry {
+  display:block;max-width:620px;margin:36px auto;
+  border-radius:var(--radius-lg);overflow:hidden;
+  text-decoration:none;position:relative;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  box-shadow:0 12px 32px rgba(var(--primary-rgb),0.35);
+  transition:all var(--transition-normal);
+}
+.space-entry:hover {
+  transform:translateY(-6px);
+  box-shadow:0 18px 44px rgba(var(--primary-rgb),0.45);
+}
+.space-entry-bg {
+  position:absolute;inset:0;
+  background:
+    radial-gradient(circle at 20% 30%,rgba(255,255,255,0.2) 0%,transparent 50%),
+    radial-gradient(circle at 80% 70%,rgba(255,255,255,0.15) 0%,transparent 50%);
+}
+.space-entry-content {
+  position:relative;display:flex;align-items:center;
+  padding:28px 24px;gap:18px;
+}
+.space-entry-icon {
+  width:60px;height:60px;border-radius:50%;
+  background:rgba(255,255,255,0.25);
+  backdrop-filter:blur(10px);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;flex-shrink:0;
+}
+.space-entry-text h3 {
+  color:#fff;font-size:clamp(18px,4vw,22px);
+  font-weight:700;margin-bottom:4px;
+}
+.space-entry-text p {
+  color:rgba(255,255,255,0.85);
+  font-size:clamp(12px,2.5vw,14px);
+}
+.space-entry-arrow {
+  margin-left:auto;color:#fff;font-size:24px;
+  opacity:0.8;transition:transform var(--transition-fast);
+}
+.space-entry:hover .space-entry-arrow {transform:translateX(6px);}
 /* ========== 手机端适配 ========== */
 @media (max-width:768px) {
   .container {padding:0 16px;}
@@ -455,6 +495,8 @@ body.dark #userBadge {
   #backTopBtn {right:16px;bottom:72px;width:48px;height:48px;}
   .theme-btn-group {justify-content:center;}
   #userBadge {top:88px;right:10px;padding:8px 14px;font-size:13px;max-width:40vw;}
+  .space-entry-content {padding:22px 18px;gap:14px;}
+  .space-entry-icon {width:48px;height:48px;font-size:22px;}
 }
 @media (max-width:480px) {
   header {padding:16px 14px;}
@@ -521,6 +563,18 @@ setTimeout(()=>{
 <div id="quote">点击这里刷新名言</div>
 <div class="quote-tip">✨ 点击换一句励志语录</div>
 </div>
+<!-- 互动空间大入口 -->
+<a href="message.html" class="space-entry">
+  <div class="space-entry-bg"></div>
+  <div class="space-entry-content">
+    <div class="space-entry-icon">💬</div>
+    <div class="space-entry-text">
+      <h3>班级互动空间</h3>
+      <p> 班级互动 · 每日10条匿名额度</p>
+    </div>
+    <div class="space-entry-arrow">→</div>
+  </div>
+</a>
 <div class="section" id="album">
 <h2>班级相册</h2>
 <p style="font-size:16px;">存放班级各类活动照片视频，记录大家成长点滴。</p>
@@ -702,7 +756,6 @@ window.addEventListener("mousemove", e => {
   star.style.left = e.clientX + "px"; star.style.top = e.clientY + "px";
   starTrailContainer.appendChild(star); setTimeout(() => star.remove(), 800);
 });
-
 // ========== 登录状态检测 & 定时提醒 ==========
 const SB_URL = "https://grwawlhjdalnioetwhjs.supabase.co";
 const SB_KEY = "sb_publishable_g5q1KeSc2fLoWDlgguD_Yw_ELd3Aao3";
