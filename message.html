@@ -19,20 +19,16 @@ body{
 .top-bar a{color:#fff;text-decoration:none;font-size:14px;opacity:0.9;}
 .top-bar a:hover{opacity:1;}
 .top-bar h2{color:#fff;font-size:20px;}
-/* 消息滚动容器 */
 .msg-scroll-wrap{
-  flex:1;
-  overflow-y:auto;
-  padding-right:4px;
-  margin-bottom:16px;
+  flex:1;overflow-y:auto;padding-right:4px;margin-bottom:16px;
 }
 .msg-scroll-wrap::-webkit-scrollbar{width:6px;}
 .msg-scroll-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.4);border-radius:3px;}
-.msg-list{}
 .msg-card{
   background:#fff;border-radius:16px;padding:14px 16px;
   margin-bottom:12px;box-shadow:0 4px 14px rgba(0,0,0,0.1);
   animation:fadeIn 0.3s ease;
+  position:relative;
 }
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 .msg-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
@@ -46,11 +42,18 @@ body{
 .msg-name{font-size:14px;font-weight:bold;color:#1e293b;}
 .msg-time{font-size:11px;color:#94a3b8;margin-left:auto;}
 .msg-content{font-size:15px;line-height:1.7;color:#334155;word-break:break-word;padding-left:48px;}
+.msg-actions{
+  margin-top:8px;padding-left:48px;display:flex;gap:8px;
+}
+.msg-btn{
+  font-size:12px;padding:3px 8px;border-radius:6px;border:none;cursor:pointer;
+}
+.recall-btn{background:#dbeafe;color:#1d4ed8;}
+.del-btn{background:#fee2e2;color:#dc2626;}
 .empty{text-align:center;color:#fff;padding:40px 0;font-size:14px;opacity:0.8;}
 .input-card{
   background:#fff;border-radius:20px;padding:18px;
-  box-shadow:0 12px 30px rgba(0,0,0,0.15);
-  flex-shrink:0;
+  box-shadow:0 12px 30px rgba(0,0,0,0.15);flex-shrink:0;
 }
 .nick-line{font-size:13px;color:#64748b;margin-bottom:10px;}
 .nick-line b{color:#4f46e5;}
@@ -83,20 +86,19 @@ textarea:focus{border-color:#6366f1;}
   <div class="top-bar">
     <a href="index.html">← 返回首页</a>
     <h2>💬 互动空间</h2>
-    <a href="users.html">个人中心 →</a>
+    <a href="user.html">个人中心 →</a>
   </div>
 
-  <!-- 可独立滚动消息区域 -->
   <div class="msg-scroll-wrap">
     <div class="msg-list" id="msgList"></div>
     <div class="empty" id="loading">加载中...</div>
   </div>
 
   <div class="input-card">
-    <div class="nick-line">当前昵称：<b id="myNick">加载中...</b>｜座号：<b id="myNo">--</b></div>
+    <div class="nick-line">当前：<b id="myDisplay">加载中...</b>｜座号：<b id="myNo">--</b> <span id="adminTag" style="color:red;display:none;">管理员</span></div>
     <div class="count-line">今日匿名 <b id="anonTodayCount">0</b>/10 条</div>
     <label class="anon-box">
-      <input type="checkbox" id="anonCheck"> 🔒 匿名发布（匿名将不显示座号）
+      <input type="checkbox" id="anonCheck"> 🔒 匿名发布（不显示昵称、座号）
     </label>
     <textarea id="msgContent" placeholder="说点什么..."></textarea>
     <div class="input-row">
@@ -110,15 +112,19 @@ textarea:focus{border-color:#6366f1;}
 
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+
 const supabase = createClient(
   "https://joqqxqzhdhqhcmnbdnex.supabase.co",
   "sb_publishable_Vj7vzrM66ieR8Yx11CgfsQ_45Y1o35O"
 )
-let user;
-let anonTodaySend = 0;
-let myUsername = "";
+
+let user
+let myProfile = {}
+let anonTodaySend = 0
+let isAdmin = false
 
 async function init(){
+  // 读取登录会话
   const {data:{user:u}} = await supabase.auth.getUser()
   if(!u){
     window.location.href = "login.html"
@@ -126,16 +132,23 @@ async function init(){
   }
   user = u
 
-  // 读取昵称+座号(username就是座号)
-  const {data} = await supabase
-    .from('user_profile')
-    .select('nickname, username')
+  // 读取当前登录用户的 profiles，包含is_admin
+  const {data: profileData, error: profileErr} = await supabase
+    .from('profiles')
+    .select('username, nickname, is_admin')
     .eq('id', user.id)
     .single()
+  
+  if(!profileErr){
+    myProfile = profileData
+    isAdmin = !!profileData.is_admin
+    if(isAdmin) document.getElementById('adminTag').style.display = "inline"
+  }
 
-  myUsername = data?.username || "";
-  document.getElementById('myNick').innerText = data?.nickname || '未设置昵称'
-  document.getElementById('myNo').innerText = myUsername || '未设置座号'
+  // 页面顶部信息：优先昵称，无昵称就显示座号
+  const showName = myProfile.nickname || myProfile.username || "未知同学"
+  document.getElementById('myDisplay').innerText = showName
+  document.getElementById('myNo').innerText = myProfile.username || "?"
 
   await loadAnonCount()
   await loadMessages()
@@ -155,10 +168,13 @@ async function loadAnonCount(){
 }
 
 async function loadMessages(){
+  // 只加载还没过期的消息（expire_at > 当前时间）
+  const now = new Date().toISOString()
   const {data: msgs, error} = await supabase
     .from('messages')
-    .select('content, created_at, is_anonymous, user_id')
+    .select('id, content, created_at, is_anonymous, user_id, can_recall_until')
     .order('created_at', {ascending: false})
+    .gt('expire_at', now)
 
   document.getElementById('loading').style.display = 'none'
 
@@ -174,35 +190,48 @@ async function loadMessages(){
     return
   }
 
+  // 批量查询所有留言人的 profiles
   const userIds = [...new Set(msgs.map(m => m.user_id))]
-  const {data: profiles} = await supabase
-    .from('user_profile')
-    .select('id, nickname, username')
+  const {data: profilesList} = await supabase
+    .from('profiles')
+    .select('id, username, nickname')
     .in('id', userIds)
 
-  const map = {}
-  if(profiles){
-    profiles.forEach(p => { map[p.id] = p })
+  const profileMap = {}
+  if(profilesList){
+    profilesList.forEach(p => { profileMap[p.id] = p })
   }
 
   const wrap = document.getElementById('msgList')
   wrap.innerHTML = msgs.map(item => {
     const isAnon = item.is_anonymous
-    const p = map[item.user_id]
+    const p = profileMap[item.user_id]
     let nameText, avatarChar;
+
     if(isAnon){
       nameText = "匿名用户";
       avatarChar = "匿";
     }else{
-      // 非匿名：昵称 + 座号
-      const nick = p?.nickname || "同学";
-      const no = p?.username || "未知座号";
-      nameText = `${nick}（${no}号）`;
-      avatarChar = nick.charAt(0) || "?";
+      // 优先昵称，昵称不存在就显示座号
+      const displayName = p?.nickname || p?.username || "未知同学";
+      nameText = displayName;
+      avatarChar = (p?.nickname || p?.username || "?")[0];
     }
+
     const time = new Date(item.created_at).toLocaleString('zh-CN', {
       month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'
     })
+    const canRecall = new Date(item.can_recall_until) > new Date()
+    let actionHtml = ""
+    // 管理员：永久显示删除按钮
+    if(isAdmin){
+      actionHtml += `<button class="msg-btn del-btn" onclick="deleteMsg('${item.id}')">管理员删除</button>`
+    }
+    // 1分钟内，可以撤回（任何人都可以撤回这条消息）
+    if(canRecall){
+      actionHtml += `<button class="msg-btn recall-btn" onclick="recallMsg('${item.id}')">撤回</button>`
+    }
+
     return `
       <div class="msg-card">
         <div class="msg-head">
@@ -211,9 +240,27 @@ async function loadMessages(){
           <div class="msg-time">${time}</div>
         </div>
         <div class="msg-content">${item.content}</div>
+        <div class="msg-actions">${actionHtml}</div>
       </div>
     `
   }).join('')
+}
+
+// 全局函数：撤回消息（清空内容）
+window.recallMsg = async function(msgId){
+  const {error} = await supabase.from('messages').update({
+    content:"【消息已撤回】"
+  }).eq('id', msgId)
+  if(error) alert("撤回失败："+error.message)
+  await loadMessages()
+}
+
+// 全局函数：管理员彻底删除消息
+window.deleteMsg = async function(msgId){
+  if(!confirm("确定删除这条消息？")) return
+  const {error} = await supabase.from('messages').delete().eq('id', msgId)
+  if(error) alert("删除失败："+error.message)
+  await loadMessages()
 }
 
 const ta = document.getElementById("msgContent")
@@ -232,24 +279,24 @@ document.getElementById('submitBtn').onclick = async () => {
   const isAnonymous = document.getElementById('anonCheck').checked
 
   if(!content){ alert("内容不能为空！"); return }
-  // 非匿名发布，必须检查座号是否填写
-  if(!isAnonymous && !myUsername){
-    alert("⚠️ 未设置座号！请先去个人中心填写座号，或者勾选匿名发布");
-    return;
-  }
-
   if(isAnonymous && anonTodaySend >= 10){
-    alert("今日匿名已达10条上限！可取消匿名发布。"); return
+    alert("今日匿名已达10条上限！"); return
   }
 
   const btn = document.getElementById('submitBtn')
   btn.disabled = true
   btn.innerText = "发送中..."
 
+  const now = new Date()
+  const recallEnd = new Date(now.getTime() + 60*1000) // 1分钟撤回有效期
+  const expireEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) //30天后过期
+
   const {error} = await supabase.from('messages').insert({
     content: content,
     user_id: user.id,
-    is_anonymous: isAnonymous
+    is_anonymous: isAnonymous,
+    can_recall_until: recallEnd.toISOString(),
+    expire_at: expireEnd.toISOString()
   })
 
   btn.disabled = false
