@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>互动空间 - 发布</title>
+</head>
+<body>
+<h2>互动空间｜发布内容</h2>
+<p>当前发言昵称：<span id="myNick"></span></p>
+<p>今日匿名已发布：<span id="anonTodayCount">0</span> / 10 条（仅匿名有每日10条上限）</p>
+
+<label>
+  <input type="checkbox" id="anonCheck"> 匿名发布（前台不显示昵称，后台可溯源；匿名每日限10条）
+</label>
+<br><br>
+<textarea id="msgContent" rows="8" cols="50" placeholder="最多1000字"></textarea>
+<p>字数：<span id="charCount">0</span> / 1000</p>
+
+<br>
+<button id="submitBtn">提交</button>
+<hr>
+<a href="user.html">个人中心</a> | <a href="index.html">回到互动空间首页</a>
+
+<script type="module">
+  import { supabase } from './supabase.js'
+  let user;
+  let anonTodaySend = 0;
+
+  async function init(){
+    const {data:{user:u}} = await supabase.auth.getUser()
+    if(!u){
+      window.location.href="login.html"
+      return
+    }
+    user = u
+    //读取自己昵称
+    const {data} = await supabase.from('user_profile').select('nickname').eq('id',user.id).single()
+    document.getElementById('myNick').innerText = data.nickname
+
+    //统计：当前用户 今天的【匿名】留言数量
+    const today = new Date()
+    today.setHours(0,0,0,0)
+    const {data:list} = await supabase
+      .from('messages')
+      .select('id',{count:'exact'})
+      .eq('user_id',user.id)
+      .eq('is_anonymous',true)
+      .gte('created_at', today.toISOString())
+
+    anonTodaySend = list.count ?? 0
+    document.getElementById('anonTodayCount').innerText = anonTodaySend
+  }
+
+  //实时统计字数，最多1000
+  const ta = document.getElementById("msgContent")
+  ta.oninput = ()=>{
+    const len = ta.value.length
+    document.getElementById("charCount").innerText = len
+    if(len>1000){
+      ta.value = ta.value.slice(0,1000)
+      document.getElementById("charCount").innerText = 1000
+    }
+  }
+
+  document.getElementById('submitBtn').onclick = async ()=>{
+    const content = document.getElementById('msgContent').value.trim()
+    const isAnonymous = document.getElementById('anonCheck').checked
+
+    if(!content){
+      alert("内容不能为空！")
+      return
+    }
+    if(content.length>1000){
+      alert("不能超过1000字")
+      return
+    }
+
+    // 如果勾选匿名，校验今日匿名条数
+    if(isAnonymous){
+      if(anonTodaySend >=10){
+        alert("今日匿名发布已达上限10条，可以明天再发匿名，或者取消匿名正常发布！")
+        return
+      }
+    }
+
+    const {error} = await supabase.from('messages').insert({
+      content: content,
+      user_id: user.id,
+      is_anonymous: isAnonymous
+    })
+    if(error){
+      alert("提交失败："+error.message)
+    }else{
+      alert("发布成功！")
+      ta.value=""
+      window.location.href="index.html"
+    }
+  }
+  init()
+</script>
+</body>
+</html>
