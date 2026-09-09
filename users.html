@@ -64,25 +64,14 @@ body{
     <button class="btn" id="saveNick">保存昵称</button>
     <p class="tip">昵称保存在数据库，换电脑/换浏览器都在，同学在成员空间能看到。</p>
   </div>
-
-  <div class="card">
-    <h3>🔒 修改密码</h3>
-    <div class="form-group">
-      <label>新密码</label>
-      <input type="password" id="newPwd" placeholder="输入新密码">
-    </div>
-    <button class="btn" id="updatePwdBtn">更新密码</button>
-  </div>
-
   <div class="links">
     <a href="index.html">← 返回首页</a>
-    <a href="member.html">成员空间 →</a>
-    <a href="message.html">互动空间 →</a>
+    <a href="users.html">成员空间 →</a>
+    <a href="message.html">留言空间 →</a>
   </div>
   <br>
   <button class="btn btn-red" id="logout">退出登录</button>
 </div>
-
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
@@ -100,7 +89,6 @@ async function init(){
   }
   user = u
 
-  // 读取当前昵称
   const {data} = await supabase
     .from('user_profile')
     .select('nickname')
@@ -112,7 +100,6 @@ async function init(){
   }
 }
 
-// 保存昵称
 document.getElementById('saveNick').onclick = async ()=>{
   const newNick = document.getElementById('nickInput').value.trim()
   if(!newNick){
@@ -123,7 +110,6 @@ document.getElementById('saveNick').onclick = async ()=>{
     .from('user_profile')
     .update({nickname: newNick})
     .eq('id', user.id)
-
   if(error){
     alert("保存失败：" + error.message)
   }else{
@@ -131,23 +117,6 @@ document.getElementById('saveNick').onclick = async ()=>{
   }
 }
 
-// 修改密码
-document.getElementById('updatePwdBtn').onclick = async ()=>{
-  const newPwd = document.getElementById('newPwd').value.trim()
-  if(newPwd.length < 6){
-    alert("密码至少6位！")
-    return
-  }
-  const {error} = await supabase.auth.updateUser({password: newPwd})
-  if(error){
-    alert("密码修改失败：" + error.message)
-  }else{
-    alert("密码修改成功！")
-    document.getElementById('newPwd').value = ""
-  }
-}
-
-// 退出登录
 document.getElementById('logout').onclick = async ()=>{
   await supabase.auth.signOut()
   window.location.href = "login.html"
