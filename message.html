@@ -19,7 +19,6 @@ body{
 .top-bar a{color:#fff;text-decoration:none;font-size:14px;opacity:0.9;}
 .top-bar a:hover{opacity:1;}
 .top-bar h2{color:#fff;font-size:20px;}
-/* 消息列表 */
 .msg-list{margin-bottom:16px;}
 .msg-card{
   background:#fff;border-radius:16px;padding:14px 16px;
@@ -27,9 +26,7 @@ body{
   animation:fadeIn 0.3s ease;
 }
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
-.msg-head{
-  display:flex;align-items:center;gap:10px;margin-bottom:8px;
-}
+.msg-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
 .avatar{
   width:38px;height:38px;border-radius:50%;
   background:linear-gradient(135deg,#6366f1,#ec4899);
@@ -39,31 +36,17 @@ body{
 .avatar.anon{background:linear-gradient(135deg,#64748b,#94a3b8);}
 .msg-name{font-size:14px;font-weight:bold;color:#1e293b;}
 .msg-time{font-size:11px;color:#94a3b8;margin-left:auto;}
-.msg-content{
-  font-size:15px;line-height:1.7;color:#334155;
-  word-break:break-word;padding-left:48px;
-}
-.empty{
-  text-align:center;color:#fff;padding:40px 0;font-size:14px;opacity:0.8;
-}
-/* 底部输入区 */
+.msg-content{font-size:15px;line-height:1.7;color:#334155;word-break:break-word;padding-left:48px;}
+.empty{text-align:center;color:#fff;padding:40px 0;font-size:14px;opacity:0.8;}
 .input-card{
   background:#fff;border-radius:20px;padding:18px;
   box-shadow:0 12px 30px rgba(0,0,0,0.15);
   position:sticky;bottom:16px;
 }
-.nick-line{
-  font-size:13px;color:#64748b;margin-bottom:10px;
-}
+.nick-line{font-size:13px;color:#64748b;margin-bottom:10px;}
 .nick-line b{color:#4f46e5;}
-.count-line{
-  font-size:12px;color:#92400e;background:#fef3c7;
-  padding:4px 10px;border-radius:999px;display:inline-block;margin-bottom:10px;
-}
-.anon-box{
-  display:flex;align-items:center;gap:6px;
-  margin-bottom:10px;font-size:13px;color:#475569;cursor:pointer;
-}
+.count-line{font-size:12px;color:#92400e;background:#fef3c7;padding:4px 10px;border-radius:999px;display:inline-block;margin-bottom:10px;}
+.anon-box{display:flex;align-items:center;gap:6px;margin-bottom:10px;font-size:13px;color:#475569;cursor:pointer;}
 .anon-box input{width:16px;height:16px;accent-color:#ec4899;}
 textarea{
   width:100%;min-height:80px;padding:10px;
@@ -72,10 +55,7 @@ textarea{
   outline:none;transition:border-color 0.2s;font-family:inherit;
 }
 textarea:focus{border-color:#6366f1;}
-.input-row{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-top:8px;
-}
+.input-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
 .char-count{font-size:12px;color:#94a3b8;}
 .char-count.over{color:#ef4444;font-weight:bold;}
 .btn{
@@ -86,10 +66,7 @@ textarea:focus{border-color:#6366f1;}
 }
 .btn:hover{transform:translateY(-1px);}
 .btn:disabled{opacity:0.5;cursor:not-allowed;}
-.back-link{
-  display:block;text-align:center;margin-top:14px;
-  color:#fff;text-decoration:none;font-size:13px;opacity:0.85;
-}
+.back-link{display:block;text-align:center;margin-top:14px;color:#fff;text-decoration:none;font-size:13px;opacity:0.85;}
 </style>
 </head>
 <body>
@@ -97,7 +74,7 @@ textarea:focus{border-color:#6366f1;}
   <div class="top-bar">
     <a href="index.html">← 返回首页</a>
     <h2>💬 互动空间</h2>
-    <a href="user.html">个人中心 →</a>
+    <a href="users.html">个人中心 →</a>
   </div>
 
   <div class="msg-list" id="msgList"></div>
@@ -163,10 +140,12 @@ async function loadAnonCount(){
   document.getElementById('anonTodayCount').innerText = anonTodaySend
 }
 
+// 关键修复：不用 join，分两步查
 async function loadMessages(){
-  const {data, error} = await supabase
+  // 第一步：查所有消息
+  const {data: msgs, error} = await supabase
     .from('messages')
-    .select(`content, created_at, is_anonymous, user_profile(nickname)`)
+    .select('content, created_at, is_anonymous, user_id')
     .order('created_at', {ascending: false})
 
   document.getElementById('loading').style.display = 'none'
@@ -177,15 +156,30 @@ async function loadMessages(){
     return
   }
 
-  const wrap = document.getElementById('msgList')
-  if(!data || data.length === 0){
-    wrap.innerHTML = '<div class="empty">还没有内容，来发第一条吧～</div>'
+  if(!msgs || msgs.length === 0){
+    document.getElementById('msgList').innerHTML =
+      '<div class="empty">还没有内容，来发第一条吧～</div>'
     return
   }
 
-  wrap.innerHTML = data.map(item => {
+  // 第二步：收集所有 user_id，批量查昵称
+  const userIds = [...new Set(msgs.map(m => m.user_id))]
+  const {data: profiles} = await supabase
+    .from('user_profile')
+    .select('id, nickname')
+    .in('id', userIds)
+
+  // 做成 id → nickname 的对照表
+  const nickMap = {}
+  if(profiles){
+    profiles.forEach(p => { nickMap[p.id] = p.nickname })
+  }
+
+  // 第三步：拼接渲染
+  const wrap = document.getElementById('msgList')
+  wrap.innerHTML = msgs.map(item => {
     const isAnon = item.is_anonymous
-    const name = isAnon ? '匿名用户' : (item.user_profile?.nickname || '同学')
+    const name = isAnon ? '匿名用户' : (nickMap[item.user_id] || '同学')
     const ch = isAnon ? '匿' : (name.charAt(0) || '?')
     const time = new Date(item.created_at).toLocaleString('zh-CN', {
       month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'
@@ -207,8 +201,7 @@ const ta = document.getElementById("msgContent")
 ta.oninput = () => {
   const len = ta.value.length
   document.getElementById("charCount").innerText = len
-  const cc = document.querySelector('.char-count')
-  cc.classList.toggle('over', len > 950)
+  document.querySelector('.char-count').classList.toggle('over', len > 950)
   if(len > 1000){
     ta.value = ta.value.slice(0, 1000)
     document.getElementById("charCount").innerText = 1000
@@ -219,13 +212,9 @@ document.getElementById('submitBtn').onclick = async () => {
   const content = ta.value.trim()
   const isAnonymous = document.getElementById('anonCheck').checked
 
-  if(!content){
-    alert("内容不能为空！")
-    return
-  }
+  if(!content){ alert("内容不能为空！"); return }
   if(isAnonymous && anonTodaySend >= 10){
-    alert("今日匿名已达10条上限！可取消匿名发布。")
-    return
+    alert("今日匿名已达10条上限！可取消匿名发布。"); return
   }
 
   const btn = document.getElementById('submitBtn')
