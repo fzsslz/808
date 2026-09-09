@@ -71,90 +71,73 @@ body{
     <h2>👥 班级成员空间</h2>
     <a href="login.html">登录/个人中心 →</a>
   </div>
-  <input type="text" class="search-box" id="searchInput" placeholder="🔍 按座号搜索同学...">
+  <input type="text" class="search-box" id="searchInput" placeholder="🔍 按昵称或座号搜索同学...">
   <div class="count" id="countText"></div>
   <div id="grid" class="grid"></div>
   <div id="loading" class="loading">正在加载班级成员...</div>
 </div>
-<script>
-const SB_URL = "https://grwawlhjdalnioetwhjs.supabase.co";
-const SB_KEY = "sb_publishable_g5q1KeSc2fLoWDlgguD_Yw_ELd3Aao3";
-let sbClient = null;
-let allMembers = [];
 
-function loadSupabase(cb){
-  const cdns = [
-    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
-    "https://unpkg.com/@supabase/supabase-js@2"
-  ];
-  let i = 0;
-  function tryLoad(){
-    if(i >= cdns.length){ cb(null); return; }
-    const s = document.createElement("script");
-    s.src = cdns[i];
-    s.onload = () => {
-      if(window.supabase && window.supabase.createClient) cb(window.supabase);
-      else { i++; tryLoad(); }
-    };
-    s.onerror = () => { i++; tryLoad(); };
-    document.head.appendChild(s);
-  }
-  tryLoad();
-}
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-loadSupabase(async function(sb){
-  if(!sb){
-    document.getElementById("loading").innerText = "⚠️ 组件加载失败，请刷新";
-    return;
-  }
-  sbClient = sb.createClient(SB_URL, SB_KEY);
-  loadMembers();
-});
+const sb = createClient(
+  "https://joqqxqzhdhqhcmnbdnex.supabase.co",
+  "sb_publishable_Vj7vzrM66ieR8Yx11CgfsQ_45Y1o35O"
+)
+
+let allMembers = []
 
 async function loadMembers(){
-  const {data, error} = await sbClient
+  const {data, error} = await sb
     .from("profiles")
-    .select("username, gender, signature")
-    .order("username", {ascending:true});
+    .select("username, gender, signature, nickname")
+    .order("username", {ascending:true})
 
-  document.getElementById("loading").style.display = "none";
+  document.getElementById("loading").style.display = "none"
 
   if(error){
     document.getElementById("grid").innerHTML =
-      '<div class="empty">加载失败：' + error.message + '</div>';
-    return;
+      '<div class="empty">加载失败：' + error.message + '</div>'
+    return
   }
-  allMembers = data || [];
-  renderMembers(allMembers);
+
+  allMembers = data || []
+  renderMembers(allMembers)
 }
 
 function renderMembers(list){
-  const grid = document.getElementById("grid");
-  document.getElementById("countText").innerText = "共 " + list.length + " 位同学";
+  const grid = document.getElementById("grid")
+  document.getElementById("countText").innerText = "共 " + list.length + " 位同学"
+
   if(list.length === 0){
-    grid.innerHTML = '<div class="empty">没有找到匹配的同学</div>';
-    return;
+    grid.innerHTML = '<div class="empty">没有找到成员数据</div>'
+    return
   }
+
   grid.innerHTML = list.map(m => {
-    const g = m.gender || "保密";
-    const cls = g === "女" ? "female" : (g === "保密" ? "secret" : "");
+    const g = m.gender || "保密"
+    const cls = g === "女" ? "female" : (g === "保密" ? "secret" : "")
+    const displayName = m.nickname ? m.nickname : (m.username || "?")
     return '<div class="member-card">' +
       '<div class="m-avatar ' + cls + '">' + (m.username || "?") + '</div>' +
-      '<div class="m-name">' + (m.username || "?") + ' 号</div>' +
+      '<div class="m-name">' + displayName + '</div>' +
       '<span class="m-gender ' + cls + '">' + g + '</span>' +
       '<div class="m-sig">' + (m.signature || "这个人很懒，什么都没留下") + '</div>' +
-    '</div>';
-  }).join("");
+    '</div>'
+  }).join("")
 }
 
 document.getElementById("searchInput").addEventListener("input", function(){
-  const q = this.value.trim();
-  if(!q){ renderMembers(allMembers); return; }
+  const q = this.value.trim()
+  if(!q){ renderMembers(allMembers); return }
   const filtered = allMembers.filter(m =>
-    (m.username || "").toString().includes(q)
-  );
-  renderMembers(filtered);
-});
+    (m.username || "").toString().includes(q) ||
+    (m.nickname || "").includes(q)
+  )
+  renderMembers(filtered)
+})
+
+loadMembers()
 </script>
 </body>
 </html>
