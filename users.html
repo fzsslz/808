@@ -81,6 +81,7 @@ const SB_URL = "https://grwawlhjdalnioetwhjs.supabase.co";
 const SB_KEY = "sb_publishable_g5q1KeSc2fLoWDlgguD_Yw_ELd3Aao3";
 let sbClient = null;
 let allMembers = [];
+
 function loadSupabase(cb){
   const cdns = [
     "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
@@ -100,6 +101,7 @@ function loadSupabase(cb){
   }
   tryLoad();
 }
+
 loadSupabase(async function(sb){
   if(!sb){
     document.getElementById("loading").innerText = "⚠️ 组件加载失败，请刷新";
@@ -108,19 +110,24 @@ loadSupabase(async function(sb){
   sbClient = sb.createClient(SB_URL, SB_KEY);
   loadMembers();
 });
+
 async function loadMembers(){
   const {data, error} = await sbClient
     .from("profiles")
     .select("username, gender, signature")
     .order("username", {ascending:true});
+
   document.getElementById("loading").style.display = "none";
+
   if(error){
-    document.getElementById("grid").innerHTML = '<div class="empty">加载失败：' + error.message + '</div>';
+    document.getElementById("grid").innerHTML =
+      '<div class="empty">加载失败：' + error.message + '</div>';
     return;
   }
   allMembers = data || [];
   renderMembers(allMembers);
 }
+
 function renderMembers(list){
   const grid = document.getElementById("grid");
   document.getElementById("countText").innerText = "共 " + list.length + " 位同学";
@@ -139,6 +146,7 @@ function renderMembers(list){
     '</div>';
   }).join("");
 }
+
 document.getElementById("searchInput").addEventListener("input", function(){
   const q = this.value.trim();
   if(!q){ renderMembers(allMembers); return; }
