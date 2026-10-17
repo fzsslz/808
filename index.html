@@ -162,15 +162,6 @@ body.dark .settings-card {background:var(--dark-card);box-shadow:var(--shadow-da
   animation:starFade 0.8s ease-out forwards;will-change:transform,opacity;
 }
 @keyframes starFade {0%{transform:scale(1);opacity:1;}100%{transform:scale(0.2) translateY(-20px);opacity:0;}}
-.heart {
-  position:fixed;top:-50px;pointer-events:none;z-index:1;opacity:0.75;
-  font-size:20px;animation:heartFall linear infinite;will-change:transform;
-}
-@keyframes heartFall {
-  0%{transform:translateY(0) rotate(0deg) scale(1);}
-  50%{transform:translateY(50vh) rotate(180deg) scale(1.1);}
-  100%{transform:translateY(100vh) rotate(360deg) scale(0.9);}
-}
 header {
   background:linear-gradient(90deg,var(--primary-deep),var(--accent-deep),var(--primary-light));
   background-size:200% 100%;animation:gradientShift 8s ease infinite;
@@ -405,30 +396,24 @@ body.dark .time-text {color:var(--dark-text-secondary);}
 }
 .visit-box:hover::before {opacity:1;}
 .visit-box strong {font-size:clamp(17px,3.5vw,20px);color:var(--primary-text);margin-left:6px;position:relative;font-variant-numeric:tabular-nums;}
-/* ========== 右上角登录挂件（醒目版） ========== */
+/* ========== 右上角登录挂件（圆头像版） ========== */
 #userBadge {
   position:fixed;top:96px;right:16px;z-index:98;
-  background:linear-gradient(135deg,rgba(255,255,255,0.95),rgba(255,255,255,0.85));
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  padding:10px 18px;border-radius:999px;font-size:14px;font-weight:700;
-  color:var(--primary-text);box-shadow:0 4px 16px rgba(var(--primary-rgb),0.25);
-  cursor:pointer;border:2px solid rgba(var(--primary-rgb),0.3);
-  transition:all var(--transition-fast);max-width:45vw;overflow:hidden;
-  text-overflow:ellipsis;white-space:nowrap;user-select:none;
-  animation:badgePulse 2.5s ease-in-out infinite;
-}
-@keyframes badgePulse {
-  0%,100% {box-shadow:0 4px 16px rgba(var(--primary-rgb),0.25);}
-  50% {box-shadow:0 4px 24px rgba(var(--primary-rgb),0.45);}
+  width:46px;height:46px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:#fff;font-size:22px;cursor:pointer;
+  box-shadow:0 4px 16px rgba(var(--primary-rgb),0.35);
+  border:2px solid rgba(255,255,255,0.7);
+  transition:all var(--transition-fast);
+  user-select:none;overflow:hidden;
 }
 #userBadge:hover {
   transform:translateY(-2px) scale(1.05);
-  box-shadow:0 8px 24px rgba(var(--primary-rgb),0.35);animation:none;
+  box-shadow:0 8px 24px rgba(var(--primary-rgb),0.45);
 }
-body.dark #userBadge {
-  background:linear-gradient(135deg,var(--dark-card),var(--dark-card-inner));
-  color:var(--dark-text-secondary);border-color:rgba(255,255,255,0.2);
-}
+#userBadge:active {transform:scale(0.95);}
+body.dark #userBadge {border-color:rgba(255,255,255,0.3);}
 /* ========== 底部登录提醒弹窗 ========== */
 #loginToast {
   position:fixed;bottom:30px;left:50%;
@@ -494,7 +479,7 @@ body.dark #userBadge {
   .modal-box {padding:32px 20px;}
   #backTopBtn {right:16px;bottom:72px;width:48px;height:48px;}
   .theme-btn-group {justify-content:center;}
-  #userBadge {top:88px;right:10px;padding:8px 14px;font-size:13px;max-width:40vw;}
+  #userBadge {top:88px;right:10px;width:42px;height:42px;font-size:20px;}
   .space-entry-content {padding:22px 18px;gap:14px;}
   .space-entry-icon {width:48px;height:48px;font-size:22px;}
 }
@@ -516,9 +501,8 @@ setTimeout(()=>{
 </script>
 </head>
 <body>
-<div id="userBadge">🔑 点击登录</div>
+<div id="userBadge">👤</div>
 <div id="loginToast">👋 还没登录？点我登录班级账号，解锁个人中心</div>
-<div id="heartContainer"></div>
 <div id="starTrailContainer"></div>
 <header>
 <div class="title">福州第三十六中2024级八班班级网站</div>
@@ -691,7 +675,7 @@ const summerTipDom = document.getElementById("summerTip");
 const timeBoxDom = document.getElementById("timeBox");
 function updateCountdown(){
   const now = new Date().getTime();
-  if(now <= startSummerEnd){ summerTipDom.style.display = "block"; timeBoxDom.style.display = "none"; return; }
+  if(now >= schoolDay){ summerTipDom.style.display = "block"; timeBoxDom.style.display = "none"; return; }
   else { summerTipDom.style.display = "none"; timeBoxDom.style.display = "flex"; }
   const diff = schoolDay - now;
   const d = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -738,16 +722,6 @@ function fallbackCopy(text){
   document.body.appendChild(input); input.select(); document.execCommand('copy');
   document.body.removeChild(input); alert("复制成功！");
 }
-const heartContainer = document.getElementById("heartContainer");
-function createHeart(){
-  const heart = document.createElement("div"); heart.className = "heart";
-  heart.innerText = ["💖","💕","💗","💜","💙","🤍"][Math.floor(Math.random() * 6)];
-  heart.style.left = Math.random() * 100 + "vw";
-  heart.style.animationDuration = (Math.random() * 5 + 6) + "s";
-  heart.style.fontSize = (Math.random() * 10 + 16) + "px";
-  heartContainer.appendChild(heart); setTimeout(() => heart.remove(), 12000);
-}
-setInterval(createHeart, 800);
 const starTrailContainer = document.getElementById("starTrailContainer");
 let lastStarTime = 0;
 window.addEventListener("mousemove", e => {
@@ -773,13 +747,15 @@ async function refreshLoginState(){
   if(session && session.user){
     userLoggedIn = true;
     const uname = (session.user.user_metadata && session.user.user_metadata.username) || "同学";
-    userBadgeEl.innerHTML = "👤 " + uname + "号  退出";
+    userBadgeEl.innerHTML = '<span style="font-size:16px;font-weight:800;line-height:1;">' + (String(uname).charAt(0) || "我") + '</span>';
+    userBadgeEl.title = uname + "号 · 点击退出登录";
     userBadgeEl.onclick = doLogout;
     loginToastEl.style.display = "none";
     if(toastIntervalId){ clearInterval(toastIntervalId); toastIntervalId = null; }
   }else{
     userLoggedIn = false;
-    userBadgeEl.innerHTML = "🔑 点击登录";
+    userBadgeEl.innerHTML = "👤";
+    userBadgeEl.title = "点击登录";
     userBadgeEl.onclick = goLoginPage;
     loginToastEl.style.display = "";
     startLoginReminder();
