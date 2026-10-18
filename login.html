@@ -176,7 +176,7 @@ body{
         <label>确认新密码</label>
         <input type="password" id="newPwd2" placeholder="再次输入新密码">
       </div>
-      <button class="btn-save" id="savePwdBtn" onclick="changePassword()">修改密码</button>
+      <button class="btn-save" id="savePwdBtn" onclick="changePassword()">确认修改密码</button>
       <div class="msg" id="pwdMsg"></div>
     </div>
     <!-- 底部操作 -->
@@ -253,7 +253,7 @@ async function doLogin(){
   try{
     const {error} = await sbClient.auth.signInWithPassword({email, password:pw});
     if(error){
-      showMsg("loginMsg","登录失败：" + error.message,"error");
+      showMsg("loginMsg","登录失败，请重试：" + error.message,"error");
       setBtn("loginBtn","登 录",false);
     }else{
       showMsg("loginMsg","登录成功！","success");
