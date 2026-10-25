@@ -68,7 +68,7 @@
         body.dark .back-btn:hover {
             background: linear-gradient(135deg,var(--primary),var(--pink));
         }
-        body.dark .album img {
+        body.dark .album-container img {
             box-shadow: 0 4px 16px rgba(0,0,0,0.35);
             border: 1px solid rgba(255,255,255,0.12);
         }
@@ -171,6 +171,8 @@
         .back-btn:active {
             transform: translateY(-2px) scale(0.97);
         }
+
+        /* ====== 原版网格布局，img直接作为网格单元，不再套div破坏排版 ====== */
         .album-container{
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -184,10 +186,7 @@
                 gap: 14px;
             }
         }
-        .album-item{
-            text-align:center;
-        }
-        .album-item img{
+        .album-container img{
             width: 100%;
             height: 160px;
             object-fit: cover;
@@ -198,19 +197,21 @@
             border: 1px solid var(--glass-border);
             background: #000;
         }
-        .album-item img:hover {
+        .album-container img:hover {
             transform: translateY(-6px) scale(1.05);
             box-shadow: var(--shadow-hover);
         }
+        /* 爱心容器：图片的后续兄弟元素，不参与网格，放在图片下方 */
         .like-wrap{
-            margin-top:6px;
+            margin-top:4px;
+            margin-bottom:8px;
             display:flex;
             align-items:center;
             justify-content:center;
             gap:6px;
         }
         .like-btn{
-            font-size:24px;
+            font-size:22px;
             cursor:pointer;
             user-select:none;
             border:none;
@@ -234,6 +235,7 @@
         body.dark .like-count{
             color:#ddd;
         }
+
         .modal {
             display: none;
             position: fixed;
@@ -490,7 +492,7 @@
     </header>
 
     <div class="settings-card">
-        <h3>🌓 显示设置</h3>
+        <h3>显示设置</h3>
         <div class="theme-btn-group">
             <button class="btn-darkmode" onclick="toggleDark()">🌙 深色 / 浅色</button>
         </div>
@@ -548,8 +550,8 @@
     <img src="0029.jpg" alt="持续更新中">
     <img src="0030.jpg" alt="持续更新中">
     <img src="0031.jpg" alt="持续更新中">
-    <img src="0032.jpg" alt="持续更新中">
-     <img src="0033.jpg" alt="持续更新中">
+    <img src="0032.jpg" alt="广告位招商">
+     <img src="0033.jpg" alt="广告位招商">
      <img src="0035.jpg" alt="持续更新中">
     <img src="0036.png" alt="持续更新中">
     <img src="微信图片_20260515192428_1_10.jpg" alt="刷新">
@@ -746,16 +748,12 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 document.addEventListener('DOMContentLoaded', async () => {
   const albumBox = document.querySelector('.album-container');
   if(!albumBox) return;
-  const imgs = albumBox.querySelectorAll('img');
+  const imgs = Array.from(albumBox.querySelectorAll('img'));
 
   const photoList = [];
   imgs.forEach(img => {
     const photoId = img.src;
-    const wrap = document.createElement('div');
-    wrap.className = 'album-item';
-    img.parentNode.insertBefore(wrap, img);
-    wrap.appendChild(img);
-
+    // 在img后面插入爱心DOM，不破坏网格布局！！！
     const likeWrap = document.createElement('div');
     likeWrap.className = 'like-wrap';
     const likeBtn = document.createElement('button');
@@ -766,34 +764,63 @@ document.addEventListener('DOMContentLoaded', async () => {
     countText.innerText = '0';
     likeWrap.appendChild(likeBtn);
     likeWrap.appendChild(countText);
-    wrap.appendChild(likeWrap);
+    img.after(likeWrap);
 
     photoList.push({
       photoId,
       btn: likeBtn,
-      countEl: countText
+      countEl: countText,
+      domImg: img
     });
   })
 
+  // 绑定图片点击预览事件
+  imgs.forEach((img, idx) => {
+    if (!img.src || img.src.endsWith('/')) {
+      img.style.cursor = "default";
+      img.style.opacity = "0.35";
+      return;
+    }
+    img.onclick = () => openPreview(idx);
+  });
+
+  // ==========【批量查询】只2次请求，解决大量图片卡顿限流 ==========
   const {data:{user}} = await supabase.auth.getUser();
   const userId = user?.id;
+  const allPhotoIds = photoList.map(p=>p.photoId);
 
-  for(const item of photoList){
-    const {photoId, btn, countEl} = item;
-    const {count} = await supabase
+  // 1.一次性拿到全部点赞记录
+  const { data: allLikesRaw } = await supabase
+    .from('photo_likes')
+    .select('photo_id');
+
+  // 统计每张图点赞总数
+  const countMap = {};
+  if(allLikesRaw){
+    allLikesRaw.forEach(row=>{
+      if(!countMap[row.photo_id]) countMap[row.photo_id]=0;
+      countMap[row.photo_id]++;
+    })
+  }
+
+  //2. 如果登录，拿当前用户所有点赞过的图片
+  const myLikedSet = new Set();
+  if(userId){
+    const {data:myLikesRaw} = await supabase
       .from('photo_likes')
-      .select('*', {count:'exact', head:true})
-      .eq('photo_id', photoId);
-    countEl.innerText = count;
+      .select('photo_id')
+      .eq('user_id', userId);
+    if(myLikesRaw){
+      myLikesRaw.forEach(r=> myLikedSet.add(r.photo_id));
+    }
+  }
 
+  // 渲染全部爱心与数字
+  photoList.forEach(item=>{
+    const {photoId, btn, countEl} = item;
+    countEl.innerText = countMap[photoId]||0;
     if(userId){
-      const {data} = await supabase
-        .from('photo_likes')
-        .select()
-        .eq('photo_id', photoId)
-        .eq('user_id', userId)
-        .maybeSingle();
-      if(data){
+      if(myLikedSet.has(photoId)){
         btn.classList.remove('gray');
         btn.classList.add('red');
         btn.innerText = '♥';
@@ -827,7 +854,452 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
     }
+  })
+
+  // ============ 下面全部是画笔、预览、裁剪逻辑，原样保留 ============
+  const modal = document.getElementById('imgModal');
+  const bigImg = document.getElementById('bigImg');
+  const loadingTip = document.getElementById('loadingTip');
+  const closeBtn = document.getElementById('closeBtn');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const drawCanvas = document.getElementById("drawCanvas");
+  const drawCtx = drawCanvas.getContext("2d");
+  const cropModal = document.getElementById("cropModal");
+  const cropCanvas = document.getElementById("cropCanvas");
+  const cropCtx = cropCanvas.getContext("2d");
+  const cropSelector = document.getElementById("cropSelector");
+  const saveModal = document.getElementById("saveModal");
+  const saveImg = document.getElementById("saveImg");
+  const saveEditBtn = document.getElementById("saveEdit");
+
+  let currentIndex = 0;
+  let scale = 1;
+  let offsetX = 0;
+  let offsetY = 0;
+  let isDrag = false;
+  let dragStartX = 0, dragStartY = 0;
+  let touchStartDist = 0;
+  let touchCenterX = 0, touchCenterY = 0;
+  let drawHistory = [];
+  let isDrawing = false;
+  let drawMode = false;
+  let drawColor = "#ff3333";
+  let lineWidth = 8;
+  let isEraser = false;
+  const dpr = window.devicePixelRatio || 1;
+  let lastDrawX = 0, lastDrawY = 0;
+  let editFinalImg = null;
+  let cropOpen = false;
+  let cropActive = false;
+  let cropStart = {x:0,y:0};
+
+  const lineSlider = document.getElementById("lineSlider");
+  const sizeVal = document.getElementById("sizeVal");
+  lineSlider.oninput = function(){
+      lineWidth = Number(this.value);
+      sizeVal.innerText = lineWidth;
   }
+
+  function syncCanvasPosition() {
+    const imgRect = bigImg.getBoundingClientRect();
+    drawCanvas.style.left = imgRect.left + "px";
+    drawCanvas.style.top = imgRect.top + "px";
+    drawCanvas.style.width = imgRect.width + "px";
+    drawCanvas.style.height = imgRect.height + "px";
+    drawCanvas.width = imgRect.width * dpr;
+    drawCanvas.height = imgRect.height * dpr;
+    drawCtx.setTransform(1,0,0,1,0,0);
+    drawCtx.scale(dpr, dpr);
+    drawCtx.lineCap = "round";
+    drawCtx.lineJoin = "round";
+  }
+  function updateImgTransform() {
+    bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+    syncCanvasPosition();
+  }
+  function resetImgTransform() {
+    scale = 1;
+    offsetX = 0;
+    offsetY = 0;
+    updateImgTransform();
+  }
+  function clearDrawCanvas() {
+    drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    drawHistory = [];
+  }
+  function getDrawGlobalPos(clientX, clientY) {
+    const canvasRect = drawCanvas.getBoundingClientRect();
+    return {
+      x: clientX - canvasRect.left,
+      y: clientY - canvasRect.top
+    };
+  }
+  function openPreview(index) {
+    resetImgTransform();
+    clearDrawCanvas();
+    drawMode = false;
+    drawCanvas.classList.remove("draw-mode");
+    document.querySelectorAll(".edit-bar button").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".color-box").forEach(c => c.classList.remove("active"));
+    document.querySelector(`.color-box[data-color="${drawColor}"]`)?.classList.add("active");
+    cropOpen = false;
+    saveEditBtn.disabled = false;
+    currentIndex = index;
+    const targetImg = imgs[currentIndex];
+    loadingTip.style.display = "block";
+    modal.classList.add('active');
+    document.body.classList.add("modal-open");
+    bigImg.src = targetImg.src;
+    bigImg.onload = () => {
+      loadingTip.style.display = "none";
+      setTimeout(syncCanvasPosition, 100);
+    };
+  }
+  function closeModal() {
+    modal.classList.remove('active');
+    document.body.classList.remove("modal-open");
+    bigImg.src = "";
+    clearDrawCanvas();
+    drawMode = false;
+    drawCanvas.classList.remove("draw-mode");
+  }
+  function prevImg() {
+    resetImgTransform();
+    clearDrawCanvas();
+    currentIndex--;
+    if (currentIndex < 0) currentIndex = imgs.length - 1;
+    while (!imgs[currentIndex].src || imgs[currentIndex].src.endsWith('/')) {
+      currentIndex--;
+      if (currentIndex < 0) currentIndex = imgs.length - 1;
+    }
+    bigImg.src = imgs[currentIndex].src;
+    loadingTip.style.display = "block";
+    bigImg.onload = () => {
+      loadingTip.style.display = "none";
+      setTimeout(syncCanvasPosition, 100);
+    };
+  }
+  function nextImg() {
+    resetImgTransform();
+    clearDrawCanvas();
+    currentIndex++;
+    if (currentIndex >= imgs.length) currentIndex = 0;
+    while (!imgs[currentIndex].src || imgs[currentIndex].src.endsWith('/')) {
+      currentIndex++;
+      if (currentIndex >= imgs.length) currentIndex = 0;
+    }
+    bigImg.src = imgs[currentIndex].src;
+    loadingTip.style.display = "block";
+    bigImg.onload = () => {
+      loadingTip.style.display = "none";
+      setTimeout(syncCanvasPosition, 100);
+    };
+  }
+  closeBtn.onclick = closeModal;
+  prevBtn.onclick = prevImg;
+  nextBtn.onclick = nextImg;
+  modal.onclick = (e) => {
+    if (e.target === modal || e.target.classList.contains("modal-content")) closeModal();
+  };
+  document.addEventListener("keydown", e => {
+    if (!modal.classList.contains("active")) return;
+    if (e.key === "Escape") closeModal();
+    if (e.key === "ArrowLeft") prevImg();
+    if (e.key === "ArrowRight") nextImg();
+  });
+  bigImg.addEventListener("wheel", e => {
+    e.preventDefault();
+    const zoomSpeed = 0.07;
+    const oldScale = scale;
+    scale += e.deltaY < 0 ? zoomSpeed : -zoomSpeed;
+    scale = Math.max(0.4, Math.min(4, scale));
+    const rect = bigImg.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    offsetX -= mouseX * (scale - oldScale);
+    offsetY -= mouseY * (scale - oldScale);
+    updateImgTransform();
+  });
+  bigImg.addEventListener("mousedown", e => {
+    if (drawMode) return;
+    isDrag = true;
+    dragStartX = e.clientX - offsetX;
+    dragStartY = e.clientY - offsetY;
+  });
+  document.addEventListener("mousemove", e => {
+    if (!isDrag || drawMode) return;
+    offsetX = e.clientX - dragStartX;
+    offsetY = e.clientY - dragStartY;
+    updateImgTransform();
+  });
+  document.addEventListener("mouseup", () => isDrag = false);
+  bigImg.addEventListener("dblclick", resetImgTransform);
+  bigImg.addEventListener("touchstart", e => {
+    if (drawMode) return;
+    if (e.touches.length === 1) {
+      isDrag = true;
+      dragStartX = e.touches[0].clientX - offsetX;
+      dragStartY = e.touches[0].clientY - offsetY;
+    } else if (e.touches.length === 2) {
+      isDrag = false;
+      const t1 = e.touches[0], t2 = e.touches[1];
+      touchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      touchCenterX = (t1.clientX + t2.clientX) / 2;
+      touchCenterY = (t1.clientY + t2.clientY) / 2;
+    }
+  });
+  bigImg.addEventListener("touchmove", e => {
+    if (drawMode) return;
+    e.preventDefault();
+    if (e.touches.length === 1 && isDrag) {
+      offsetX = e.touches[0].clientX - dragStartX;
+      offsetY = e.touches[0].clientY - dragStartY;
+      updateImgTransform();
+    } else if (e.touches.length === 2) {
+      const t1 = e.touches[0], t2 = e.touches[1];
+      const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      const oldScale = scale;
+      scale += (dist - touchStartDist) * 0.0012;
+      scale = Math.max(0.4, Math.min(4, scale));
+      offsetX -= (touchCenterX - (t1.clientX + t2.clientX) / 2) * (scale - oldScale);
+      offsetY -= (touchCenterY - (t1.clientY + t2.clientY) / 2) * (scale - oldScale);
+      touchStartDist = dist;
+      touchCenterX = (t1.clientX + t2.clientX) / 2;
+      touchCenterY = (t1.clientY + t2.clientY) / 2;
+      updateImgTransform();
+    }
+  });
+  bigImg.addEventListener("touchend", () => isDrag = false);
+
+  function drawStart(x, y) {
+    isDrawing = true;
+    lastDrawX = x;
+    lastDrawY = y;
+    drawCtx.beginPath();
+    drawCtx.moveTo(x, y);
+    if (isEraser) {
+      drawCtx.globalCompositeOperation = "destination-out";
+      drawCtx.lineWidth = lineWidth * 3;
+    } else {
+      drawCtx.globalCompositeOperation = "source-over";
+      drawCtx.strokeStyle = drawColor;
+      drawCtx.lineWidth = lineWidth;
+    }
+  }
+  function drawMove(x, y) {
+    if (!isDrawing) return;
+    drawCtx.lineTo(x, y);
+    drawCtx.stroke();
+    lastDrawX = x;
+    lastDrawY = y;
+  }
+  function drawEnd() {
+    if (!isDrawing) return;
+    isDrawing = false;
+    drawHistory.push(drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height));
+  }
+  const touchOpt = { passive: false };
+  drawCanvas.addEventListener("touchstart", e => {
+    if (!drawMode) return;
+    e.preventDefault();
+    const p = getDrawGlobalPos(e.touches[0].clientX, e.touches[0].clientY);
+    drawStart(p.x, p.y);
+  }, touchOpt);
+  drawCanvas.addEventListener("touchmove", e => {
+    if (!drawMode || !isDrawing) return;
+    e.preventDefault();
+    const p = getDrawGlobalPos(e.touches[0].clientX, e.touches[0].clientY);
+    drawMove(p.x, p.y);
+  }, touchOpt);
+  drawCanvas.addEventListener("touchend", drawEnd, touchOpt);
+  drawCanvas.addEventListener("touchcancel", drawEnd, touchOpt);
+  drawCanvas.addEventListener("mousedown", e => {
+    if (!drawMode) return;
+    const p = getDrawGlobalPos(e.clientX, e.clientY);
+    drawStart(p.x, p.y);
+  });
+  drawCanvas.addEventListener("mousemove", e => {
+    if (!drawMode || !isDrawing) return;
+    const p = getDrawGlobalPos(e.clientX, e.clientY);
+    drawMove(p.x, p.y);
+  });
+  drawCanvas.addEventListener("mouseup", drawEnd);
+  drawCanvas.addEventListener("mouseleave", drawEnd);
+
+  const drawTool = document.getElementById("drawTool");
+  const eraserTool = document.getElementById("eraserTool");
+  drawTool.onclick = () => {
+    if(drawMode && !isEraser){
+        drawMode = false;
+        drawCanvas.classList.remove("draw-mode");
+        drawTool.classList.remove("active");
+    }else{
+        drawMode = true;
+        drawCanvas.classList.add("draw-mode");
+        isEraser = false;
+        drawTool.classList.add("active");
+        eraserTool.classList.remove("active");
+    }
+  };
+  eraserTool.onclick = () => {
+    if(drawMode && isEraser){
+        drawMode = false;
+        drawCanvas.classList.remove("draw-mode");
+        eraserTool.classList.remove("active");
+    }else{
+        drawMode = true;
+        drawCanvas.classList.add("draw-mode");
+        isEraser = true;
+        eraserTool.classList.add("active");
+        drawTool.classList.remove("active");
+    }
+  };
+  document.querySelectorAll(".color-box").forEach(box => {
+    box.onclick = () => {
+      drawColor = box.dataset.color;
+      document.querySelectorAll(".color-box").forEach(b => b.classList.remove("active"));
+      box.classList.add("active");
+    };
+  });
+  document.getElementById("undoDraw").onclick = () => {
+    if (drawHistory.length === 0) return;
+    drawHistory.pop();
+    drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    if (drawHistory.length > 0) drawCtx.putImageData(drawHistory[drawHistory.length - 1], 0, 0);
+  };
+
+  document.getElementById("cropTool").onclick = function(){
+      cropModal.classList.add("active");
+      cropOpen = true;
+      saveEditBtn.disabled = true;
+      const img = new Image();
+      img.src = bigImg.src;
+      img.onload = function(){
+          cropCanvas.width = img.width;
+          cropCanvas.height = img.height;
+          cropCtx.drawImage(img,0,0);
+          const cw = cropCanvas.offsetWidth;
+          const ch = cropCanvas.offsetHeight;
+          const pad = Math.min(cw,ch)*0.15;
+          cropSelector.style.left = pad + "px";
+          cropSelector.style.top = pad + "px";
+          cropSelector.style.width = (cw - pad*2) + "px";
+          cropSelector.style.height = (ch - pad*2) + "px";
+      }
+  }
+  function getCropPoint(e){
+      const rect = cropCanvas.getBoundingClientRect();
+      if(e.touches){
+          return {
+              x: e.touches[0].clientX - rect.left,
+              y: e.touches[0].clientY - rect.top
+          }
+      }else{
+          return {
+              x: e.clientX - rect.left,
+              y: e.clientY - rect.top
+          }
+      }
+  }
+  function renderCropBox(start, now){
+      const canvasRect = cropCanvas.getBoundingClientRect();
+      let x1 = Math.max(0, Math.min(start.x, now.x));
+      let y1 = Math.max(0, Math.min(start.y, now.y));
+      let x2 = Math.min(canvasRect.width, Math.max(start.x, now.x));
+      let y2 = Math.min(canvasRect.height, Math.max(start.y, now.y));
+      cropSelector.style.left = x1 + "px";
+      cropSelector.style.top = y1 + "px";
+      cropSelector.style.width = (x2 - x1) + "px";
+      cropSelector.style.height = (y2 - y1) + "px";
+  }
+  cropCanvas.onmousedown = function(e){
+      cropActive = true;
+      cropStart = getCropPoint(e);
+  }
+  cropCanvas.onmousemove = function(e){
+      if(!cropActive) return;
+      renderCropBox(cropStart, getCropPoint(e));
+  }
+  cropCanvas.onmouseup = ()=> cropActive = false;
+  cropCanvas.onmouseleave = ()=> cropActive = false;
+  cropCanvas.addEventListener("touchstart",e=>{
+      e.preventDefault();
+      cropActive = true;
+      cropStart = getCropPoint(e);
+  },{passive:false});
+  cropCanvas.addEventListener("touchmove",e=>{
+      e.preventDefault();
+      if(!cropActive) return;
+      renderCropBox(cropStart, getCropPoint(e));
+  },{passive:false});
+  cropCanvas.addEventListener("touchend",()=>cropActive=false);
+  cropCanvas.addEventListener("touchcancel",()=>cropActive=false);
+  document.getElementById("cancelCrop").onclick = function(){
+      cropModal.classList.remove("active");
+      cropOpen = false;
+      saveEditBtn.disabled = false;
+  }
+  document.getElementById("confirmCrop").onclick = function(){
+      const canvasDisplay = cropCanvas.getBoundingClientRect();
+      const boxDisplay = cropSelector.getBoundingClientRect();
+      const cropX = boxDisplay.left - canvasDisplay.left;
+      const cropY = boxDisplay.top - canvasDisplay.top;
+      const cropW = boxDisplay.width;
+      const cropH = boxDisplay.height;
+      if(cropW < 20 || cropH < 20){
+          alert("裁剪区域过小，请拉大选区");
+          return;
+      }
+      const scaleX = cropCanvas.width / canvasDisplay.width;
+      const scaleY = cropCanvas.height / canvasDisplay.height;
+      const realX = cropX * scaleX;
+      const realY = cropY * scaleY;
+      const realW = cropW * scaleX;
+      const realH = cropH * scaleY;
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = realW;
+      tempCanvas.height = realH;
+      const tempCtx = tempCanvas.getContext("2d");
+      tempCtx.drawImage(
+          cropCanvas,
+          realX, realY, realW, realH,
+          0, 0, realW, realH
+      );
+      editFinalImg = tempCanvas.toDataURL("image/png");
+      cropModal.classList.remove("active");
+      cropOpen = false;
+      saveEditBtn.disabled = false;
+      openSavePreview();
+  }
+  document.getElementById("saveEdit").onclick = function() {
+    openSavePreview();
+  };
+  function openSavePreview() {
+    if(!editFinalImg){
+        const merge = document.createElement("canvas");
+        const mctx = merge.getContext("2d");
+        const img = new Image();
+        img.src = bigImg.src;
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          merge.width = img.width;
+          merge.height = img.height;
+          mctx.drawImage(img, 0, 0);
+          mctx.drawImage(drawCanvas, 0,0,img.width,img.height);
+          editFinalImg = merge.toDataURL("image/png");
+          saveImg.src = editFinalImg;
+          saveModal.classList.add("active");
+        };
+    }else{
+        saveImg.src = editFinalImg;
+        saveModal.classList.add("active");
+    }
+  }
+  document.getElementById("closeSave").onclick = () => {
+      saveModal.classList.remove("active");
+      editFinalImg = null;
+  };
 })
 </script>
 
@@ -846,453 +1318,6 @@ function toggleDark(){
   body.classList.toggle("dark");
   localStorage.setItem("siteTheme", body.classList.contains("dark") ? "dark" : "light");
 }
-const imgWrap = document.getElementById("imgList");
-const allImgs = Array.from(imgWrap.querySelectorAll(".album-item img"));
-const modal = document.getElementById('imgModal');
-const bigImg = document.getElementById('bigImg');
-const loadingTip = document.getElementById('loadingTip');
-const closeBtn = document.getElementById('closeBtn');
-const prevBtn = document.getElementById('prevBtn');
-const nextBtn = document.getElementById('nextBtn');
-const drawCanvas = document.getElementById("drawCanvas");
-const drawCtx = drawCanvas.getContext("2d");
-const cropModal = document.getElementById("cropModal");
-const cropCanvas = document.getElementById("cropCanvas");
-const cropCtx = cropCanvas.getContext("2d");
-const cropSelector = document.getElementById("cropSelector");
-const saveModal = document.getElementById("saveModal");
-const saveImg = document.getElementById("saveImg");
-const saveEditBtn = document.getElementById("saveEdit");
-let currentIndex = 0;
-let scale = 1;
-let offsetX = 0;
-let offsetY = 0;
-let isDrag = false;
-let dragStartX = 0, dragStartY = 0;
-let touchStartDist = 0;
-let touchCenterX = 0, touchCenterY = 0;
-let drawHistory = [];
-let isDrawing = false;
-let drawMode = false;
-let drawColor = "#ff3333";
-let lineWidth = 8;
-let isEraser = false;
-const dpr = window.devicePixelRatio || 1;
-let lastDrawX = 0, lastDrawY = 0;
-let editFinalImg = null;
-let cropOpen = false;
-let cropActive = false;
-let cropStart = {x:0,y:0};
-const lineSlider = document.getElementById("lineSlider");
-const sizeVal = document.getElementById("sizeVal");
-lineSlider.oninput = function(){
-    lineWidth = Number(this.value);
-    sizeVal.innerText = lineWidth;
-}
-function syncCanvasPosition() {
-  const imgRect = bigImg.getBoundingClientRect();
-  drawCanvas.style.left = imgRect.left + "px";
-  drawCanvas.style.top = imgRect.top + "px";
-  drawCanvas.style.width = imgRect.width + "px";
-  drawCanvas.style.height = imgRect.height + "px";
-  drawCanvas.width = imgRect.width * dpr;
-  drawCanvas.height = imgRect.height * dpr;
-  drawCtx.setTransform(1,0,0,1,0,0);
-  drawCtx.scale(dpr, dpr);
-  drawCtx.lineCap = "round";
-  drawCtx.lineJoin = "round";
-}
-function updateImgTransform() {
-  bigImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
-  syncCanvasPosition();
-}
-function resetImgTransform() {
-  scale = 1;
-  offsetX = 0;
-  offsetY = 0;
-  updateImgTransform();
-}
-function clearDrawCanvas() {
-  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-  drawHistory = [];
-}
-function getDrawGlobalPos(clientX, clientY) {
-  const canvasRect = drawCanvas.getBoundingClientRect();
-  return {
-    x: clientX - canvasRect.left,
-    y: clientY - canvasRect.top
-  };
-}
-function openPreview(index) {
-  resetImgTransform();
-  clearDrawCanvas();
-  drawMode = false;
-  drawCanvas.classList.remove("draw-mode");
-  document.querySelectorAll(".edit-bar button").forEach(b => b.classList.remove("active"));
-  document.querySelectorAll(".color-box").forEach(c => c.classList.remove("active"));
-  document.querySelector(`.color-box[data-color="${drawColor}"]`)?.classList.add("active");
-  cropOpen = false;
-  saveEditBtn.disabled = false;
-  currentIndex = index;
-  const targetImg = allImgs[currentIndex];
-  loadingTip.style.display = "block";
-  modal.classList.add('active');
-  document.body.classList.add("modal-open");
-  bigImg.src = targetImg.src;
-  bigImg.onload = () => {
-    loadingTip.style.display = "none";
-    setTimeout(syncCanvasPosition, 100);
-  };
-}
-function closeModal() {
-  modal.classList.remove('active');
-  document.body.classList.remove("modal-open");
-  bigImg.src = "";
-  clearDrawCanvas();
-  drawMode = false;
-  drawCanvas.classList.remove("draw-mode");
-}
-function prevImg() {
-  resetImgTransform();
-  clearDrawCanvas();
-  currentIndex--;
-  if (currentIndex < 0) currentIndex = allImgs.length - 1;
-  while (!allImgs[currentIndex].src || allImgs[currentIndex].src.endsWith('/')) {
-    currentIndex--;
-    if (currentIndex < 0) currentIndex = allImgs.length - 1;
-  }
-  bigImg.src = allImgs[currentIndex].src;
-  loadingTip.style.display = "block";
-  bigImg.onload = () => {
-    loadingTip.style.display = "none";
-    setTimeout(syncCanvasPosition, 100);
-  };
-}
-function nextImg() {
-  resetImgTransform();
-  clearDrawCanvas();
-  currentIndex++;
-  if (currentIndex >= allImgs.length) currentIndex = 0;
-  while (!allImgs[currentIndex].src || allImgs[currentIndex].src.endsWith('/')) {
-    currentIndex++;
-    if (currentIndex >= allImgs.length) currentIndex = 0;
-  }
-  bigImg.src = allImgs[currentIndex].src;
-  loadingTip.style.display = "block";
-  bigImg.onload = () => {
-    loadingTip.style.display = "none";
-    setTimeout(syncCanvasPosition, 100);
-  };
-}
-closeBtn.onclick = closeModal;
-prevBtn.onclick = prevImg;
-nextBtn.onclick = nextImg;
-modal.onclick = (e) => {
-  if (e.target === modal || e.target.classList.contains("modal-content")) closeModal();
-};
-document.addEventListener("keydown", e => {
-  if (!modal.classList.contains("active")) return;
-  if (e.key === "Escape") closeModal();
-  if (e.key === "ArrowLeft") prevImg();
-  if (e.key === "ArrowRight") nextImg();
-});
-bigImg.addEventListener("wheel", e => {
-  e.preventDefault();
-  const zoomSpeed = 0.07;
-  const oldScale = scale;
-  scale += e.deltaY < 0 ? zoomSpeed : -zoomSpeed;
-  scale = Math.max(0.4, Math.min(4, scale));
-  const rect = bigImg.getBoundingClientRect();
-  const mouseX = e.clientX - rect.left;
-  const mouseY = e.clientY - rect.top;
-  offsetX -= mouseX * (scale - oldScale);
-  offsetY -= mouseY * (scale - oldScale);
-  updateImgTransform();
-});
-bigImg.addEventListener("mousedown", e => {
-  if (drawMode) return;
-  isDrag = true;
-  dragStartX = e.clientX - offsetX;
-  dragStartY = e.clientY - offsetY;
-});
-document.addEventListener("mousemove", e => {
-  if (!isDrag || drawMode) return;
-  offsetX = e.clientX - dragStartX;
-  offsetY = e.clientY - dragStartY;
-  updateImgTransform();
-});
-document.addEventListener("mouseup", () => isDrag = false);
-bigImg.addEventListener("dblclick", resetImgTransform);
-bigImg.addEventListener("touchstart", e => {
-  if (drawMode) return;
-  if (e.touches.length === 1) {
-    isDrag = true;
-    dragStartX = e.touches[0].clientX - offsetX;
-    dragStartY = e.touches[0].clientY - offsetY;
-  } else if (e.touches.length === 2) {
-    isDrag = false;
-    const t1 = e.touches[0], t2 = e.touches[1];
-    touchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-    touchCenterX = (t1.clientX + t2.clientX) / 2;
-    touchCenterY = (t1.clientY + t2.clientY) / 2;
-  }
-});
-bigImg.addEventListener("touchmove", e => {
-  if (drawMode) return;
-  e.preventDefault();
-  if (e.touches.length === 1 && isDrag) {
-    offsetX = e.touches[0].clientX - dragStartX;
-    offsetY = e.touches[0].clientY - dragStartY;
-    updateImgTransform();
-  } else if (e.touches.length === 2) {
-    const t1 = e.touches[0], t2 = e.touches[1];
-    const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-    const oldScale = scale;
-    scale += (dist - touchStartDist) * 0.0012;
-    scale = Math.max(0.4, Math.min(4, scale));
-    offsetX -= (touchCenterX - (t1.clientX + t2.clientX) / 2) * (scale - oldScale);
-    offsetY -= (touchCenterY - (t1.clientY + t2.clientY) / 2) * (scale - oldScale);
-    touchStartDist = dist;
-    touchCenterX = (t1.clientX + t2.clientX) / 2;
-    touchCenterY = (t1.clientY + t2.clientY) / 2;
-    updateImgTransform();
-  }
-});
-bigImg.addEventListener("touchend", () => isDrag = false);
-function drawStart(x, y) {
-  isDrawing = true;
-  lastDrawX = x;
-  lastDrawY = y;
-  drawCtx.beginPath();
-  drawCtx.moveTo(x, y);
-  if (isEraser) {
-    drawCtx.globalCompositeOperation = "destination-out";
-    drawCtx.lineWidth = lineWidth * 3;
-  } else {
-    drawCtx.globalCompositeOperation = "source-over";
-    drawCtx.strokeStyle = drawColor;
-    drawCtx.lineWidth = lineWidth;
-  }
-}
-function drawMove(x, y) {
-  if (!isDrawing) return;
-  drawCtx.lineTo(x, y);
-  drawCtx.stroke();
-  lastDrawX = x;
-  lastDrawY = y;
-}
-function drawEnd() {
-  if (!isDrawing) return;
-  isDrawing = false;
-  drawHistory.push(drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height));
-}
-const touchOpt = { passive: false };
-drawCanvas.addEventListener("touchstart", e => {
-  if (!drawMode) return;
-  e.preventDefault();
-  const p = getDrawGlobalPos(e.touches[0].clientX, e.touches[0].clientY);
-  drawStart(p.x, p.y);
-}, touchOpt);
-drawCanvas.addEventListener("touchmove", e => {
-  if (!drawMode || !isDrawing) return;
-  e.preventDefault();
-  const p = getDrawGlobalPos(e.touches[0].clientX, e.touches[0].clientY);
-  drawMove(p.x, p.y);
-}, touchOpt);
-drawCanvas.addEventListener("touchend", drawEnd, touchOpt);
-drawCanvas.addEventListener("touchcancel", drawEnd, touchOpt);
-drawCanvas.addEventListener("mousedown", e => {
-  if (!drawMode) return;
-  const p = getDrawGlobalPos(e.clientX, e.clientY);
-  drawStart(p.x, p.y);
-});
-drawCanvas.addEventListener("mousemove", e => {
-  if (!drawMode || !isDrawing) return;
-  const p = getDrawGlobalPos(e.clientX, e.clientY);
-  drawMove(p.x, p.y);
-});
-drawCanvas.addEventListener("mouseup", drawEnd);
-drawCanvas.addEventListener("mouseleave", drawEnd);
-const drawTool = document.getElementById("drawTool");
-const eraserTool = document.getElementById("eraserTool");
-drawTool.onclick = () => {
-  if(drawMode && !isEraser){
-      drawMode = false;
-      drawCanvas.classList.remove("draw-mode");
-      drawTool.classList.remove("active");
-  }else{
-      drawMode = true;
-      drawCanvas.classList.add("draw-mode");
-      isEraser = false;
-      drawTool.classList.add("active");
-      eraserTool.classList.remove("active");
-  }
-};
-eraserTool.onclick = () => {
-  if(drawMode && isEraser){
-      drawMode = false;
-      drawCanvas.classList.remove("draw-mode");
-      eraserTool.classList.remove("active");
-  }else{
-      drawMode = true;
-      drawCanvas.classList.add("draw-mode");
-      isEraser = true;
-      eraserTool.classList.add("active");
-      drawTool.classList.remove("active");
-  }
-};
-document.querySelectorAll(".color-box").forEach(box => {
-  box.onclick = () => {
-    drawColor = box.dataset.color;
-    document.querySelectorAll(".color-box").forEach(b => b.classList.remove("active"));
-    box.classList.add("active");
-  };
-});
-document.getElementById("undoDraw").onclick = () => {
-  if (drawHistory.length === 0) return;
-  drawHistory.pop();
-  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-  if (drawHistory.length > 0) drawCtx.putImageData(drawHistory[drawHistory.length - 1], 0, 0);
-};
-document.getElementById("cropTool").onclick = function(){
-    cropModal.classList.add("active");
-    cropOpen = true;
-    saveEditBtn.disabled = true;
-    const img = new Image();
-    img.src = bigImg.src;
-    img.onload = function(){
-        cropCanvas.width = img.width;
-        cropCanvas.height = img.height;
-        cropCtx.drawImage(img,0,0);
-        const cw = cropCanvas.offsetWidth;
-        const ch = cropCanvas.offsetHeight;
-        const pad = Math.min(cw,ch)*0.15;
-        cropSelector.style.left = pad + "px";
-        cropSelector.style.top = pad + "px";
-        cropSelector.style.width = (cw - pad*2) + "px";
-        cropSelector.style.height = (ch - pad*2) + "px";
-    }
-}
-function getCropPoint(e){
-    const rect = cropCanvas.getBoundingClientRect();
-    if(e.touches){
-        return {
-            x: e.touches[0].clientX - rect.left,
-            y: e.touches[0].clientY - rect.top
-        }
-    }else{
-        return {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top
-        }
-    }
-}
-function renderCropBox(start, now){
-    const canvasRect = cropCanvas.getBoundingClientRect();
-    let x1 = Math.max(0, Math.min(start.x, now.x));
-    let y1 = Math.max(0, Math.min(start.y, now.y));
-    let x2 = Math.min(canvasRect.width, Math.max(start.x, now.x));
-    let y2 = Math.min(canvasRect.height, Math.max(start.y, now.y));
-    cropSelector.style.left = x1 + "px";
-    cropSelector.style.top = y1 + "px";
-    cropSelector.style.width = (x2 - x1) + "px";
-    cropSelector.style.height = (y2 - y1) + "px";
-}
-cropCanvas.onmousedown = function(e){
-    cropActive = true;
-    cropStart = getCropPoint(e);
-}
-cropCanvas.onmousemove = function(e){
-    if(!cropActive) return;
-    renderCropBox(cropStart, getCropPoint(e));
-}
-cropCanvas.onmouseup = ()=> cropActive = false;
-cropCanvas.onmouseleave = ()=> cropActive = false;
-cropCanvas.addEventListener("touchstart",e=>{
-    e.preventDefault();
-    cropActive = true;
-    cropStart = getCropPoint(e);
-},{passive:false});
-cropCanvas.addEventListener("touchmove",e=>{
-    e.preventDefault();
-    if(!cropActive) return;
-    renderCropBox(cropStart, getCropPoint(e));
-},{passive:false});
-cropCanvas.addEventListener("touchend",()=>cropActive=false);
-cropCanvas.addEventListener("touchcancel",()=>cropActive=false);
-document.getElementById("cancelCrop").onclick = function(){
-    cropModal.classList.remove("active");
-    cropOpen = false;
-    saveEditBtn.disabled = false;
-}
-document.getElementById("confirmCrop").onclick = function(){
-    const canvasDisplay = cropCanvas.getBoundingClientRect();
-    const boxDisplay = cropSelector.getBoundingClientRect();
-    const cropX = boxDisplay.left - canvasDisplay.left;
-    const cropY = boxDisplay.top - canvasDisplay.top;
-    const cropW = boxDisplay.width;
-    const cropH = boxDisplay.height;
-    if(cropW < 20 || cropH < 20){
-        alert("裁剪区域过小，请拉大选区");
-        return;
-    }
-    const scaleX = cropCanvas.width / canvasDisplay.width;
-    const scaleY = cropCanvas.height / canvasDisplay.height;
-    const realX = cropX * scaleX;
-    const realY = cropY * scaleY;
-    const realW = cropW * scaleX;
-    const realH = cropH * scaleY;
-    const tempCanvas = document.createElement("canvas");
-    tempCanvas.width = realW;
-    tempCanvas.height = realH;
-    const tempCtx = tempCanvas.getContext("2d");
-    tempCtx.drawImage(
-        cropCanvas,
-        realX, realY, realW, realH,
-        0, 0, realW, realH
-    );
-    editFinalImg = tempCanvas.toDataURL("image/png");
-    cropModal.classList.remove("active");
-    cropOpen = false;
-    saveEditBtn.disabled = false;
-    openSavePreview();
-}
-document.getElementById("saveEdit").onclick = function() {
-  openSavePreview();
-};
-function openSavePreview() {
-  if(!editFinalImg){
-      const merge = document.createElement("canvas");
-      const mctx = merge.getContext("2d");
-      const img = new Image();
-      img.src = bigImg.src;
-      img.crossOrigin = "anonymous";
-      img.onload = () => {
-        merge.width = img.width;
-        merge.height = img.height;
-        mctx.drawImage(img, 0, 0);
-        mctx.drawImage(drawCanvas, 0,0,img.width,img.height);
-        editFinalImg = merge.toDataURL("image/png");
-        saveImg.src = editFinalImg;
-        saveModal.classList.add("active");
-      };
-  }else{
-      saveImg.src = editFinalImg;
-      saveModal.classList.add("active");
-  }
-}
-document.getElementById("closeSave").onclick = () => {
-    saveModal.classList.remove("active");
-    editFinalImg = null;
-};
-allImgs.forEach((img, idx) => {
-  if (!img.src || img.src.endsWith('/')) {
-    img.style.cursor = "default";
-    img.style.opacity = "0.35";
-    return;
-  }
-  img.onclick = () => openPreview(idx);
-});
 const backTopBtn = document.getElementById("backTopBtn");
 backTopBtn.onmouseover = ()=> backTopBtn.style.background="linear-gradient(135deg,var(--primary-deep),var(--pink-deep))";
 backTopBtn.onmouseout = ()=> backTopBtn.style.background="linear-gradient(135deg,var(--primary),var(--pink))";
