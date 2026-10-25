@@ -172,7 +172,7 @@
             transform: translateY(-2px) scale(0.97);
         }
 
-        /* ====== 原版网格布局，img直接作为网格单元，不再套div破坏排版 ====== */
+        /* 原版网格布局，img直接作为网格单元 */
         .album-container{
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -201,7 +201,7 @@
             transform: translateY(-6px) scale(1.05);
             box-shadow: var(--shadow-hover);
         }
-        /* 爱心容器：图片的后续兄弟元素，不参与网格，放在图片下方 */
+        /* 爱心按钮，图片后面兄弟元素，不参与网格 */
         .like-wrap{
             margin-top:4px;
             margin-bottom:8px;
@@ -492,7 +492,7 @@
     </header>
 
     <div class="settings-card">
-        <h3>显示设置</h3>
+        <h3>🌓 显示设置</h3>
         <div class="theme-btn-group">
             <button class="btn-darkmode" onclick="toggleDark()">🌙 深色 / 浅色</button>
         </div>
@@ -751,9 +751,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const imgs = Array.from(albumBox.querySelectorAll('img'));
 
   const photoList = [];
-  imgs.forEach(img => {
+  imgs.forEach((img, realIndex) => {
     const photoId = img.src;
-    // 在img后面插入爱心DOM，不破坏网格布局！！！
+    // 在图片后面插入爱心DOM，不破坏网格
     const likeWrap = document.createElement('div');
     likeWrap.className = 'like-wrap';
     const likeBtn = document.createElement('button');
@@ -770,31 +770,27 @@ document.addEventListener('DOMContentLoaded', async () => {
       photoId,
       btn: likeBtn,
       countEl: countText,
-      domImg: img
+      domImg: img,
+      idx: realIndex
     });
-  })
 
-  // 绑定图片点击预览事件
-  imgs.forEach((img, idx) => {
+    // 直接绑定点击事件，保存DOM引用，不再依靠错位索引
     if (!img.src || img.src.endsWith('/')) {
       img.style.cursor = "default";
       img.style.opacity = "0.35";
-      return;
+    }else{
+      img.onclick = ()=> openPreviewByDom(img, realIndex);
     }
-    img.onclick = () => openPreview(idx);
-  });
+  })
 
-  // ==========【批量查询】只2次请求，解决大量图片卡顿限流 ==========
+  // ==========批量查询点赞，仅2次请求 ==========
   const {data:{user}} = await supabase.auth.getUser();
   const userId = user?.id;
-  const allPhotoIds = photoList.map(p=>p.photoId);
 
-  // 1.一次性拿到全部点赞记录
+  //全部点赞记录
   const { data: allLikesRaw } = await supabase
     .from('photo_likes')
     .select('photo_id');
-
-  // 统计每张图点赞总数
   const countMap = {};
   if(allLikesRaw){
     allLikesRaw.forEach(row=>{
@@ -803,7 +799,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     })
   }
 
-  //2. 如果登录，拿当前用户所有点赞过的图片
+  //当前登录用户点赞
   const myLikedSet = new Set();
   if(userId){
     const {data:myLikesRaw} = await supabase
@@ -815,7 +811,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // 渲染全部爱心与数字
+  //渲染爱心
   photoList.forEach(item=>{
     const {photoId, btn, countEl} = item;
     countEl.innerText = countMap[photoId]||0;
@@ -829,7 +825,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }else{
       btn.disabled = true;
     }
-
     btn.onclick = async ()=>{
       if(!userId) return;
       const isLiked = btn.classList.contains('red');
@@ -856,7 +851,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   })
 
-  // ============ 下面全部是画笔、预览、裁剪逻辑，原样保留 ============
+  //===== 预览、画笔、裁剪全部逻辑 =====
   const modal = document.getElementById('imgModal');
   const bigImg = document.getElementById('bigImg');
   const loadingTip = document.getElementById('loadingTip');
@@ -901,6 +896,28 @@ document.addEventListener('DOMContentLoaded', async () => {
       sizeVal.innerText = lineWidth;
   }
 
+  //修复：直接传入图片DOM，不再依赖错位数组索引
+  window.openPreviewByDom = function(imgDom, idx){
+    resetImgTransform();
+    clearDrawCanvas();
+    drawMode = false;
+    drawCanvas.classList.remove("draw-mode");
+    document.querySelectorAll(".edit-bar button").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".color-box").forEach(c => c.classList.remove("active"));
+    document.querySelector(`.color-box[data-color="${drawColor}"]`)?.classList.add("active");
+    cropOpen = false;
+    saveEditBtn.disabled = false;
+    currentIndex = idx;
+    loadingTip.style.display = "block";
+    modal.classList.add('active');
+    document.body.classList.add("modal-open");
+    bigImg.src = imgDom.src;
+    bigImg.onload = () => {
+      loadingTip.style.display = "none";
+      setTimeout(syncCanvasPosition, 100);
+    };
+  }
+
   function syncCanvasPosition() {
     const imgRect = bigImg.getBoundingClientRect();
     drawCanvas.style.left = imgRect.left + "px";
@@ -933,27 +950,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     return {
       x: clientX - canvasRect.left,
       y: clientY - canvasRect.top
-    };
-  }
-  function openPreview(index) {
-    resetImgTransform();
-    clearDrawCanvas();
-    drawMode = false;
-    drawCanvas.classList.remove("draw-mode");
-    document.querySelectorAll(".edit-bar button").forEach(b => b.classList.remove("active"));
-    document.querySelectorAll(".color-box").forEach(c => c.classList.remove("active"));
-    document.querySelector(`.color-box[data-color="${drawColor}"]`)?.classList.add("active");
-    cropOpen = false;
-    saveEditBtn.disabled = false;
-    currentIndex = index;
-    const targetImg = imgs[currentIndex];
-    loadingTip.style.display = "block";
-    modal.classList.add('active');
-    document.body.classList.add("modal-open");
-    bigImg.src = targetImg.src;
-    bigImg.onload = () => {
-      loadingTip.style.display = "none";
-      setTimeout(syncCanvasPosition, 100);
     };
   }
   function closeModal() {
