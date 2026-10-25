@@ -6,7 +6,6 @@
     <title>班级相册</title>
     <style>
         :root {
-            /* 完全跟随主页，不再内置多套彩色主题 */
             --primary-rgb:99, 102, 241;
             --primary:#6366f1;
             --primary-light:#818cf8;
@@ -172,7 +171,6 @@
             transform: translateY(-2px) scale(0.97);
         }
 
-        /* 原版网格布局，img直接作为网格单元 */
         .album-container{
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -201,7 +199,6 @@
             transform: translateY(-6px) scale(1.05);
             box-shadow: var(--shadow-hover);
         }
-        /* 爱心按钮，图片后面兄弟元素，不参与网格 */
         .like-wrap{
             margin-top:4px;
             margin-bottom:8px;
@@ -739,15 +736,16 @@
         <span style="width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-bottom:18px solid #fff;"></span>
     </button>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" async></script>
 <script>
-const SUPABASE_URL = "https://joqqxqzhdhqhcmnbdnex.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_Vj7vzrM66ieR8Yx11CgfsQ_45Y1o35O";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+(function(){
+  'use strict';
+  const SUPABASE_URL = "https://joqqxqzhdhqhcmnbdnex.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_Vj7vzrM66ieR8Yx11CgfsQ_45Y1o35O";
 
-document.addEventListener('DOMContentLoaded', async () => {
+  // ================= 核心：相册预览（完全不依赖 supabase，点击一定可用） =================
   const albumBox = document.querySelector('.album-container');
-  if(!albumBox) return;
+  if (!albumBox) return;
   const imgs = Array.from(albumBox.querySelectorAll('img'));
 
   const photoList = [];
@@ -774,82 +772,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       idx: realIndex
     });
 
-    // 直接绑定点击事件，保存DOM引用，不再依靠错位索引
+    // 直接绑定点击事件（核心修复：这条不依赖任何外部库，必定生效）
     if (!img.src || img.src.endsWith('/')) {
       img.style.cursor = "default";
       img.style.opacity = "0.35";
-    }else{
-      img.onclick = ()=> openPreviewByDom(img, realIndex);
+    } else {
+      img.onclick = function(){ openPreview(img, realIndex); };
     }
-  })
-
-  // ==========批量查询点赞，仅2次请求 ==========
-  const {data:{user}} = await supabase.auth.getUser();
-  const userId = user?.id;
-
-  //全部点赞记录
-  const { data: allLikesRaw } = await supabase
-    .from('photo_likes')
-    .select('photo_id');
-  const countMap = {};
-  if(allLikesRaw){
-    allLikesRaw.forEach(row=>{
-      if(!countMap[row.photo_id]) countMap[row.photo_id]=0;
-      countMap[row.photo_id]++;
-    })
-  }
-
-  //当前登录用户点赞
-  const myLikedSet = new Set();
-  if(userId){
-    const {data:myLikesRaw} = await supabase
-      .from('photo_likes')
-      .select('photo_id')
-      .eq('user_id', userId);
-    if(myLikesRaw){
-      myLikesRaw.forEach(r=> myLikedSet.add(r.photo_id));
-    }
-  }
-
-  //渲染爱心
-  photoList.forEach(item=>{
-    const {photoId, btn, countEl} = item;
-    countEl.innerText = countMap[photoId]||0;
-    if(userId){
-      if(myLikedSet.has(photoId)){
-        btn.classList.remove('gray');
-        btn.classList.add('red');
-        btn.innerText = '♥';
-      }
-      btn.disabled = false;
-    }else{
-      btn.disabled = true;
-    }
-    btn.onclick = async ()=>{
-      if(!userId) return;
-      const isLiked = btn.classList.contains('red');
-      if(isLiked){
-        await supabase.from('photo_likes').delete()
-          .eq('photo_id', photoId)
-          .eq('user_id', userId);
-        btn.classList.remove('red');
-        btn.classList.add('gray');
-        btn.innerText = '♡';
-        countEl.innerText = Number(countEl.innerText)-1;
-      }else{
-        const {error} = await supabase.from('photo_likes').insert({
-          photo_id: photoId,
-          user_id: userId
-        })
-        if(!error){
-          btn.classList.remove('gray');
-          btn.classList.add('red');
-          btn.innerText = '♥';
-          countEl.innerText = Number(countEl.innerText)+1;
-        }
-      }
-    }
-  })
+  });
 
   //===== 预览、画笔、裁剪全部逻辑 =====
   const modal = document.getElementById('imgModal');
@@ -896,8 +826,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       sizeVal.innerText = lineWidth;
   }
 
-  //修复：直接传入图片DOM，不再依赖错位数组索引
-  window.openPreviewByDom = function(imgDom, idx){
+  function openPreview(imgDom, idx){
     resetImgTransform();
     clearDrawCanvas();
     drawMode = false;
@@ -1296,7 +1225,89 @@ document.addEventListener('DOMContentLoaded', async () => {
       saveModal.classList.remove("active");
       editFinalImg = null;
   };
-})
+
+  // ================= 点赞功能（依赖 supabase，容错初始化，不影响其他功能） =================
+  function initLikes() {
+    try {
+      if (!window.supabase) { console.warn("Supabase 未加载，点赞功能不可用"); return; }
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      (async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user?.id;
+
+        const { data: allLikesRaw } = await supabase
+          .from('photo_likes')
+          .select('photo_id');
+        const countMap = {};
+        if (allLikesRaw) {
+          allLikesRaw.forEach(row => {
+            if (!countMap[row.photo_id]) countMap[row.photo_id] = 0;
+            countMap[row.photo_id]++;
+          });
+        }
+
+        const myLikedSet = new Set();
+        if (userId) {
+          const { data: myLikesRaw } = await supabase
+            .from('photo_likes')
+            .select('photo_id')
+            .eq('user_id', userId);
+          if (myLikesRaw) myLikesRaw.forEach(r => myLikedSet.add(r.photo_id));
+        }
+
+        photoList.forEach(item => {
+          const { photoId, btn, countEl } = item;
+          countEl.innerText = countMap[photoId] || 0;
+          if (userId) {
+            if (myLikedSet.has(photoId)) {
+              btn.classList.remove('gray');
+              btn.classList.add('red');
+              btn.innerText = '♥';
+            }
+            btn.disabled = false;
+          } else {
+            btn.disabled = true;
+          }
+          btn.onclick = async () => {
+            if (!userId) return;
+            const isLiked = btn.classList.contains('red');
+            if (isLiked) {
+              await supabase.from('photo_likes').delete()
+                .eq('photo_id', photoId)
+                .eq('user_id', userId);
+              btn.classList.remove('red');
+              btn.classList.add('gray');
+              btn.innerText = '♡';
+              countEl.innerText = Number(countEl.innerText) - 1;
+            } else {
+              const { error } = await supabase.from('photo_likes').insert({
+                photo_id: photoId,
+                user_id: userId
+              });
+              if (!error) {
+                btn.classList.remove('gray');
+                btn.classList.add('red');
+                btn.innerText = '♥';
+                countEl.innerText = Number(countEl.innerText) + 1;
+              }
+            }
+          };
+        });
+      })().catch(e => console.warn("点赞数据加载失败：", e));
+    } catch(e) {
+      console.warn("点赞初始化失败：", e);
+    }
+  }
+
+  // 等 supabase 就绪后再初始化点赞（核心修复：它挂掉也不影响预览）
+  if (window.supabase) {
+    initLikes();
+  } else {
+    window.addEventListener('load', function(){
+      if (window.supabase) initLikes();
+    });
+  }
+})();
 </script>
 
 <script>
@@ -1324,9 +1335,11 @@ window.addEventListener("scroll", () => {
 backTopBtn.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
 if(isWeChatBrowser()){
   const modalWrap = document.querySelector(".modal-content");
-  modalWrap.addEventListener("touchmove", e=>{
-    if(e.touches.length === 1) e.preventDefault();
-  },{passive:false})
+  if(modalWrap){
+    modalWrap.addEventListener("touchmove", e=>{
+      if(e.touches.length === 1) e.preventDefault();
+    },{passive:false})
+  }
 }
 </script>
 </body>
