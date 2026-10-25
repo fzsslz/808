@@ -199,38 +199,51 @@
             transform: translateY(-6px) scale(1.05);
             box-shadow: var(--shadow-hover);
         }
+               /* 照片外壳，作为爱心定位的参照 */
+        .photo-wrap{
+            position: relative;
+        }
+        /* 爱心角标：浮在图片右下角，半透明小圆角 */
         .like-wrap{
-            margin-top:4px;
-            margin-bottom:8px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            gap:6px;
+            position: absolute;
+            right: 6px;
+            bottom: 6px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            background: rgba(0,0,0,0.45);
+            border-radius: 999px;
+            padding: 2px 8px;
+            backdrop-filter: blur(4px);
+            z-index: 5;
         }
         .like-btn{
-            font-size:22px;
+            font-size:14px;
             cursor:pointer;
             user-select:none;
             border:none;
             background:transparent;
             padding:0;
+            line-height:1;
         }
         .like-btn.gray{
-            color:#999;
+            color:#ccc;
         }
         .like-btn.red{
-            color:#ef4444;
+            color:#ff5b5b;
         }
         .like-btn:disabled{
             cursor:not-allowed;
             opacity:0.5;
         }
         .like-count{
-            font-size:14px;
-            color:#444;
+            font-size:11px;
+            color:#fff;
         }
         body.dark .like-count{
-            color:#ddd;
+            color:#fff;
         }
 
         .modal {
@@ -749,9 +762,16 @@
   const imgs = Array.from(albumBox.querySelectorAll('img'));
 
   const photoList = [];
-  imgs.forEach((img, realIndex) => {
+   imgs.forEach((img, realIndex) => {
     const photoId = img.src;
-    // 在图片后面插入爱心DOM，不破坏网格
+
+    // 把图片包进一个 wrapper，让爱心能浮在图片角落
+    const wrap = document.createElement('div');
+    wrap.className = 'photo-wrap';
+    img.before(wrap);
+    wrap.appendChild(img);
+
+    // 在图片后面插入小爱心角标
     const likeWrap = document.createElement('div');
     likeWrap.className = 'like-wrap';
     const likeBtn = document.createElement('button');
@@ -762,7 +782,7 @@
     countText.innerText = '0';
     likeWrap.appendChild(likeBtn);
     likeWrap.appendChild(countText);
-    img.after(likeWrap);
+    wrap.appendChild(likeWrap);
 
     photoList.push({
       photoId,
@@ -772,14 +792,13 @@
       idx: realIndex
     });
 
-    // 直接绑定点击事件（核心修复：这条不依赖任何外部库，必定生效）
     if (!img.src || img.src.endsWith('/')) {
       img.style.cursor = "default";
       img.style.opacity = "0.35";
     } else {
       img.onclick = function(){ openPreview(img, realIndex); };
     }
-  });
+  })
 
   //===== 预览、画笔、裁剪全部逻辑 =====
   const modal = document.getElementById('imgModal');
